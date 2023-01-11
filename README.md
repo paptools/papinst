@@ -1,3 +1,4 @@
-# compiler-wrapper
+# wrapper
 
-Compiler command wrapper.
+A scriptable compile command wrapper.
+
