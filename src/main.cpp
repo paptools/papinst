@@ -1,6 +1,7 @@
 #include "wrapper/logger.h"
 #include "wrapper/program_options.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -29,12 +30,11 @@ int main(int argc, char **argv) {
       return options->early_exit_code.value();
     }
 
-    logger->Info("wrapping command \"" + ToString(options->command) + "\"");
-
+    std::string command = ToString(options->command);
+    logger->Info("wrapping command \"" + command + "\"");
+    return std::system(command.c_str());
   } catch (std::exception const &e) {
     logger->Error(e.what());
     return EXIT_FAILURE;
   }
-
-  return EXIT_SUCCESS;
 }
