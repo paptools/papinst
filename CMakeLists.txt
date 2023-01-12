@@ -23,6 +23,7 @@ include("cmake/FindGoogleTest.cmake")
 # Wrapper Library.
 
 add_library(wrapper
+  "src/logger.cpp"
   "src/program_options.cpp"
 )
 
@@ -56,6 +57,7 @@ enable_testing()
 
 add_executable(unit_tests
   "tests/program_options.test.cpp"
+  "tests/logger.test.cpp"
 )
 
 target_link_libraries(unit_tests
