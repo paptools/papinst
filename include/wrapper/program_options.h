@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace wrapper {
 // Represents the program options requested at invocation.
@@ -11,6 +12,7 @@ struct ProgramOptions {
 
   Status parse_status;
   std::string message;
+  std::vector<std::string> command;
 
   ProgramOptions() : parse_status(Status::Error) {}
 };
