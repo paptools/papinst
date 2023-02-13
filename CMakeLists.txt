@@ -1,69 +1,92 @@
-cmake_minimum_required(VERSION 3.25)
-project(Wrapper
-  VERSION 0.1.0
-  DESCRIPTION "A scriptable compile command wrapper."
-  LANGUAGES CXX
-)
+# Copyright (c) 2023-present, Ian Dinwoodie.
+# Distributed under the MIT License (http://opensource.org/licenses/MIT).
+
+cmake_minimum_required(VERSION 3.14)
 
 ################################################################################
-# Project Settings.
+# Project settings.
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+project(perfinst)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose Release or Debug" FORCE)
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+include(GNUInstallDirs)
 
 ################################################################################
-# Third Party Dependencies.
+# Compiler settings.
+
+# GoogleTest requires at least C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+add_definitions(-Wall -Wextra -Werror)
+
+################################################################################
+# Third party libraries.
 
 include("cmake/FindBoost.cmake")
+include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
+include("cmake/FindSpdlog.cmake")
 
 ################################################################################
-# Wrapper Library.
+# Path instrumenter library.
 
-add_library(wrapper
-  "src/logger.cpp"
-  "src/program_options.cpp"
+add_library(pathinstlib
+  "src/clang_parser.cpp"
+  "src/cli.cpp"
+  "src/instrumenter.cpp"
+  "src/parser.cpp"
+  "src/utils.cpp"
 )
 
-target_include_directories(wrapper
+target_include_directories(pathinstlib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    ${CLANG_INCLUDE_DIRS}
 )
 
-target_link_libraries(wrapper
+target_compile_definitions(pathinstlib
+  PUBLIC
+    ${CLANG_DEFINITIONS}
+)
+
+target_link_libraries(pathinstlib
   PUBLIC
     Boost::program_options
+    Boost::filesystem
+    spdlog::spdlog
+    libclang
 )
 
 ################################################################################
-# Wrapper Executable.
+# Path instrumenter executable.
 
-add_executable(wcc
-  "src/main.cpp"
+add_executable(pathinst
+  "src/pathinst.main.cpp"
 )
 
-target_link_libraries(wcc
+target_link_libraries(pathinst
   PRIVATE
-    wrapper
+    pathinstlib
 )
 
 ################################################################################
-# Project Tests.
-
-enable_testing()
+# Unit tests.
 
 add_executable(unit_tests
-  "tests/program_options.test.cpp"
-  "tests/logger.test.cpp"
+  "tests/cli.test.cpp"
 )
 
 target_link_libraries(unit_tests
   PRIVATE
-    wrapper
-    GTest::gtest_main
+    pathinstlib
+    gtest
+    gtest_main
 )
 
 include(GoogleTest)
