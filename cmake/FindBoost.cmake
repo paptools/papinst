@@ -1,15 +1,27 @@
-message(STATUS "Finding Boost (NOTE: This may take a while the first time)")
+# Copyright (c) 2023-present, Ian Dinwoodie.
+# Distributed under the MIT License (http://opensource.org/licenses/MIT).
 
-set(BOOST_ENABLE_CMAKE ON)
-set(BOOST_INCLUDE_LIBRARIES program_options)
+message(STATUS "Finding Boost")
 
-include(FetchContent)
+set(BOOST_INCLUDE_LIBRARIES program_options filesystem)
 
-FetchContent_Declare(Boost
-  GIT_REPOSITORY "https://github.com/boostorg/boost.git"
-  GIT_TAG "boost-1.80.0"
-  GIT_SHALLOW TRUE
-  #GIT_PROGRESS $FETCHCONTENT_QUIET
-)
+find_package(Boost REQUIRED CONFIG COMPONENTS ${BOOST_INCLUDE_LIBRARIES})
 
-FetchContent_MakeAvailable(Boost)
+if(NOT Boost_FOUND)
+  set(boost_version "1.80.0")
+  message(STATUS "Fetching Boost ${boost_version} (NOTE: This may take a while the first time)")
+
+  set(BOOST_ENABLE_CMAKE ON)
+
+  include(FetchContent)
+
+  FetchContent_Declare(Boost
+    GIT_REPOSITORY "https://github.com/boostorg/boost.git"
+    GIT_TAG "boost-${boost_version}"
+    GIT_SHALLOW TRUE
+  )
+
+  FetchContent_MakeAvailable(Boost)
+endif()
+
+message(STATUS "Found Boost ${Boost_VERSION}")
