@@ -1,2 +1,8 @@
-# Build directory
+# Build directory.
 build/
+
+# Python virtual environment.
+venv/
+.venv/
+env/
+.env/
