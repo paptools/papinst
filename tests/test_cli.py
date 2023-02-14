@@ -1,4 +1,5 @@
 """Collection of tests for pathinst's CLI."""
+import re
 import subprocess
 
 import pytest
@@ -45,6 +46,34 @@ def test_cli_version(version_cli_flag):
     )
     assert result.returncode == 0
     assert result.stdout == "pathinst 0.1.0\n"
+    assert result.stderr == ""
+
+
+@pytest.fixture(params=["--verbose", "-v"])
+def verbose_cli_flag(request):
+    """Pytest fixture to return each verbose flag."""
+    return request.param
+
+
+def test_cli_verbose(verbose_cli_flag):
+    """Test that invocation with the verbose flag enabled verbose logging."""
+    result = subprocess.run(
+        [utils.get_exe_path(), verbose_cli_flag, "--", "echo", "hello"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    assert result.returncode == 0
+    patterns = [
+        utils.get_debug_pattern() + r"Parsing command 'echo hello'.$",
+        utils.get_debug_pattern()
+        + r"Executable 'echo' is not a supported compiler. Skipping"
+        r" instrumentation.$",
+        utils.get_debug_pattern() + r"Executing command 'echo hello'.$",
+        r"^hello$",
+    ]
+    for idx, line in enumerate(result.stdout.splitlines()):
+        assert re.match(patterns[idx], line)
     assert result.stderr == ""
 
 
