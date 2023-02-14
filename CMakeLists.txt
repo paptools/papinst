@@ -89,9 +89,9 @@ target_link_libraries(unit_tests
     gtest_main
 )
 
-add_test(NAME integration_tests
+add_test(NAME integration_cli_tests
   COMMAND
-  pytest ${CMAKE_CURRENT_SOURCE_DIR}
+    pytest "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.py"
 )
 
 include(GoogleTest)

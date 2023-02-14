@@ -1,16 +1,12 @@
 """Collection of tests for pathinst's CLI."""
-import pathlib
 import subprocess
 
 import pytest
 
-
-def get_pathinst_bin_path():
-    """Return the path to the pathinst binary."""
-    return pathlib.Path(__file__).parent.parent / 'build' / 'pathinst'
+from tests import utils
 
 
-@pytest.fixture(params=['--help', '-h'])
+@pytest.fixture(params=["--help", "-h"])
 def help_cli_flag(request):
     """Pytest fixture to return each help flag."""
     return request.param
@@ -18,29 +14,89 @@ def help_cli_flag(request):
 
 def test_cli_help(help_cli_flag):
     """Test that invocation with the help flag displays the usage message."""
-    result = subprocess.run([get_pathinst_bin_path(), help_cli_flag],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True)
+    result = subprocess.run(
+        [utils.get_exe_path(), help_cli_flag],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
     assert result.returncode == 0
-    assert 'Usage:' in result.stdout
-    assert 'Description:' in result.stdout
-    assert 'Options:' in result.stdout
-    assert result.stderr == ''
+    assert "Usage:" in result.stdout
+    assert "Description:" in result.stdout
+    assert "Options:" in result.stdout
+    assert result.stderr == ""
 
 
-@pytest.fixture(params=['--version', '-V'])
+@pytest.fixture(params=["--version", "-V"])
 def version_cli_flag(request):
     """Pytest fixture to return each version flag."""
     return request.param
 
 
 def test_cli_version(version_cli_flag):
-    """Test that invocation with the help flag displays the usage message."""
-    result = subprocess.run([get_pathinst_bin_path(), version_cli_flag],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True)
+    """
+    Test that invocation with the version flag displays the version message.
+    """
+    result = subprocess.run(
+        [utils.get_exe_path(), version_cli_flag],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
     assert result.returncode == 0
     assert result.stdout == "pathinst 0.1.0\n"
-    assert result.stderr == ''
+    assert result.stderr == ""
+
+
+def test_cli_no_args():
+    """Test that invocation without any arguments displays the usage message."""
+    result = subprocess.run(
+        [utils.get_exe_path()],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    assert result.returncode == 1
+    assert "Usage:" in result.stdout
+    assert result.stderr == ""
+
+
+def test_cli_invalid_flag():
+    """Test that invocation with an invalid flag displays the usage message."""
+    result = subprocess.run(
+        [utils.get_exe_path(), "--invalid"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    assert result.returncode == 1
+    assert result.stdout == ""
+    assert result.stderr == "Error: unrecognised option '--invalid'\n"
+
+
+def test_cli_invalid_command():
+    """
+    Test that invocation with an invalid command displays the error message.
+    """
+    result = subprocess.run(
+        [utils.get_exe_path(), "--", "invalid"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    assert result.returncode == 127
+    assert result.stdout == ""
+    assert result.stderr == "sh: invalid: command not found\n"
+
+
+def test_cli_valid_command():
+    """Test that invocation with a valid command executes the command."""
+    result = subprocess.run(
+        [utils.get_exe_path(), "--", "echo", "hello"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    assert result.returncode == 0
+    assert result.stdout == "hello\n"
+    assert result.stderr == ""
