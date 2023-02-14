@@ -37,9 +37,14 @@ int main(int argc, char **argv) {
 
     // Execute the original command.
     std::string command = pathinst::utils::ToString(cli_options->command, ' ');
-    spdlog::debug("Executing command: " + command);
-    return std::system(command.c_str());
-
+    spdlog::debug("Executing command '" + command + "'.");
+    int exit_status = std::system(command.c_str());
+    if (exit_status < 0) {
+      std::cerr << "Error: " << strerror(errno) << std::endl;
+    } else if (WIFEXITED(exit_status)) {
+      return WEXITSTATUS(exit_status);
+    }
+    return exit_status;
   } catch (const pathinst::Exception &ex) {
     std::cerr << "Error: " << ex.what() << std::endl;
     return EXIT_FAILURE;

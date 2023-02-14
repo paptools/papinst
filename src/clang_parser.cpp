@@ -11,10 +11,11 @@
 namespace pathinst {
 void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
-  spdlog::debug("Parsing command: " + command_str);
+  spdlog::debug("Parsing command '" + command_str + "'.");
 
   if (!Parser::IsSupportedCompiler(command[0])) {
-    spdlog::debug(command[0] + " is not a supported compiler.");
+    spdlog::debug("Executable '" + command[0] +
+                  "' is not a supported compiler. Skipping instrumentation.");
     return;
   }
 
