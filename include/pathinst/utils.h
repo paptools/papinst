@@ -7,6 +7,8 @@
 namespace pathinst {
 namespace utils {
 std::string ToString(const std::vector<std::string> &v, const char sep);
+
+bool IsSourceFile(const std::string &filename);
 } // namespace utils
 } // namespace pathinst
 

@@ -16,5 +16,12 @@ std::string ToString(const std::vector<std::string> &v, const char sep) {
   }
   return s;
 }
+
+bool IsSourceFile(const std::string &filename) {
+  auto extension = filename.substr(filename.find_last_of(".") + 1);
+  return extension == "c" || extension == "cpp" || extension == "cc" ||
+         extension == "cxx" || extension == "h" || extension == "hpp" ||
+         extension == "hh" || extension == "hxx";
+}
 } // namespace utils
 } // namespace pathinst

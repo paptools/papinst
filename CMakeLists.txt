@@ -18,11 +18,11 @@ include(GNUInstallDirs)
 ################################################################################
 # Compiler settings.
 
-# GoogleTest requires at least C++11
-set(CMAKE_CXX_STANDARD 11)
+# std::enable_if requires at least C++14.
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_definitions(-Wall -Wextra -Werror)
+#add_definitions(-Wall -Wextra -Werror)
 
 ################################################################################
 # Third party libraries.
@@ -38,8 +38,12 @@ include("cmake/FindSpdlog.cmake")
 add_library(pathinstlib
   "src/clang_parser.cpp"
   "src/cli.cpp"
+  "src/consumer.cpp"
+  "src/frontend_action.cpp"
+  "src/functioncall_transformer.cpp"
   "src/instrumenter.cpp"
   "src/parser.cpp"
+  "src/transformer.cpp"
   "src/utils.cpp"
 )
 
@@ -48,19 +52,25 @@ target_include_directories(pathinstlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${CLANG_INCLUDE_DIRS}
+    ${LLVM_INCLUDE_DIRS}
 )
 
 target_compile_definitions(pathinstlib
   PUBLIC
     ${CLANG_DEFINITIONS}
+    ${LLVM_DEFINITIONS}
 )
+
+llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 target_link_libraries(pathinstlib
   PUBLIC
     Boost::program_options
     Boost::filesystem
     spdlog::spdlog
-    libclang
+    #libclang
+    clangTooling
+    ${llvm_libs}
 )
 
 ################################################################################
