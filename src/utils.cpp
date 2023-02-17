@@ -28,7 +28,7 @@ bool IsSourceFile(const std::string &filename) {
 }
 
 void CreateFileBackup(const std::string &filepath) {
-  // spdlog.debug("Creating backup of file '" + filepath + "'.");
+  spdlog::debug("Backing up file '" + filepath + "'.");
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
@@ -38,7 +38,7 @@ void CreateFileBackup(const std::string &filepath) {
 }
 
 void RestoreOriginalFile(const std::string &filepath) {
-  // spdlog.debug("Restoring original file '" + filepath + "'.");
+  spdlog::debug("Restoring original file '" + filepath + "'.");
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
