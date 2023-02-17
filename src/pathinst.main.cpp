@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     if (cli_options->verbose) {
       spdlog::set_level(spdlog::level::debug);
     }
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%P] [%^%l%$] %v");
 
     // Parse and instrument.
     pathinst::Parser parser(cli_options->dry_run);
