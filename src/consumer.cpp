@@ -16,28 +16,29 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
 
   FunctionCallTransformer fntransformer(context, rewriter);
   fntransformer.start();
-  fntransformer.print(llvm::outs());
 
   auto file_id = context.getSourceManager().getMainFileID();
   auto buffer = rewriter.getRewriteBufferFor(file_id);
+  auto file_entry = context.getSourceManager().getFileEntryForID(file_id);
   if (buffer != nullptr) {
     if (pathinst::utils::GetDryRun()) {
       buffer->write(llvm::outs());
     } else {
-      auto file_entry = context.getSourceManager().getFileEntryForID(file_id);
-      spdlog::debug("Writing to file '{}'.", std::string(file_entry->getName()));
+      spdlog::debug("Writing to file '{}'.",
+                    std::string(file_entry->getName()));
       std::error_code ec;
       llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
       if (ec) {
-        spdlog::error("Error opening file: {}", ec.message());
+        spdlog::error("Error opening file '{}'", ec.message());
         return;
       }
       buffer->write(ofs);
       if (ofs.has_error()) {
-        spdlog::error("Error writing to file: {}", ec.message());
+        spdlog::error("Error writing to file '{}'", ec.message());
       }
     }
   } else {
-    spdlog::error("Empty buffer.");
+    spdlog::debug("Nothing to write for file '{}'.",
+                  std::string(file_entry->getName()));
   }
 }

@@ -67,8 +67,8 @@ target_link_libraries(pathinstlib
   PUBLIC
     Boost::program_options
     Boost::filesystem
+    Boost::headers
     spdlog::spdlog
-    #libclang
     clangTooling
     ${llvm_libs}
 )

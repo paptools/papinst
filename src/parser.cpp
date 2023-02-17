@@ -3,6 +3,7 @@
 #include "pathinst/utils.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/process/search_path.hpp>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Tooling.h>
 #include <spdlog/spdlog.h>
@@ -16,17 +17,20 @@ Parser::Parser(bool dry_run) : dry_run_(dry_run) {}
 std::vector<std::string>
 Parser::ParseCompileCommand(const std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
-  spdlog::debug("Parsing command '" + command_str + "'.");
+  spdlog::debug("Parsing command '{}'.", command_str);
 
-  std::string compiler = command[0];
+  auto compiler = command[0];
   if (!utils::IsSupportedCompiler(compiler)) {
-    spdlog::debug("Executable '" + compiler +
-                  "' is not a supported compiler. Skipping parse.");
+    spdlog::debug(
+        "Executable '{}' is not a supported compiler. Skipping parse.",
+        compiler);
     return {};
   }
 
-  // Resolve the compiler path.
-  compiler = boost::filesystem::system_complete(compiler).string();
+  if (!boost::filesystem::exists(compiler)) {
+    compiler = boost::process::search_path(compiler).string();
+  }
+  spdlog::debug("User compiler is '{}'.", compiler);
 
   // Separate out the source files from the compiler arguments.
   std::vector<std::string> parse_args;
@@ -40,16 +44,16 @@ Parser::ParseCompileCommand(const std::vector<std::string> &command) {
   }
 
   if (source_files.empty()) {
-    spdlog::debug("No source files found in command '" +
-                  utils::ToString(command, ' ') + "'. Skipping parse.");
+    spdlog::debug("No source files found in command '{}'. Skipping parse.",
+                  command_str);
     return {};
   }
 
   utils::SetDryRun(dry_run_);
 
   for (auto &source_file : source_files) {
-    spdlog::debug("Parsing file '" + source_file + "'.");
-    spdlog::debug("Parse args: " + utils::ToString(parse_args, ' '));
+    spdlog::debug("Parsing file '{}' with args '{}'.", source_file,
+                  utils::ToString(parse_args, ' '));
 
     utils::CreateFileBackup(source_file);
     auto source_code = utils::GetFileContents(source_file);

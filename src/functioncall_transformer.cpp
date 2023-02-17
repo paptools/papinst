@@ -6,48 +6,58 @@
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <llvm/Support/raw_ostream.h>
+#include <spdlog/spdlog.h>
 
 FunctionCallTransformer::FunctionCallTransformer(clang::ASTContext &context,
                                                  clang::Rewriter &rewriter)
     : Transformer(context, rewriter) {}
 
 void FunctionCallTransformer::start(void) {
-  using namespace clang::ast_matchers;
+  clang::ast_matchers::MatchFinder function_finder;
 
-  MatchFinder functionFinder;
+  // auto call_expr_matcher = clang::ast_matchers::callExpr().bind("callExpr");
+  // function_finder.addMatcher(call_expr_matcher, this);
 
-  auto callExprMatcher = callExpr().bind("callExpr");
-  functionFinder.addMatcher(callExprMatcher, this);
+  // Add matcher for selection statements.
+  auto selection_statement_matcher =
+      clang::ast_matchers::stmt(clang::ast_matchers::anyOf(
+          clang::ast_matchers::ifStmt(), clang::ast_matchers::switchStmt()));
+  function_finder.addMatcher(selection_statement_matcher, this);
 
-  functionFinder.matchAST(context);
+  function_finder.matchAST(context);
 }
 
 void FunctionCallTransformer::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result) {
-  using namespace clang;
 
-  // CallExpr is the function call
-  // FunctionDecl is fhe function definition
-  if (const CallExpr *callExpr = result.Nodes.getNodeAs<CallExpr>("callExpr")) {
-    if (const FunctionDecl *function = callExpr->getDirectCallee()) {
-      if (result.SourceManager->isInSystemHeader(
-              function->getSourceRange().getBegin()))
-        return;
-
-      auto functionName = function->getNameAsString();
-      rewriter.InsertTextAfter(callExpr->getBeginLoc(), "fn_");
-
-      if (functions.count(functionName) == 0) {
-        // rewrite definition as well
-        rewriter.InsertTextAfter(function->getLocation(), "fn_");
-        functions.insert(function->getNameAsString());
-      }
-    }
+  if (const clang::IfStmt *if_stmt =
+          result.Nodes.getNodeAs<clang::IfStmt>("ifStmt")) {
+    spdlog::warn("Found if statement.");
   }
-}
 
-void FunctionCallTransformer::print(clang::raw_ostream &stream) {
-  for (auto &fn : functions)
-    stream << fn << "(..)\n";
+  // if (const clang::CallExpr *call_expr =
+  //         result.Nodes.getNodeAs<clang::CallExpr>("callExpr")) {
+  //   // Add a comment on the line before the function call.
+  //   rewriter.InsertTextBefore(call_expr->getBeginLoc(), "// Function call
+  // }
+
+  //// CallExpr is the function call
+  //// FunctionDecl is fhe function definition
+  // if (const clang::CallExpr *call_expr =
+  //         result.Nodes.getNodeAs<clang::CallExpr>("callExpr")) {
+  //   if (const clang::FunctionDecl *function = call_expr->getDirectCallee()) {
+  //     if (result.SourceManager->isInSystemHeader(
+  //             function->getSourceRange().getBegin()))
+  //       return;
+
+  //    auto function_name = function->getNameAsString();
+  //    rewriter.InsertTextAfter(call_expr->getBeginLoc(), "fn_");
+
+  //    if (functions.count(function_name) == 0) {
+  //      // rewrite definition as well
+  //      rewriter.InsertTextAfter(function->getLocation(), "fn_");
+  //      functions.insert(function->getNameAsString());
+  //    }
+  //  }
+  //}
 }
