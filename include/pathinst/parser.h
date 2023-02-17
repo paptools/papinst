@@ -10,7 +10,8 @@ public:
   static bool IsSupportedCompiler(const std::string &compiler);
 
   ~Parser(void) {}
-  virtual void ParseCompileCommand(const std::vector<std::string> &command) = 0;
+  virtual std::vector<std::string>
+  ParseCompileCommand(const std::vector<std::string> &command) = 0;
 };
 } // namespace pathinst
 

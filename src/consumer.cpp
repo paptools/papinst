@@ -5,8 +5,8 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
-#include <system_error>
 #include <string>
+#include <system_error>
 
 XConsumer::XConsumer(clang::ASTContext &context) {}
 
@@ -17,7 +17,8 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
   fntransformer.start();
   fntransformer.print(llvm::outs());
 
-  for (auto it = context.getSourceManager().fileinfo_begin(); it != context.getSourceManager().fileinfo_end(); ++it) {
+  for (auto it = context.getSourceManager().fileinfo_begin();
+       it != context.getSourceManager().fileinfo_end(); ++it) {
     auto file_entry = it->first;
     spdlog::debug("Entry for file {}", std::string(file_entry->getName()));
     auto buffer = rewriter.getRewriteBufferFor(

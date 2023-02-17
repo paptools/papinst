@@ -14,7 +14,8 @@ public:
   ClangParser(std::shared_ptr<Instrumenter> instrumenter)
       : instrumenter_(instrumenter) {}
 
-  void ParseCompileCommand(const std::vector<std::string> &command) override;
+  std::vector<std::string>
+  ParseCompileCommand(const std::vector<std::string> &command) override;
 
 private:
   std::shared_ptr<Instrumenter> instrumenter_;

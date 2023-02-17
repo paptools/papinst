@@ -1,9 +1,9 @@
 #ifndef PATHINST_FRONTEND_ACTION_H
 #define PATHINST_FRONTEND_ACTION_H
 
+#include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <llvm/ADT/StringRef.h>
-#include <clang/AST/ASTConsumer.h>
 
 #include <memory>
 

@@ -1,5 +1,6 @@
 #include "pathinst/utils.h"
 
+#include <boost/filesystem.hpp>
 #include <spdlog/spdlog.h>
 
 #include <string>
@@ -27,6 +28,7 @@ bool IsSourceFile(const std::string &filename) {
 }
 
 void CreateFileBackup(const std::string &filepath) {
+  // spdlog.debug("Creating backup of file '" + filepath + "'.");
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
@@ -36,13 +38,11 @@ void CreateFileBackup(const std::string &filepath) {
 }
 
 void RestoreOriginalFile(const std::string &filepath) {
-  spdlog.debug("Restoring original file '" + source_file + "'.");
+  // spdlog.debug("Restoring original file '" + filepath + "'.");
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
-  boost::filesystem::rename(
-      backup.string(), filepath,
-      boost::filesystem::copy_option::overwrite_if_exists);
+  boost::filesystem::rename(backup.string(), filepath);
 }
 } // namespace utils
 } // namespace pathinst
