@@ -27,15 +27,15 @@ int if_else_statement(int x) {
 
 int switch_statement(int x) {
   switch (x) {
-    case -1:
-      return --x;
-      break;
-    case 0:
-      return x;
-      break;
-    case 1:
-      return ++x;
-      break;
+  case -1:
+    return --x;
+    break;
+  case 0:
+    return x;
+    break;
+  case 1:
+    return ++x;
+    break;
   }
   return x;
 }
@@ -80,20 +80,19 @@ int try_block(int x) {
       throw std::runtime_error("Fake error.");
     }
     return x * -1;
-  } catch (const std::exception&) {
+  } catch (const std::exception &) {
     return 123;
   }
 }
 } // namespace try_blocks
 } // namespace statements
 
-int main(int argc, char** argv) {
-  if (argc < 2 || argc > 3 || strcmp(argv[1], "-h") == 0
-      || strcmp(argv[1], "--help") == 0) {
+int main(int argc, char **argv) {
+  if (argc < 2 || argc > 3 || strcmp(argv[1], "-h") == 0 ||
+      strcmp(argv[1], "--help") == 0) {
     std::cout << "Usage:\n"
               << "  foo <int>\n"
-              << "  foo -h|--help"
-              << std::endl;
+              << "  foo -h|--help" << std::endl;
     return EXIT_FAILURE;
   }
 
