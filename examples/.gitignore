@@ -1,5 +1,6 @@
-a.out
-simple
-simple.o
-control-flow
-control-flow.o
+# Ignore everything.
+*
+
+# Except the following files.
+!simple.cpp
+!control_flow.cpp
