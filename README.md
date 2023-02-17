@@ -48,3 +48,4 @@ with:
   - E.g., if process A instruments foo with contents "foo A" and process B
   instruments foo with contents "foo B", then by the time that process A
   attempts to compile foo it might contain contents "foo B" instead of "foo A".
+- No support for header-only libraries.
