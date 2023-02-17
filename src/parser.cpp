@@ -11,10 +11,12 @@
 #include <vector>
 
 namespace pathinst {
+Parser::Parser(bool dry_run) : dry_run_(dry_run) {}
+
 std::vector<std::string>
 Parser::ParseCompileCommand(const std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
-  spdlog::debug("\n\nParsing command '" + command_str + "'.");
+  spdlog::debug("Parsing command '" + command_str + "'.");
 
   std::string compiler = command[0];
   if (!utils::IsSupportedCompiler(compiler)) {
@@ -42,6 +44,8 @@ Parser::ParseCompileCommand(const std::vector<std::string> &command) {
                   utils::ToString(command, ' ') + "'. Skipping parse.");
     return {};
   }
+
+  utils::SetDryRun(dry_run_);
 
   for (auto &source_file : source_files) {
     spdlog::debug("Parsing file '" + source_file + "'.");

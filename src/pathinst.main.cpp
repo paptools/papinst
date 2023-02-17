@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     }
 
     // Parse and instrument.
-    pathinst::Parser parser;
+    pathinst::Parser parser(cli_options->dry_run);
     auto source_files = parser.ParseCompileCommand(cli_options->command);
 
     // Execute the original command.

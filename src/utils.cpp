@@ -10,6 +10,10 @@
 
 namespace pathinst {
 namespace utils {
+namespace {
+bool s_dry_run = false;
+} // namespace
+
 std::string ToString(const std::vector<std::string> &v, const char sep) {
   std::string s;
   for (auto &&e : v) {
@@ -43,6 +47,10 @@ std::string GetFileContents(const std::string &filepath) {
 
 void CreateFileBackup(const std::string &filepath) {
   spdlog::debug("Backing up file '" + filepath + "'.");
+  if (s_dry_run) {
+    return;
+  }
+
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
@@ -51,10 +59,18 @@ void CreateFileBackup(const std::string &filepath) {
 
 void RestoreOriginalFile(const std::string &filepath) {
   spdlog::debug("Restoring original file '" + filepath + "'.");
+  if (s_dry_run) {
+    return;
+  }
+
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
   boost::filesystem::rename(backup.string(), filepath);
 }
+
+void SetDryRun(bool dry_run) { s_dry_run = dry_run; }
+
+bool GetDryRun(void) { return s_dry_run; }
 } // namespace utils
 } // namespace pathinst

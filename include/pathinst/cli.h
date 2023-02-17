@@ -19,11 +19,12 @@ struct Options {
   bool help;
   bool verbose;
   bool version;
+  bool dry_run;
   std::vector<std::string> command;
 
   Options(void)
       : status(Status::Uninitialized), help(false), verbose(false),
-        version(false), command() {}
+        version(false), dry_run(false), command() {}
 };
 
 // Returns an Options object constructed from the given arguments.

@@ -17,6 +17,10 @@ std::string GetFileContents(const std::string &filepath);
 void CreateFileBackup(const std::string &filepath);
 
 void RestoreOriginalFile(const std::string &filepath);
+
+void SetDryRun(bool dry_run);
+
+bool GetDryRun(void);
 } // namespace utils
 } // namespace pathinst
 

@@ -1,5 +1,6 @@
 #include "pathinst/consumer.h"
 #include "pathinst/functioncall_transformer.h"
+#include "pathinst/utils.h"
 
 #include <clang/AST/ASTContext.h>
 #include <llvm/Support/raw_ostream.h>
@@ -24,15 +25,19 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
     auto buffer = rewriter.getRewriteBufferFor(
         context.getSourceManager().translateFile(file_entry));
     if (buffer != nullptr) {
-      std::error_code ec;
-      llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
-      if (ec) {
-        spdlog::error("Error opening file: {}", ec.message());
-        continue;
-      }
-      buffer->write(ofs);
-      if (ofs.has_error()) {
-        spdlog::error("Error writing to file: {}", ec.message());
+      if (pathinst::utils::GetDryRun()) {
+        buffer->write(llvm::outs());
+      } else {
+        std::error_code ec;
+        llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
+        if (ec) {
+          spdlog::error("Error opening file: {}", ec.message());
+          continue;
+        }
+        buffer->write(ofs);
+        if (ofs.has_error()) {
+          spdlog::error("Error writing to file: {}", ec.message());
+        }
       }
     } else {
       spdlog::error("Empty buffer.");
