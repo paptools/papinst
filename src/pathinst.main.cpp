@@ -1,4 +1,3 @@
-#include "pathinst/clang_parser.h"
 #include "pathinst/cli.h"
 #include "pathinst/exception.h"
 #include "pathinst/parser.h"
@@ -9,7 +8,6 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <memory>
 #include <string>
 
 int main(int argc, char **argv) {
@@ -31,9 +29,8 @@ int main(int argc, char **argv) {
     }
 
     // Parse and instrument.
-    auto parser = std::make_shared<pathinst::ClangParser>(
-        std::make_shared<pathinst::Instrumenter>());
-    auto source_files = parser->ParseCompileCommand(cli_options->command);
+    pathinst::Parser parser;
+    auto source_files = parser.ParseCompileCommand(cli_options->command);
 
     // Execute the original command.
     std::string command = pathinst::utils::ToString(cli_options->command, ' ');

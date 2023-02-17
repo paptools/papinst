@@ -7,11 +7,8 @@
 namespace pathinst {
 class Parser {
 public:
-  static bool IsSupportedCompiler(const std::string &compiler);
-
-  ~Parser(void) {}
-  virtual std::vector<std::string>
-  ParseCompileCommand(const std::vector<std::string> &command) = 0;
+  std::vector<std::string>
+  ParseCompileCommand(const std::vector<std::string> &command);
 };
 } // namespace pathinst
 

@@ -38,7 +38,6 @@ include("cmake/FindSpdlog.cmake")
 # Path instrumenter library.
 
 add_library(pathinstlib
-  "src/clang_parser.cpp"
   "src/cli.cpp"
   "src/consumer.cpp"
   "src/frontend_action.cpp"

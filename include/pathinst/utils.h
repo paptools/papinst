@@ -8,7 +8,11 @@ namespace pathinst {
 namespace utils {
 std::string ToString(const std::vector<std::string> &v, const char sep);
 
-bool IsSourceFile(const std::string &filename);
+bool IsSupportedCompiler(const std::string &compiler);
+
+bool IsSourceFile(const std::string &filepath);
+
+std::string GetFileContents(const std::string &filepath);
 
 void CreateFileBackup(const std::string &filepath);
 
