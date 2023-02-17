@@ -1,5 +1,7 @@
 #include "pathinst/utils.h"
 
+#include <spdlog/spdlog.h>
+
 #include <string>
 #include <vector>
 
@@ -22,6 +24,25 @@ bool IsSourceFile(const std::string &filename) {
   return extension == "c" || extension == "cpp" || extension == "cc" ||
          extension == "cxx" || extension == "h" || extension == "hpp" ||
          extension == "hh" || extension == "hxx";
+}
+
+void CreateFileBackup(const std::string &filepath) {
+  boost::filesystem::path backup(filepath);
+  auto extension = backup.extension();
+  backup.replace_extension(".pathinst" + extension.string());
+  boost::filesystem::copy_file(
+      filepath, backup.string(),
+      boost::filesystem::copy_option::overwrite_if_exists);
+}
+
+void RestoreOriginalFile(const std::string &filepath) {
+  spdlog.debug("Restoring original file '" + source_file + "'.");
+  boost::filesystem::path backup(filepath);
+  auto extension = backup.extension();
+  backup.replace_extension(".pathinst" + extension.string());
+  boost::filesystem::rename(
+      backup.string(), filepath,
+      boost::filesystem::copy_option::overwrite_if_exists);
 }
 } // namespace utils
 } // namespace pathinst

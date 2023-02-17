@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     // Parse and instrument.
     auto parser = std::make_shared<pathinst::ClangParser>(
         std::make_shared<pathinst::Instrumenter>());
-    parser->ParseCompileCommand(cli_options->command);
+    auto source_files = parser->ParseCompileCommand(cli_options->command);
 
     // Execute the original command.
     std::string command = pathinst::utils::ToString(cli_options->command, ' ');
@@ -42,8 +42,12 @@ int main(int argc, char **argv) {
     if (exit_status < 0) {
       std::cerr << "Error: " << strerror(errno) << std::endl;
     } else if (WIFEXITED(exit_status)) {
-      return WEXITSTATUS(exit_status);
+      exit_status = WEXITSTATUS(exit_status);
     }
+    for (auto &source_file : source_files) {
+      pathinst::utils::RestoreOriginalFile(source_file);
+    }
+
     return exit_status;
   } catch (const pathinst::Exception &ex) {
     std::cerr << "Error: " << ex.what() << std::endl;

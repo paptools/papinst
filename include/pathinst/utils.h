@@ -9,6 +9,10 @@ namespace utils {
 std::string ToString(const std::vector<std::string> &v, const char sep);
 
 bool IsSourceFile(const std::string &filename);
+
+void CreateFileBackup(const std::string &filepath);
+
+void RestoreOriginalFile(const std::string &filepath);
 } // namespace utils
 } // namespace pathinst
 

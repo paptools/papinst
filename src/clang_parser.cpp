@@ -22,7 +22,8 @@ std::string GetSourceCode(const std::string &filepath) {
 }
 } // namespace
 
-void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
+std::vector<std::string>
+ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
   spdlog::debug("\n\nParsing command '" + command_str + "'.");
 
@@ -30,7 +31,7 @@ void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
   if (!Parser::IsSupportedCompiler(compiler)) {
     spdlog::debug("Executable '" + compiler +
                   "' is not a supported compiler. Skipping instrumentation.");
-    return;
+    return {};
   }
 
   // Resolve the compiler path.
@@ -48,14 +49,17 @@ void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
   }
 
   if (source_files.empty()) {
-    spdlog::debug("No source files found in command '" + utils::ToString(command, ' ') +
+    spdlog::debug("No source files found in command '" +
+                  utils::ToString(command, ' ') +
                   "'. Skipping instrumentation.");
-    return;
+    return {};
   }
 
   for (auto &source_file : source_files) {
     spdlog::debug("Parsing file '" + source_file + "'.");
     spdlog::debug("Parse args: " + utils::ToString(parse_args, ' '));
+
+    utils::CreateFileBackup(source_file);
     auto source_code = GetSourceCode(source_file);
     auto pch_container = std::make_shared<clang::PCHContainerOperations>();
 
@@ -63,7 +67,10 @@ void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
         std::make_unique<XFrontendAction>(), source_code, parse_args,
         source_file, compiler, pch_container);
 
-    spdlog::debug("Parse success: '" + std::string(success ? "true" : "false") + "'.");
+    spdlog::debug("Parse success: '" + std::string(success ? "true" : "false") +
+                  "'.");
   }
+
+  return source_files;
 }
 } // namespace pathinst
