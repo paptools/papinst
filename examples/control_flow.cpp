@@ -109,5 +109,6 @@ int main(int argc, char **argv) {
 
   x = statements::try_blocks::try_block(x);
 
-  return x;
+  std::cout << "x = " << x << std::endl;
+  return EXIT_SUCCESS;
 }

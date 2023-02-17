@@ -48,7 +48,8 @@ int main(int argc, char **argv) {
       exit_status = WEXITSTATUS(exit_status);
     }
     for (auto &inst_filepath : inst_filepaths) {
-      pathinst::utils::RemoveInstFile(inst_filepath);
+      //pathinst::utils::RemoveInstFile(inst_filepath);
+      spdlog::warn("File removal temporarily disabled.");
     }
 
     return exit_status;
