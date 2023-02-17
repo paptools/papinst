@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Run pathinst using CMAKE_<LANG>_COMPILER_LAUNCHER
+
+function main
+{
+  local script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+  local build_dir="${script_dir}/../build"
+  "${build_dir}/pathinst" -v -- "$@"
+}
+
+main "$@"
