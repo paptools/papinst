@@ -15,8 +15,8 @@ FunctionCallTransformer::FunctionCallTransformer(clang::ASTContext &context,
 void FunctionCallTransformer::start(void) {
   clang::ast_matchers::MatchFinder function_finder;
 
-  // auto call_expr_matcher = clang::ast_matchers::callExpr().bind("callExpr");
-  // function_finder.addMatcher(call_expr_matcher, this);
+  auto call_expr_matcher = clang::ast_matchers::callExpr().bind("callExpr");
+  function_finder.addMatcher(call_expr_matcher, this);
 
   // Add matcher for selection statements.
   auto selection_statement_matcher =
@@ -35,29 +35,17 @@ void FunctionCallTransformer::run(
     spdlog::warn("Found if statement.");
   }
 
-  // if (const clang::CallExpr *call_expr =
-  //         result.Nodes.getNodeAs<clang::CallExpr>("callExpr")) {
-  //   // Add a comment on the line before the function call.
-  //   rewriter.InsertTextBefore(call_expr->getBeginLoc(), "// Function call
-  // }
+  // CallExpr is the function call
+  // FunctionDecl is fhe function definition
+  if (const clang::CallExpr *call_expr =
+          result.Nodes.getNodeAs<clang::CallExpr>("callExpr")) {
+    if (const clang::FunctionDecl *function = call_expr->getDirectCallee()) {
+      if (result.SourceManager->isInSystemHeader(
+              function->getSourceRange().getBegin()))
+        return;
 
-  //// CallExpr is the function call
-  //// FunctionDecl is fhe function definition
-  // if (const clang::CallExpr *call_expr =
-  //         result.Nodes.getNodeAs<clang::CallExpr>("callExpr")) {
-  //   if (const clang::FunctionDecl *function = call_expr->getDirectCallee()) {
-  //     if (result.SourceManager->isInSystemHeader(
-  //             function->getSourceRange().getBegin()))
-  //       return;
-
-  //    auto function_name = function->getNameAsString();
-  //    rewriter.InsertTextAfter(call_expr->getBeginLoc(), "fn_");
-
-  //    if (functions.count(function_name) == 0) {
-  //      // rewrite definition as well
-  //      rewriter.InsertTextAfter(function->getLocation(), "fn_");
-  //      functions.insert(function->getNameAsString());
-  //    }
-  //  }
-  //}
+      auto function_name = function->getNameAsString();
+      rewriter.InsertTextAfter(call_expr->getBeginLoc(), "fn_");
+    }
+  }
 }

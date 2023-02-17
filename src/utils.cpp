@@ -45,28 +45,23 @@ std::string GetFileContents(const std::string &filepath) {
   return contents;
 }
 
-void CreateFileBackup(const std::string &filepath) {
-  spdlog::debug("Backing up file '" + filepath + "'.");
-  if (s_dry_run) {
-    return;
+std::string CreateInstFile(const std::string &filepath) {
+  boost::filesystem::path inst_filepath(filepath);
+  auto extension = inst_filepath.extension();
+  inst_filepath.replace_extension(".pathinst" + extension.string());
+  spdlog::debug("Creating file '{}'.", inst_filepath.string());
+  if (!s_dry_run) {
+    boost::filesystem::copy_file(filepath, inst_filepath.string());
   }
 
-  boost::filesystem::path backup(filepath);
-  auto extension = backup.extension();
-  backup.replace_extension(".pathinst" + extension.string());
-  boost::filesystem::copy_file(filepath, backup.string());
+  return inst_filepath.string();
 }
 
-void RestoreOriginalFile(const std::string &filepath) {
-  spdlog::debug("Restoring original file '" + filepath + "'.");
-  if (s_dry_run) {
-    return;
+void RemoveInstFile(const std::string &filepath) {
+  spdlog::debug("Removing file '{}'.", filepath);
+  if (!s_dry_run) {
+    boost::filesystem::remove(filepath);
   }
-
-  boost::filesystem::path backup(filepath);
-  auto extension = backup.extension();
-  backup.replace_extension(".pathinst" + extension.string());
-  boost::filesystem::rename(backup.string(), filepath);
 }
 
 void SetDryRun(bool dry_run) { s_dry_run = dry_run; }

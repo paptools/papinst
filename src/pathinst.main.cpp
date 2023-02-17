@@ -31,19 +31,24 @@ int main(int argc, char **argv) {
 
     // Parse and instrument.
     pathinst::Parser parser(cli_options->dry_run);
-    auto source_files = parser.ParseCompileCommand(cli_options->command);
+    auto orig_command = cli_options->command;
+    auto inst_filepaths = parser.ParseCompileCommand(cli_options->command);
 
     // Execute the original command.
-    std::string command = pathinst::utils::ToString(cli_options->command, ' ');
-    spdlog::debug("Executing command '" + command + "'.");
-    int exit_status = std::system(command.c_str());
+    std::string orig_command_str = pathinst::utils::ToString(orig_command, ' ');
+    std::string inst_command_str =
+        pathinst::utils::ToString(cli_options->command, ' ');
+    spdlog::debug("Executing command '{}'.", inst_command_str);
+    int exit_status =
+        std::system((cli_options->dry_run) ? orig_command_str.c_str()
+                                           : inst_command_str.c_str());
     if (exit_status < 0) {
       std::cerr << "Error: " << strerror(errno) << std::endl;
     } else if (WIFEXITED(exit_status)) {
       exit_status = WEXITSTATUS(exit_status);
     }
-    for (auto &source_file : source_files) {
-      pathinst::utils::RestoreOriginalFile(source_file);
+    for (auto &inst_filepath : inst_filepaths) {
+      pathinst::utils::RemoveInstFile(inst_filepath);
     }
 
     return exit_status;

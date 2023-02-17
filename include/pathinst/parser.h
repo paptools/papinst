@@ -9,7 +9,7 @@ class Parser {
 public:
   explicit Parser(bool dry_run);
   std::vector<std::string>
-  ParseCompileCommand(const std::vector<std::string> &command);
+  ParseCompileCommand(std::vector<std::string> &command);
 
 private:
   bool dry_run_;
