@@ -67,8 +67,7 @@ def test_cli_verbose(verbose_cli_flag):
     patterns = [
         utils.get_debug_pattern() + r"Parsing command 'echo hello'.$",
         utils.get_debug_pattern()
-        + r"Executable 'echo' is not a supported compiler. Skipping"
-        r" instrumentation.$",
+        + r"Executable 'echo' is not a supported compiler. Skipping parse.$",
         utils.get_debug_pattern() + r"Executing command 'echo hello'.$",
         r"^hello$",
     ]

@@ -30,6 +30,8 @@ TEST(CliTests, GetUsageMessage_AfterParseArgs_ReturnsFullUsageMessage) {
       "\n"
       "Options:\n"
       "  -v [ --verbose ]      Enable detailed application output.\n"
+      "  -n [ --dry-run ]      Display file edits to console instead of "
+      "writing.\n"
       "  -V [ --version ]      Output version information and exit.\n"
       "  -h [ --help ]         Display this help and exit.\n");
 
