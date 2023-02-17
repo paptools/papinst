@@ -42,7 +42,6 @@ add_library(pathinstlib
   "src/consumer.cpp"
   "src/frontend_action.cpp"
   "src/functioncall_transformer.cpp"
-  "src/instrumenter.cpp"
   "src/parser.cpp"
   "src/transformer.cpp"
   "src/utils.cpp"
