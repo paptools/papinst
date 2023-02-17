@@ -18,29 +18,26 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
   fntransformer.start();
   fntransformer.print(llvm::outs());
 
-  for (auto it = context.getSourceManager().fileinfo_begin();
-       it != context.getSourceManager().fileinfo_end(); ++it) {
-    auto file_entry = it->first;
-    spdlog::debug("Entry for file {}", std::string(file_entry->getName()));
-    auto buffer = rewriter.getRewriteBufferFor(
-        context.getSourceManager().translateFile(file_entry));
-    if (buffer != nullptr) {
-      if (pathinst::utils::GetDryRun()) {
-        buffer->write(llvm::outs());
-      } else {
-        std::error_code ec;
-        llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
-        if (ec) {
-          spdlog::error("Error opening file: {}", ec.message());
-          continue;
-        }
-        buffer->write(ofs);
-        if (ofs.has_error()) {
-          spdlog::error("Error writing to file: {}", ec.message());
-        }
-      }
+  auto file_id = context.getSourceManager().getMainFileID();
+  auto buffer = rewriter.getRewriteBufferFor(file_id);
+  if (buffer != nullptr) {
+    if (pathinst::utils::GetDryRun()) {
+      buffer->write(llvm::outs());
     } else {
-      spdlog::error("Empty buffer.");
+      auto file_entry = context.getSourceManager().getFileEntryForID(file_id);
+      spdlog::debug("Writing to file '{}'.", std::string(file_entry->getName()));
+      std::error_code ec;
+      llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
+      if (ec) {
+        spdlog::error("Error opening file: {}", ec.message());
+        return;
+      }
+      buffer->write(ofs);
+      if (ofs.has_error()) {
+        spdlog::error("Error writing to file: {}", ec.message());
+      }
     }
+  } else {
+    spdlog::error("Empty buffer.");
   }
 }
