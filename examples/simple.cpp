@@ -1,19 +1,9 @@
-#include <stdarg.h>
-#include <iostream>
-using namespace std;
-
-int bad_global = -1;
-
-void print() {
-  cout << "hallo" << endl;
-  int variable = 0;
+int foo(int a, int b) {
+  return a + b;
 }
 
 int main() {
-  print();
-  print();
-  {
-    int a = 0, b = 1;
-    b = a;
-  }
+  int a = 0, b = 1;
+  int c = foo(a, b);
+  return (c == 1) ? 0 : 1;
 }

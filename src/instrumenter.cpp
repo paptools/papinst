@@ -1,8 +1,7 @@
 #include "pathinst/instrumenter.h"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include <sstream>
 #include <string>
 
 namespace pathinst {

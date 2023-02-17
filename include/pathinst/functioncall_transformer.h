@@ -3,6 +3,9 @@
 
 #include "pathinst/transformer.h"
 
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include <set>
 #include <string>
 
@@ -20,7 +23,7 @@ public:
   explicit FunctionCallTransformer(clang::ASTContext &context,
                                    clang::Rewriter &rewriter);
 
-  virtual void start() override;
+  virtual void start(void) override;
   virtual void
   run(const clang::ast_matchers::MatchFinder::MatchResult &result) override;
   virtual void print(clang::raw_ostream &stream) override;

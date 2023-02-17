@@ -4,7 +4,7 @@
 #include "pathinst/parser.h"
 #include "pathinst/utils.h"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #include <cstdlib>
 #include <exception>

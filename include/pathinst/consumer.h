@@ -1,8 +1,7 @@
-#ifndef CONSUMER_HPP
-#define CONSUMER_HPP
+#ifndef PATHINST_CONSUMER_H
+#define PATHINST_CONSUMER_H
 
 #include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 
 namespace clang {
@@ -18,4 +17,4 @@ public:
   virtual void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
-#endif
+#endif // PATHINST_CONSUMER_H

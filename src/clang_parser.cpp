@@ -2,11 +2,10 @@
 #include "pathinst/frontend_action.h"
 #include "pathinst/utils.h"
 
-#include "spdlog/spdlog.h"
+#include <boost/filesystem.hpp>
 #include <clang/Frontend/FrontendActions.h>
-#include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
-#include <llvm/ADT/Twine.h>
+#include <spdlog/spdlog.h>
 
 #include <fstream>
 #include <iostream>
@@ -21,119 +20,50 @@ std::string GetSourceCode(const std::string &filepath) {
                       (std::istreambuf_iterator<char>()));
   return content;
 }
-
-std::vector<std::string> GetCompileArgs(
-    const std::vector<clang::tooling::CompileCommand> &compile_commands) {
-  std::vector<std::string> compileArgs;
-
-  for (auto &cmd : compile_commands) {
-    for (auto &arg : cmd.CommandLine)
-      compileArgs.push_back(arg);
-  }
-
-  if (compileArgs.empty() == false) {
-    compileArgs.erase(begin(compileArgs));
-    compileArgs.pop_back();
-  }
-
-  return compileArgs;
-}
-
-std::vector<std::string>
-GetSyntaxOnlyToolArgs(const std::vector<std::string> &extraArgs,
-                      llvm::StringRef fileName) {
-  std::vector<std::string> args;
-
-  args.push_back("clang-tool");
-  args.push_back("-fsyntax-only");
-
-  args.insert(args.end(), extraArgs.begin(), extraArgs.end());
-  args.push_back(fileName.str());
-
-  return args;
-}
-
-bool CustomRunToolOnCodeWithArgs(
-    std::unique_ptr<clang::FrontendAction> frontend_action,
-    const llvm::Twine &Code, const std::vector<std::string> &args,
-    const llvm::Twine &filename,
-    const clang::tooling::FileContentMappings &virtual_mapped_files =
-        clang::tooling::FileContentMappings()) {
-  llvm::SmallString<16> fileNameStorage;
-  llvm::StringRef fileNameRef =
-      filename.toNullTerminatedStringRef(fileNameStorage);
-
-  llvm::IntrusiveRefCntPtr<clang::FileManager> files(
-      new clang::FileManager(clang::FileSystemOptions()));
-  auto pchContainer = std::make_shared<clang::PCHContainerOperations>();
-
-  clang::tooling::ToolInvocation invocation(
-      GetSyntaxOnlyToolArgs(args, fileNameRef), std::move(frontend_action),
-      files.get(), pchContainer);
-
-  // llvm::SmallString<1024> codeStorage;
-  // invocation.mapVirtualFile(fileNameRef,
-  //                           code.toNullTerminatedStringRef(codeStorage));
-
-  // for (auto &filenameWithContent : virtual_mapped_files)
-  //   invocation.mapVirtualFile(filenameWithContent.first,
-  //                             filenameWithContent.second);
-
-  return invocation.run();
-}
-
 } // namespace
 
 void ClangParser::ParseCompileCommand(const std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
   spdlog::debug("\n\nParsing command '" + command_str + "'.");
 
-  if (!Parser::IsSupportedCompiler(command[0])) {
-    spdlog::debug("Executable '" + command[0] +
+  std::string compiler = command[0];
+  if (!Parser::IsSupportedCompiler(compiler)) {
+    spdlog::debug("Executable '" + compiler +
                   "' is not a supported compiler. Skipping instrumentation.");
     return;
   }
 
-  std::vector<const char *> argv;
-  argv.push_back("clang-tool");
-  argv.push_back("--");
-  std::vector<std::string> files;
-  for (auto &arg : command) {
-    if (utils::IsSourceFile(arg)) {
-      files.push_back(arg);
+  // Resolve the compiler path.
+  compiler = boost::filesystem::system_complete(compiler).string();
+
+  // Separate out the source files from the compiler arguments.
+  std::vector<std::string> parse_args;
+  std::vector<std::string> source_files;
+  for (int i = 1; i < command.size(); i++) {
+    if (utils::IsSourceFile(command[i])) {
+      source_files.push_back(command[i]);
     } else {
-      argv.push_back(arg.c_str());
+      parse_args.push_back(command[i]);
     }
   }
-  int argc = argv.size();
 
-  if (files.empty()) {
-    spdlog::debug("No source files found in command '" + command_str +
+  if (source_files.empty()) {
+    spdlog::debug("No source files found in command '" + utils::ToString(command, ' ') +
                   "'. Skipping instrumentation.");
     return;
   }
 
-  std::string error_msg;
-  auto compilation_database =
-      clang::tooling::FixedCompilationDatabase::loadFromCommandLine(
-          argc, &argv[0], error_msg);
-  if (!compilation_database || error_msg.size() > 0) {
-    spdlog::error("Error loading compilation database: " +
-                  (error_msg.empty() ? "unspecified error" : error_msg));
-    return;
-  }
+  for (auto &source_file : source_files) {
+    spdlog::debug("Parsing file '" + source_file + "'.");
+    spdlog::debug("Parse args: " + utils::ToString(parse_args, ' '));
+    auto source_code = GetSourceCode(source_file);
+    auto pch_container = std::make_shared<clang::PCHContainerOperations>();
 
-  for (auto &file : files) {
-    spdlog::debug("Parsing file '" + file + "'.");
-    auto source_code = GetSourceCode(file);
-    auto compile_commands = compilation_database->getCompileCommands(file);
-    auto compile_args = GetCompileArgs(compile_commands);
-    compile_args.push_back("-I/opt/homebrew/opt/llvm/include");
-    compile_args.push_back("-I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.0/include/");
-    auto x_frontend_action = std::make_unique<XFrontendAction>();
-    CustomRunToolOnCodeWithArgs(std::move(x_frontend_action), source_code,
-                                compile_args, file);
-    spdlog::error("Error parsing file '" + file + "'.");
+    bool success = clang::tooling::runToolOnCodeWithArgs(
+        std::make_unique<XFrontendAction>(), source_code, parse_args,
+        source_file, compiler, pch_container);
+
+    spdlog::debug("Parse success: '" + std::string(success ? "true" : "false") + "'.");
   }
 }
 } // namespace pathinst

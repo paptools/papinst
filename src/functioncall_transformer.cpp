@@ -1,15 +1,18 @@
 #include "pathinst/functioncall_transformer.h"
 
+#include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
+#include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <llvm/Support/raw_ostream.h>
 
 FunctionCallTransformer::FunctionCallTransformer(clang::ASTContext &context,
                                                  clang::Rewriter &rewriter)
     : Transformer(context, rewriter) {}
 
-void FunctionCallTransformer::start() {
+void FunctionCallTransformer::start(void) {
   using namespace clang::ast_matchers;
 
   MatchFinder functionFinder;

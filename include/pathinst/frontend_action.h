@@ -1,12 +1,11 @@
-#ifndef FRONTEND_ACTION_HPP
-#define FRONTEND_ACTION_HPP
+#ifndef PATHINST_FRONTEND_ACTION_H
+#define PATHINST_FRONTEND_ACTION_H
 
 #include <clang/Frontend/FrontendActions.h>
 #include <llvm/ADT/StringRef.h>
+#include <clang/AST/ASTConsumer.h>
 
 #include <memory>
-#include <string>
-#include <vector>
 
 namespace clang {
 class CompilerInstance;
@@ -19,4 +18,4 @@ public:
                     llvm::StringRef inFile) override;
 };
 
-#endif
+#endif // PATHINST_FRONTEND_ACTION_H

@@ -2,6 +2,7 @@
 #define PATHINST_TRANSFORMER_H
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace clang {
 class ASTContext;
@@ -17,7 +18,7 @@ protected:
 public:
   explicit Transformer(clang::ASTContext &context, clang::Rewriter &rewriter);
 
-  virtual void start() = 0;
+  virtual void start(void) = 0;
   virtual void print(clang::raw_ostream &stream) = 0;
 };
 
