@@ -41,3 +41,10 @@ with:
 ```bash
 ./tools/format.sh
 ```
+
+## Limitations
+
+- No support for parallel instances instrumentation of a single source file.
+  - E.g., if process A instruments foo with contents "foo A" and process B
+  instruments foo with contents "foo B", then by the time that process A
+  attempts to compile foo it might contain contents "foo B" instead of "foo A".

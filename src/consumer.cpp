@@ -23,9 +23,8 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
     auto buffer = rewriter.getRewriteBufferFor(
         context.getSourceManager().translateFile(file_entry));
     if (buffer != nullptr) {
-      std::string out_file = std::string(file_entry->getName()).append(".out");
       std::error_code ec;
-      llvm::raw_fd_ostream ofs(out_file, ec);
+      llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
       if (ec) {
         spdlog::error("Error opening file: {}", ec.message());
         continue;
