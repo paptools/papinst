@@ -31,9 +31,7 @@ void CreateFileBackup(const std::string &filepath) {
   boost::filesystem::path backup(filepath);
   auto extension = backup.extension();
   backup.replace_extension(".pathinst" + extension.string());
-  boost::filesystem::copy_file(
-      filepath, backup.string(),
-      boost::filesystem::copy_option::overwrite_if_exists);
+  boost::filesystem::copy_file(filepath, backup.string());
 }
 
 void RestoreOriginalFile(const std::string &filepath) {
