@@ -8,6 +8,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -20,16 +21,17 @@ std::map<std::string, int> s_source_file_pos;
 std::set<std::string> s_unsupported_flags = {"-g"};
 } // namespace
 
-Parser::Parser(bool dry_run) : dry_run_(dry_run) {}
+Parser::Parser(std::shared_ptr<spdlog::logger> logger, bool dry_run)
+    : logger_(logger), dry_run_(dry_run) {}
 
 std::vector<std::string>
 Parser::ParseCompileCommand(std::vector<std::string> &command) {
   std::string command_str = pathinst::utils::ToString(command, ' ');
-  spdlog::debug("Parsing command '{}'.", command_str);
+  logger_->debug("Parsing command '{}'.", command_str);
 
   auto compiler = command[0];
   if (!utils::IsSupportedCompiler(compiler)) {
-    spdlog::debug(
+    logger_->debug(
         "Executable '{}' is not a supported compiler. Skipping parse.",
         compiler);
     return {};
@@ -38,7 +40,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
   if (!boost::filesystem::exists(compiler)) {
     compiler = boost::process::search_path(compiler).string();
   }
-  spdlog::debug("User compiler is '{}'.", compiler);
+  logger_->debug("User compiler is '{}'.", compiler);
 
   // Separate out the source files from the compiler arguments.
   std::vector<std::string> parse_args;
@@ -54,8 +56,8 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
   }
 
   if (source_files.empty()) {
-    spdlog::debug("No source files found in command '{}'. Skipping parse.",
-                  command_str);
+    logger_->debug("No source files found in command '{}'. Skipping parse.",
+                   command_str);
     return {};
   }
 
@@ -73,15 +75,15 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     command[s_source_file_pos[source_file]] = inst_filepath;
 
     bool success = clang::tooling::runToolOnCodeWithArgs(
-        std::make_unique<FrontendAction>(streams), source_code, parse_args,
-        inst_filepath, compiler);
+        std::make_unique<FrontendAction>(logger_, streams), source_code,
+        parse_args, inst_filepath, compiler);
     if (!success) {
-      spdlog::error("Failed to parse file '{}'.", source_file);
+      logger_->error("Failed to parse file '{}'.", source_file);
     }
   }
 
   for (auto &stream : streams) {
-    spdlog::debug("Stream: {}", stream);
+    std::cout << stream << std::endl;
   }
 
   return inst_filepaths;
