@@ -27,23 +27,29 @@ public:
   void start(void) {
     clang::ast_matchers::MatchFinder function_finder;
 
-    // Add matcher for selection statements.
-    auto selection_statement_matcher = clang::ast_matchers::compoundStmt(
-        clang::ast_matchers::hasParent(clang::ast_matchers::ifStmt()));
-    function_finder.addMatcher(selection_statement_matcher, this);
+    // Add matcher for return statements.
+    auto return_stmt_matcher =
+        clang::ast_matchers::returnStmt().bind("returnStmt");
+    function_finder.addMatcher(return_stmt_matcher, this);
 
     function_finder.matchAST(context);
   }
 
   virtual void
   run(const clang::ast_matchers::MatchFinder::MatchResult &result) override {
-    if (const clang::CompoundStmt *curr_stmt =
-            result.Nodes.getNodeAs<clang::CompoundStmt>("comoundStmt")) {
-      spdlog::debug("Found compound statement at line {}.",
-                    context.getSourceManager().getSpellingLineNumber(
-                        curr_stmt->getBeginLoc()));
-      static std::string print_stmt = "std::cout << \"hello\" << std::endl;";
-      rewriter.InsertTextAfter(curr_stmt->getEndLoc(), print_stmt);
+    static const std::string print_stmt =
+        "std::cout << __FILE__ << ':' << __LINE__ << std::endl;";
+
+    if (auto &&curr_stmt =
+            result.Nodes.getNodeAs<clang::ReturnStmt>("returnStmt")) {
+      if (context.getSourceManager().isInSystemHeader(
+              curr_stmt->getBeginLoc())) {
+        return;
+      }
+      spdlog::info("Found return statement at line {}.",
+                   context.getSourceManager().getSpellingLineNumber(
+                       curr_stmt->getBeginLoc()));
+      rewriter.InsertTextBefore(curr_stmt->getBeginLoc(), print_stmt);
     }
   }
 
