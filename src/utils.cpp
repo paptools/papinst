@@ -51,7 +51,8 @@ std::string CreateInstFile(const std::string &filepath) {
   inst_filepath.replace_extension(".pathinst" + extension.string());
   spdlog::debug("Creating file '{}'.", inst_filepath.string());
   if (!s_dry_run) {
-    boost::filesystem::copy_file(filepath, inst_filepath.string(),
+    boost::filesystem::copy_file(
+        filepath, inst_filepath.string(),
         boost::filesystem::copy_options::overwrite_existing);
   }
 
