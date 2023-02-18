@@ -39,6 +39,7 @@ include("cmake/FindSpdlog.cmake")
 
 add_library(pathinstlib
   "src/cli.cpp"
+  "src/frontend_action.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
 )
