@@ -163,14 +163,13 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
                   utils::ToString(parse_args, ' '));
 
     auto source_code = utils::GetFileContents(source_file);
-    auto pch_container = std::make_shared<clang::PCHContainerOperations>();
     auto inst_filepath = utils::CreateInstFile(source_file);
     inst_filepaths.push_back(inst_filepath);
     command[s_source_file_pos[source_file]] = inst_filepath;
 
     bool success = clang::tooling::runToolOnCodeWithArgs(
         std::make_unique<FrontendAction>(), source_code, parse_args,
-        inst_filepath, compiler, pch_container);
+        inst_filepath, compiler);
     if (!success) {
       spdlog::error("Failed to parse file '{}'.", source_file);
     }
