@@ -16,7 +16,7 @@ void FunctionCallTransformer::start(void) {
   clang::ast_matchers::MatchFinder function_finder;
 
   // Add matcher for selection statements.
-  auto selection_statement_matcher = clang::ast_matchers::ifStmt().bind("ifStmt");
+  auto selection_statement_matcher = clang::ast_matchers::compoundStmt(clang::ast_matchers::hasParent(clang::ast_matchers::ifStmt()));
   function_finder.addMatcher(selection_statement_matcher, this);
 
   function_finder.matchAST(context);
@@ -25,10 +25,9 @@ void FunctionCallTransformer::start(void) {
 void FunctionCallTransformer::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result) {
 
-  if (const clang::IfStmt *if_stmt =
-          result.Nodes.getNodeAs<clang::IfStmt>("ifStmt")) {
-    spdlog::warn("Found if statement.");
-    static std::string print_stmt = "std::cout << \"hello\" << std::endl; ";
-    rewriter.InsertTextBefore(if_stmt->getBeginLoc(), print_stmt);
+  if (const clang::CompoundStmt *curr_stmt = result.Nodes.getNodeAs<clang::CompoundStmt>("comoundStmt")) {
+    spdlog::debug("Found compound statement at line {}.", context.getSourceManager().getSpellingLineNumber(curr_stmt->getBeginLoc()));
+    static std::string print_stmt = "std::cout << \"hello\" << std::endl;";
+    rewriter.InsertTextAfter(curr_stmt->getEndLoc(), print_stmt);
   }
 }

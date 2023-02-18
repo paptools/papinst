@@ -21,7 +21,7 @@ void XConsumer::HandleTranslationUnit(clang::ASTContext &context) {
   auto buffer = rewriter.getRewriteBufferFor(file_id);
   auto file_entry = context.getSourceManager().getFileEntryForID(file_id);
   if (buffer != nullptr) {
-    auto& edit_buffer = rewriter.getEditBuffer(file_id);
+    auto &edit_buffer = rewriter.getEditBuffer(file_id);
     edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
     buffer = rewriter.getRewriteBufferFor(file_id);
     if (pathinst::utils::GetDryRun()) {

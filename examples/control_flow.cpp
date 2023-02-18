@@ -8,6 +8,8 @@
 namespace statements {
 namespace selection {
 int if_statement(int x) {
+  if (x > 0)
+    --x;
   if (x > 0) {
     --x;
   }
@@ -21,6 +23,19 @@ int if_else_statement(int x) {
     ++x;
   } else {
     x = 100;
+  }
+  return x;
+}
+
+int if_else_statement2(int x) {
+  if (x > 0) {
+    --x;
+  } else {
+    if (x < 0) {
+      ++x;
+    } else {
+      x = 100;
+    }
   }
   return x;
 }

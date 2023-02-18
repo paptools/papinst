@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,8 @@ namespace pathinst {
 std::map<std::string, int> s_source_file_pos;
 
 Parser::Parser(bool dry_run) : dry_run_(dry_run) {}
+
+std::set<std::string> s_unsupported_flags = {"-g"};
 
 std::vector<std::string>
 Parser::ParseCompileCommand(std::vector<std::string> &command) {
@@ -42,7 +45,8 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     if (utils::IsSourceFile(command[i])) {
       source_files.push_back(command[i]);
       s_source_file_pos[command[i]] = i;
-    } else {
+    } else if (s_unsupported_flags.find(command[i]) ==
+               s_unsupported_flags.end()) {
       parse_args.push_back(command[i]);
     }
   }
