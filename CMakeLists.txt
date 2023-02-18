@@ -87,6 +87,7 @@ target_link_libraries(pathinst
 
 add_executable(unit_tests
   "tests/cli.test.cpp"
+  "tests/frontend_action.test.cpp"
 )
 
 target_link_libraries(unit_tests

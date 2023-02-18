@@ -16,12 +16,13 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <vector>
 
 namespace pathinst {
 namespace {
 class MatchCallback : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:
-  explicit MatchCallback(clang::ASTContext &context, clang::Rewriter &rewriter)
+  MatchCallback(clang::ASTContext &context, clang::Rewriter &rewriter)
       : context(context), rewriter(rewriter) {}
 
   void start(void) {
@@ -58,55 +59,46 @@ private:
   clang::Rewriter &rewriter;
 };
 
-class Consumer : public clang::ASTConsumer {
+class ASTConsumer : public clang::ASTConsumer {
 public:
-  explicit Consumer(clang::ASTContext &context) {}
+  ASTConsumer(clang::ASTContext &context, std::vector<std::string> &streams)
+      : rewriter(context.getSourceManager(), context.getLangOpts()),
+        streams_(streams) {}
 
   virtual void HandleTranslationUnit(clang::ASTContext &context) override {
-    rewriter.setSourceMgr(context.getSourceManager(), context.getLangOpts());
-
     MatchCallback match_callback(context, rewriter);
     match_callback.start();
 
-    auto file_id = context.getSourceManager().getMainFileID();
-    auto buffer = rewriter.getRewriteBufferFor(file_id);
-    auto file_entry = context.getSourceManager().getFileEntryForID(file_id);
-    if (buffer != nullptr) {
-      auto &edit_buffer = rewriter.getEditBuffer(file_id);
-      edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
-      buffer = rewriter.getRewriteBufferFor(file_id);
-      if (pathinst::utils::GetDryRun()) {
-        buffer->write(llvm::outs());
-      } else {
-        spdlog::debug("Writing to file '{}'.",
-                      std::string(file_entry->getName()));
-        std::error_code ec;
-        llvm::raw_fd_ostream ofs(file_entry->getName(), ec);
-        if (ec) {
-          spdlog::error("Error opening file '{}'", ec.message());
-          return;
-        }
-        buffer->write(ofs);
-        if (ofs.has_error()) {
-          spdlog::error("Error writing to file '{}'", ec.message());
-        }
-      }
-    } else {
-      spdlog::debug("Nothing to write for file '{}'.",
+    auto &&source_manager = context.getSourceManager();
+    auto file_id = source_manager.getMainFileID();
+    auto file_entry = source_manager.getFileEntryForID(file_id);
+    if (rewriter.getRewriteBufferFor(file_id) == nullptr) {
+      spdlog::debug("No changes for file '{}'.",
                     std::string(file_entry->getName()));
+      return;
     }
+
+    auto &edit_buffer = rewriter.getEditBuffer(file_id);
+    edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
+
+    auto buffer = rewriter.getRewriteBufferFor(file_id);
+    streams_.emplace_back(std::string());
+    llvm::raw_string_ostream os(streams_.back());
+    buffer->write(os);
   }
 
 private:
   clang::Rewriter rewriter;
+  std::vector<std::string> &streams_;
 };
-
 } // namespace
+
+FrontendAction::FrontendAction(std::vector<std::string> &streams)
+    : streams_(streams) {}
 
 std::unique_ptr<clang::ASTConsumer>
 FrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
                                   llvm::StringRef inFile) {
-  return std::unique_ptr<clang::ASTConsumer>(
-      new Consumer(compiler.getASTContext()));
+  return std::make_unique<ASTConsumer>(compiler.getASTContext(), streams_);
 }
 } // namespace pathinst

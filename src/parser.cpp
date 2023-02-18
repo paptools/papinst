@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/process/search_path.hpp>
 #include <clang/Tooling/Tooling.h>
+#include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
 #include <map>
@@ -60,6 +61,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
 
   utils::SetDryRun(dry_run_);
 
+  std::vector<std::string> streams;
   std::vector<std::string> inst_filepaths;
   for (auto &source_file : source_files) {
     spdlog::debug("Parsing file '{}' with args '{}'.", source_file,
@@ -71,11 +73,15 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     command[s_source_file_pos[source_file]] = inst_filepath;
 
     bool success = clang::tooling::runToolOnCodeWithArgs(
-        std::make_unique<FrontendAction>(), source_code, parse_args,
+        std::make_unique<FrontendAction>(streams), source_code, parse_args,
         inst_filepath, compiler);
     if (!success) {
       spdlog::error("Failed to parse file '{}'.", source_file);
     }
+  }
+
+  for (auto &stream : streams) {
+    spdlog::debug("Stream: {}", stream);
   }
 
   return inst_filepaths;

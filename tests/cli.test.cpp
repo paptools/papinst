@@ -1,7 +1,7 @@
 #include "pathinst/cli.h"
 #include "pathinst/exception.h"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 TEST(CliTests, GetUsageMessage_BeforeParseArgs_ReturnsFullUsageMessage) {
   const std::string expected("Usage:\n"
