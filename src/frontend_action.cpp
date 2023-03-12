@@ -1,4 +1,5 @@
 #include "pathinst/frontend_action.h"
+#include "pathinst/instrumenter.h"
 #include "pathinst/utils.h"
 
 #include <clang/AST/ASTConsumer.h>
@@ -14,58 +15,245 @@
 #include <spdlog/spdlog.h>
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <system_error>
 #include <vector>
 
+#include "clang/AST/Decl.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/Analysis/CFG.h"
+#include "clang/Basic/LangOptions.h"
+#include <cassert>
+#include <iostream>
+
+namespace clang {
+namespace analysis {
+// class BuildResult {
+// public:
+//   enum Status {
+//     ToolFailed,
+//     ToolRan,
+//     SawFunctionBody,
+//     BuiltCFG,
+//   };
+//
+//   BuildResult(Status S, const FunctionDecl *Func = nullptr,
+//               std::unique_ptr<CFG> Cfg = nullptr,
+//               std::unique_ptr<ASTContext> AST = nullptr)
+//       : S(S), Cfg(std::move(Cfg)), AST(std::move(AST)), Func(Func) {}
+//
+//   Status getStatus() const { return S; }
+//   CFG *getCFG() const { return Cfg.get(); }
+//   ASTContext *getAST() const { return AST.get(); }
+//   const FunctionDecl *getFunc() const { return Func; }
+//
+// private:
+//   Status S;
+//   std::unique_ptr<CFG> Cfg;
+//   std::unique_ptr<ASTContext> AST;
+//   const FunctionDecl *Func;
+// };
+} // namespace analysis
+} // namespace clang
+
 namespace pathinst {
 namespace {
+std::map<int64_t, bool> s_inst_map;
+std::string s_fn_sig;
+// clang::LangOptions s_lang_opts;
+
+// Returns the fully quality function signature.
+std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
+  std::stringstream ss;
+  ss << fn->getReturnType().getAsString() << " "
+     << fn->getQualifiedNameAsString() << "(";
+  bool first_param = true;
+  for (auto &&param : fn->parameters()) {
+    if (!first_param) {
+      ss << ", ";
+    }
+    ss << param->getType().getAsString();
+    first_param = false;
+  }
+  ss << ")";
+  return ss.str();
+}
+
 class MatchCallback : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:
-  MatchCallback(clang::ASTContext &context, clang::Rewriter &rewriter)
-      : context_(context), rewriter_(rewriter) {}
+  MatchCallback(clang::ASTContext &context, clang::Rewriter &rewriter,
+                std::shared_ptr<Instrumenter> instrumenter)
+      : context_(context), rewriter_(rewriter), instrumenter_(instrumenter),
+        options_() {
+    options_.AddImplicitDtors = true;
+  }
 
   void start(void) {
-    clang::ast_matchers::MatchFinder function_finder;
+    clang::ast_matchers::MatchFinder finder;
 
     // Add matcher for return statements.
-    auto return_stmt_matcher =
-        clang::ast_matchers::returnStmt().bind("returnStmt");
-    function_finder.addMatcher(return_stmt_matcher, this);
+    // finder.addMatcher(
+    //    clang::ast_matchers::returnStmt().bind("returnStmt"),
+    //    this);
+    finder.addMatcher(
+        clang::ast_matchers::functionDecl(clang::ast_matchers::anything())
+            .bind("func"),
+        this);
 
-    function_finder.matchAST(context_);
+    finder.matchAST(context_);
+  }
+
+  void HandleCFGBlock(clang::CFGBlock *block, bool is_main) {
+    if (!block)
+      return;
+
+    // if (block->Terminator.isValid()) return;
+
+    std::cout << "\nCFG BLOCK" << std::endl;
+    block->dump();
+
+    auto &&first_element = block->begin();
+    if (auto &&cfg_stmt = first_element->getAs<clang::CFGStmt>()) {
+      auto &&stmt = cfg_stmt->getStmt();
+
+      if (auto &&int_lit = llvm::dyn_cast<clang::IntegerLiteral>(stmt)) {
+        // Use parent if this is an integer literal.
+        stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
+      }
+      stmt->dumpColor();
+
+      if (s_inst_map.find(stmt->getID(context_)) != s_inst_map.end()) {
+        std::cout << "ALREADY INSTRUMENTED" << std::endl;
+        return;
+      } else {
+        // rewriter_.InsertTextBefore(stmt->getBeginLoc(),
+        //                            fmt::format(s_new_path_template,
+        //                            s_fn_sig));
+      }
+
+      // std::cout << "PARENT" << std::endl;
+      // auto&& parent =
+      // context_.getParents(*stmt->getStmt()).begin()->get<clang::Stmt>();
+      // parent->dumpColor();
+
+      // rewriter_.InsertTextBefore(parent->getBeginLoc(), "/*inst*/");
+
+      // for (auto &&p : parent) {
+      //   auto&& p_stmt = p.get<clang::Stmt>();
+      //   std::cout << "PARENT IS A STMT" << std::endl;
+      //   p_stmt->dumpColor();
+      //   rewriter_.InsertTextAfter(p_stmt->getBeginLoc(), "/*block stmt*/");
+      //   //rewriter_.InsertTextAfter(
+      //   //    p_stmt->getBeginLoc(),
+      //   //    fmt::format(s_print_stmt, p_stmt->getID(context_)));
+      // }
+    } else {
+      std::cout << "FIRST ELEMENT IS NOT A STMT" << std::endl;
+    }
+  }
+
+  void HandleFnDecl(const clang::FunctionDecl *fn, clang::ASTContext *context) {
+    if (auto &&body = fn->getBody()) {
+      s_fn_sig = GetFunctionSignature(fn);
+      std::cout << "\nFunction: " << s_fn_sig << std::endl;
+      fn->dumpColor();
+
+      assert(llvm::isa<clang::CompoundStmt>(body));
+      auto &&compound_stmt = llvm::cast<clang::CompoundStmt>(body);
+
+      // rewriter_.InsertText(compound_stmt->getLBracLoc(),
+      //                     fmt::format(s_new_path_template, s_fn_sig),
+      //                    false, true);
+      rewriter_.InsertTextAfterToken(compound_stmt->getLBracLoc(),
+                                     instrumenter_->GetFnCalleeInst(s_fn_sig));
+    }
+
+    //  body->dumpColor();
+
+    //  auto &&first_child_it = body->children().begin();
+    //  if (first_child_it != body->children().end()) {
+    //    auto &&first_child = *first_child_it;
+    //    std::cout << "FUNCTION DECL BODY -> FIRST CHILD" << std::endl;
+    //    first_child->dumpColor();
+    //    rewriter_.InsertText(first_child->getBeginLoc(),
+    //                         fmt::format(s_new_path_template, s_fn_sig),
+    //                         true, true);
+
+    //    // rewriter_.InsertTextBefore(first_child->getBeginLoc(),
+    //    //                            fmt::format(s_new_path_template,
+    //    //                            s_fn_sig));
+    //  } else {
+    //    std::cout << "FUNCTION DECL BODY -> HAS NO FIRST CHILD" << std::endl;
+    //  }
+    //} else {
+    //  assert(false && "FUNCTION DECL HAS NO BODY");
+    //}
+
+    //  first_child->dumpColor();
+    //  rewriter_.InsertTextBefore(
+    //      first_child->getBeginLoc(), fmt::format(s_new_path_template,
+    //      s_fn_sig));
+    //  s_inst_map[first_child->getID(context_)] = true;
+    //} else {
+    //  std::cout << "FN DECL BODY HAS NO CHILDREN" << std::endl;
+    //}
+
+    // std::cout << "WORKING WITH THE CFG" << std::endl;
+    // if (std::unique_ptr<clang::CFG> cfg =
+    //         clang::CFG::buildCFG(fn, body, context, options_)) {
+    //   // clang::LangOptions LO;
+    //   // cfg->dump(LO, /*ShowColors*/ true);
+
+    //  for (auto &&block : cfg->reverse_nodes()) {
+    //    HandleCFGBlock(block, fn->isMain());
+    //  }
+    //}
+
+    // std::cout << "DONE HANDLING FN DECL" << std::endl;
   }
 
   virtual void
   run(const clang::ast_matchers::MatchFinder::MatchResult &result) override {
-    static const std::string print_stmt =
-        "std::cout << __FILE__ << ':' << __LINE__ << std::endl;";
-
-    if (auto &&curr_stmt =
-            result.Nodes.getNodeAs<clang::ReturnStmt>("returnStmt")) {
-      if (context_.getSourceManager().isInSystemHeader(
-              curr_stmt->getBeginLoc())) {
+#if 0
+    if (auto &&stmt = result.Nodes.getNodeAs<clang::ReturnStmt>("returnStmt")) {
+      if (context_.getSourceManager().isInSystemHeader(stmt->getBeginLoc())) {
         return;
       }
-      rewriter_.InsertTextBefore(curr_stmt->getBeginLoc(), print_stmt);
+      //rewriter_.InsertTextBefore(
+      //    stmt->getBeginLoc(), fmt::format(s_print_stmt, stmt->getID(context_)));
+      rewriter_.InsertTextBefore(stmt->getBeginLoc(), "/*block stmt*/");
+      return;
     }
+
+#else
+    if (auto &&fn = result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
+      if (context_.getSourceManager().isInSystemHeader(fn->getBeginLoc())) {
+        return;
+      }
+      HandleFnDecl(fn, result.Context);
+    }
+#endif
   }
 
 private:
   clang::ASTContext &context_;
   clang::Rewriter &rewriter_;
+  std::shared_ptr<Instrumenter> instrumenter_;
+  clang::CFG::BuildOptions options_;
 };
 
 class ASTConsumer : public clang::ASTConsumer {
 public:
   ASTConsumer(std::shared_ptr<spdlog::logger> logger,
-              clang::ASTContext &context, std::vector<std::string> &streams)
+              clang::ASTContext &context, std::vector<std::string> &streams,
+              std::shared_ptr<Instrumenter> instrumenter)
       : logger_(logger),
         rewriter_(context.getSourceManager(), context.getLangOpts()),
-        streams_(streams) {}
+        streams_(streams), instrumenter_(instrumenter) {}
 
   virtual void HandleTranslationUnit(clang::ASTContext &context) override {
-    MatchCallback match_callback(context, rewriter_);
+    MatchCallback match_callback(context, rewriter_, instrumenter_);
     match_callback.start();
 
     auto &&source_manager = context.getSourceManager();
@@ -78,7 +266,10 @@ public:
     }
 
     auto &edit_buffer = rewriter_.getEditBuffer(file_id);
-    edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
+    // edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
+    // edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <cstdio>\n");
+    edit_buffer.InsertTextAfter(/*OrigOffset*/ 0,
+                                instrumenter_->GetPathCapIncludeInst());
 
     auto buffer = rewriter_.getRewriteBufferFor(file_id);
     streams_.emplace_back(std::string());
@@ -90,17 +281,19 @@ private:
   std::shared_ptr<spdlog::logger> logger_;
   clang::Rewriter rewriter_;
   std::vector<std::string> &streams_;
+  std::shared_ptr<Instrumenter> instrumenter_;
 };
 } // namespace
 
 FrontendAction::FrontendAction(std::shared_ptr<spdlog::logger> logger,
-                               std::vector<std::string> &streams)
-    : logger_(logger), streams_(streams) {}
+                               std::vector<std::string> &streams,
+                               std::shared_ptr<Instrumenter> instrumenter)
+    : logger_(logger), streams_(streams), instrumenter_(instrumenter) {}
 
 std::unique_ptr<clang::ASTConsumer>
 FrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
                                   llvm::StringRef inFile) {
   return std::make_unique<ASTConsumer>(logger_, compiler.getASTContext(),
-                                       streams_);
+                                       streams_, instrumenter_);
 }
 } // namespace pathinst

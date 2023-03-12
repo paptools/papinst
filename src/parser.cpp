@@ -1,5 +1,6 @@
 #include "pathinst/parser.h"
 #include "pathinst/frontend_action.h"
+#include "pathinst/instrumenter.h"
 #include "pathinst/utils.h"
 
 #include <boost/filesystem.hpp>
@@ -8,6 +9,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -43,6 +45,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
   logger_->debug("User compiler is '{}'.", compiler);
 
   // Separate out the source files from the compiler arguments.
+  // bool is_enabled = false;
   std::vector<std::string> parse_args;
   std::vector<std::string> source_files;
   for (int i = 1; i < command.size(); i++) {
@@ -52,8 +55,17 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     } else if (s_unsupported_flags.find(command[i]) ==
                s_unsupported_flags.end()) {
       parse_args.push_back(command[i]);
+      // if (command[i].find("PATHINST_ENABLE") != std::string::npos) {
+      //   is_enabled = true;
+      // }
     }
   }
+  parse_args.push_back("-v");
+
+  // if (!is_enabled) {
+  //   logger_->debug("PATHINST_ENABLE is not set. Skipping parse.");
+  //   return {};
+  // }
 
   if (source_files.empty()) {
     logger_->debug("No source files found in command '{}'. Skipping parse.",
@@ -75,15 +87,24 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     command[s_source_file_pos[source_file]] = inst_filepath;
 
     bool success = clang::tooling::runToolOnCodeWithArgs(
-        std::make_unique<FrontendAction>(logger_, streams), source_code,
-        parse_args, inst_filepath, compiler);
+        std::make_unique<FrontendAction>(
+            logger_, streams, InstrumenterFactory::CreateDefaultInstrumenter()),
+        source_code, parse_args, inst_filepath, compiler);
     if (!success) {
       logger_->error("Failed to parse file '{}'.", source_file);
     }
   }
+  command.push_back("-I/Users/ird/dev/github/iandinwoodie/pathinst/include");
 
-  for (auto &stream : streams) {
-    std::cout << stream << std::endl;
+  for (int i = 0; i < streams.size(); i++) {
+    if (dry_run_) {
+      std::cout << streams[i] << std::endl;
+    } else {
+      std::ofstream ofs(inst_filepaths[i],
+                        std::ios_base::out | std::ios_base::trunc);
+      ofs << streams[i];
+      ofs.close();
+    }
   }
 
   return inst_filepaths;

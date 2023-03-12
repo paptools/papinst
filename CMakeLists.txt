@@ -21,7 +21,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 # Compiler settings.
 
 # std::enable_if requires at least C++14.
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 #add_definitions(-Wall -Wextra -Werror)
@@ -40,6 +40,7 @@ include("cmake/FindSpdlog.cmake")
 add_library(pathinstlib
   "src/cli.cpp"
   "src/frontend_action.cpp"
+  "src/instrumenter.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
 )
@@ -50,6 +51,7 @@ target_include_directories(pathinstlib
     $<INSTALL_INTERFACE:include>
     ${CLANG_INCLUDE_DIRS}
     ${LLVM_INCLUDE_DIRS}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
 )
 
 target_compile_definitions(pathinstlib
@@ -90,11 +92,17 @@ add_executable(unit_tests
   "tests/frontend_action.test.cpp"
 )
 
+target_include_directories(unit_tests
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests>
+)
+
 target_link_libraries(unit_tests
   PRIVATE
     pathinstlib
     gtest
     gtest_main
+    gmock
 )
 
 add_test(NAME integration_cli_tests
