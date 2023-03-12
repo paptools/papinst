@@ -106,3 +106,8 @@ include(GoogleTest)
 gtest_discover_tests(unit_tests)
 
 ################################################################################
+# Wrapper script.
+
+configure_file("tools/pcc" "${CMAKE_BINARY_DIR}/pcc" COPYONLY)
+
+################################################################################
