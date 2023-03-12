@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# Run pathinst using CMAKE_<LANG>_COMPILER_LAUNCHER
+# Wrapper to allow running pathinst using CMAKE_<LANG>_COMPILER_LAUNCHER.
 
 function main
 {
   local script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-  local build_dir="${script_dir}/../build"
   local wrapper_args="--verbose --dry-run"
   if [ -n "${PATHINST_WRAPPER_ARGS}" ]; then
     wrapper_args="${PATHINST_WRAPPER_ARGS}"
   fi
-  "${build_dir}/pathinst" ${wrapper_args} -- "$@"
+  "${script_dir}/pathinst" ${wrapper_args} -- "$@"
 }
 
 main "$@"
