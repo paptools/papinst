@@ -31,7 +31,7 @@ protected:
 };
 } // namespace
 
-TEST_F(FrontEndActionTests, InvalidCode_NotEdits_ReturnsFalse) {
+TEST_F(FrontEndActionTests, InvalidCode_NoInst_ReturnsFalse) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetPathCapIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
@@ -45,7 +45,7 @@ TEST_F(FrontEndActionTests, InvalidCode_NotEdits_ReturnsFalse) {
   ASSERT_EQ(streams_.size(), 0);
 }
 
-TEST_F(FrontEndActionTests, OneEmptyFn) {
+TEST_F(FrontEndActionTests, VoidFnEmpty_Inst_ReturnsTrue) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
       .Times(1)
@@ -65,7 +65,27 @@ TEST_F(FrontEndActionTests, OneEmptyFn) {
   ASSERT_EQ(streams_[0], expected);
 }
 
-TEST_F(FrontEndActionTests, TwoEmptyFns) {
+TEST_F(FrontEndActionTests, VoidFnWithReturn_Inst_ReturnsTrue) {
+  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("A"));
+  EXPECT_CALL(*instrumenter, GetFnCalleeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("B"));
+
+  const std::string code = "void fn() { return; }";
+  bool success =
+      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+                                        logger_, streams_, instrumenter),
+                                    code);
+  ASSERT_TRUE(success);
+  ASSERT_EQ(streams_.size(), 1);
+  const std::string expected = "Avoid fn() {B return; }";
+  ASSERT_EQ(streams_[0], expected);
+}
+
+TEST_F(FrontEndActionTests, MixedVoidFns_Inst_ReturnsTrue) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
       .Times(1)
@@ -74,18 +94,18 @@ TEST_F(FrontEndActionTests, TwoEmptyFns) {
       .Times(2)
       .WillRepeatedly(::testing::Return("B"));
 
-  const std::string code = "void fn_1() {}\nvoid fn_2() {}";
+  const std::string code = "void fn_1() {}\nvoid fn_2() { return; }";
   bool success =
       clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
-  const std::string expected = "Avoid fn_1() {B}\nvoid fn_2() {B}";
+  const std::string expected = "Avoid fn_1() {B}\nvoid fn_2() {B return; }";
   ASSERT_EQ(streams_[0], expected);
 }
 
-TEST_F(FrontEndActionTests, ReturnValueFn) {
+TEST_F(FrontEndActionTests, ValueFn_Inst_ReturnsTrue) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
       .Times(1)
@@ -105,7 +125,7 @@ TEST_F(FrontEndActionTests, ReturnValueFn) {
   ASSERT_EQ(streams_[0], expected);
 }
 
-TEST_F(FrontEndActionTests, AssignAndReturnValueFn) {
+TEST_F(FrontEndActionTests, ValueFnWithLocalVar_Inst_ReturnsTrue) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
       .Times(1)
@@ -122,6 +142,46 @@ TEST_F(FrontEndActionTests, AssignAndReturnValueFn) {
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn() {B int a = 1;\nreturn a; }";
+  ASSERT_EQ(streams_[0], expected);
+}
+
+TEST_F(FrontEndActionTests, ValueFnWithGlobalVar_Inst_ReturnsTrue) {
+  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("A"));
+  EXPECT_CALL(*instrumenter, GetFnCalleeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("B"));
+
+  const std::string code_template = "int a;\nint fn() { a = 1;\nreturn a; }";
+  bool success =
+      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+                                        logger_, streams_, instrumenter),
+                                    code_template);
+  ASSERT_TRUE(success);
+  ASSERT_EQ(streams_.size(), 1);
+  const std::string expected = "Aint a;\nint fn() {B a = 1;\nreturn a; }";
+  ASSERT_EQ(streams_[0], expected);
+}
+
+TEST_F(FrontEndActionTests, ValueFnWithCallAssignment_Inst_ReturnsTrue) {
+  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("A"));
+  EXPECT_CALL(*instrumenter, GetFnCalleeInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("B"));
+
+  const std::string code_template = "int fn() { auto a = int(1);\nreturn a; }";
+  bool success =
+      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+                                        logger_, streams_, instrumenter),
+                                    code_template);
+  ASSERT_TRUE(success);
+  ASSERT_EQ(streams_.size(), 1);
+  const std::string expected = "Aint fn() {B auto a = int(1);\nreturn a; }";
   ASSERT_EQ(streams_[0], expected);
 }
 

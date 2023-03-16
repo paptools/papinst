@@ -10,24 +10,21 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <memory>
-#include <optional>
 #include <sstream>
 #include <string>
-#include <system_error>
 #include <vector>
 
 namespace pathinst {
 namespace {
 std::map<int64_t, bool> s_inst_map;
 std::string s_fn_sig;
-// clang::LangOptions s_lang_opts;
 
 class DiagnosticConsumer : public clang::DiagnosticConsumer {
 public:
@@ -253,8 +250,6 @@ public:
     }
 
     auto &edit_buffer = rewriter_.getEditBuffer(file_id);
-    // edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <iostream>\n");
-    // edit_buffer.InsertTextAfter(/*OrigOffset*/ 0, "#include <cstdio>\n");
     edit_buffer.InsertTextAfter(/*OrigOffset*/ 0,
                                 instrumenter_->GetPathCapIncludeInst());
 
