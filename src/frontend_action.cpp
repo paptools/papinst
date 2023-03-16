@@ -14,48 +14,12 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <system_error>
 #include <vector>
-
-#include "clang/AST/Decl.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-#include "clang/Analysis/CFG.h"
-#include "clang/Basic/LangOptions.h"
-#include <cassert>
-#include <iostream>
-
-namespace clang {
-namespace analysis {
-// class BuildResult {
-// public:
-//   enum Status {
-//     ToolFailed,
-//     ToolRan,
-//     SawFunctionBody,
-//     BuiltCFG,
-//   };
-//
-//   BuildResult(Status S, const FunctionDecl *Func = nullptr,
-//               std::unique_ptr<CFG> Cfg = nullptr,
-//               std::unique_ptr<ASTContext> AST = nullptr)
-//       : S(S), Cfg(std::move(Cfg)), AST(std::move(AST)), Func(Func) {}
-//
-//   Status getStatus() const { return S; }
-//   CFG *getCFG() const { return Cfg.get(); }
-//   ASTContext *getAST() const { return AST.get(); }
-//   const FunctionDecl *getFunc() const { return Func; }
-//
-// private:
-//   Status S;
-//   std::unique_ptr<CFG> Cfg;
-//   std::unique_ptr<ASTContext> AST;
-//   const FunctionDecl *Func;
-// };
-} // namespace analysis
-} // namespace clang
 
 namespace pathinst {
 namespace {
@@ -110,8 +74,8 @@ public:
 
     // if (block->Terminator.isValid()) return;
 
-    std::cout << "\nCFG BLOCK" << std::endl;
-    block->dump();
+    // std::cout << "\nCFG BLOCK" << std::endl;
+    // block->dump();
 
     auto &&first_element = block->begin();
     if (auto &&cfg_stmt = first_element->getAs<clang::CFGStmt>()) {
@@ -121,10 +85,10 @@ public:
         // Use parent if this is an integer literal.
         stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
       }
-      stmt->dumpColor();
+      // stmt->dumpColor();
 
       if (s_inst_map.find(stmt->getID(context_)) != s_inst_map.end()) {
-        std::cout << "ALREADY INSTRUMENTED" << std::endl;
+        // std::cout << "ALREADY INSTRUMENTED" << std::endl;
         return;
       } else {
         // rewriter_.InsertTextBefore(stmt->getBeginLoc(),
@@ -149,15 +113,15 @@ public:
       //   //    fmt::format(s_print_stmt, p_stmt->getID(context_)));
       // }
     } else {
-      std::cout << "FIRST ELEMENT IS NOT A STMT" << std::endl;
+      // std::cout << "FIRST ELEMENT IS NOT A STMT" << std::endl;
     }
   }
 
   void HandleFnDecl(const clang::FunctionDecl *fn, clang::ASTContext *context) {
     if (auto &&body = fn->getBody()) {
       s_fn_sig = GetFunctionSignature(fn);
-      std::cout << "\nFunction: " << s_fn_sig << std::endl;
-      fn->dumpColor();
+      // std::cout << "\nFunction: " << s_fn_sig << std::endl;
+      // fn->dumpColor();
 
       assert(llvm::isa<clang::CompoundStmt>(body));
       auto &&compound_stmt = llvm::cast<clang::CompoundStmt>(body);
@@ -253,6 +217,10 @@ public:
         streams_(streams), instrumenter_(instrumenter) {}
 
   virtual void HandleTranslationUnit(clang::ASTContext &context) override {
+    if (context.getDiagnostics().hasErrorOccurred()) {
+      return;
+    }
+
     MatchCallback match_callback(context, rewriter_, instrumenter_);
     match_callback.start();
 

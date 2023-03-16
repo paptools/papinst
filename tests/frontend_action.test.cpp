@@ -31,34 +31,19 @@ protected:
 };
 } // namespace
 
-// TEST_F(FrontEndActionTests, InvalidCode_NotEdits_ReturnsFalse) {
-//   const std::string source_code = "void foo() {";
-//   bool success = clang::tooling::runToolOnCode(
-//       std::make_unique<pathinst::FrontendAction>(logger_, streams_),
-//       source_code);
-//   ASSERT_FALSE(success);
-//   ASSERT_EQ(streams_.size(), 0);
-// }
-//
-// TEST_F(FrontEndActionTests, NoControlFlow_NoEdits_ReturnsTrue) {
-//   const std::string source_code = "void foo() { /* do nothing */ }";
-//   bool success = clang::tooling::runToolOnCode(
-//       std::make_unique<pathinst::FrontendAction>(logger_, streams_),
-//       source_code);
-//   ASSERT_TRUE(success);
-//   ASSERT_EQ(streams_.size(), 0);
-// }
-//
-// TEST_F(FrontEndActionTests, ReturnStmt_AddsIncludeAndCall_ReturnsTrue) {
-//   const std::string code_template = "{}int main() {{ {}return 0; }}";
-//   bool success = clang::tooling::runToolOnCode(
-//       std::make_unique<pathinst::FrontendAction>(logger_, streams_),
-//       fmt::format(code_template, "", ""));
-//   ASSERT_TRUE(success);
-//   ASSERT_EQ(streams_.size(), 1);
-//   std::string expected = fmt::format(code_template, include, call);
-//   ASSERT_EQ(streams_[0], expected);
-// }
+TEST_F(FrontEndActionTests, InvalidCode_NotEdits_ReturnsFalse) {
+  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst).Times(0);
+  EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
+
+  const std::string source_code = "void foo() {";
+  bool success =
+      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+                                        logger_, streams_, instrumenter),
+                                    source_code);
+  ASSERT_FALSE(success);
+  ASSERT_EQ(streams_.size(), 0);
+}
 
 TEST_F(FrontEndActionTests, OneEmptyFn) {
   auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
@@ -149,14 +134,14 @@ TEST_F(FrontEndActionTests, TernaryReturnValueFn) {
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
 
-  const std::string code_template = "int fn() { int a = 1;\nreturn (a ? 0 : 1); }";
+  const std::string code_template =
+      "int fn() { int a = 1;\nreturn (a ? 0 : 1); }";
   bool success =
       clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code_template);
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
-  const std::string expected =
-      "Aint fn() {B int a = 1;\nreturn (a ? 0 : 1); }";
+  const std::string expected = "Aint fn() {B int a = 1;\nreturn (a ? 0 : 1); }";
   ASSERT_EQ(streams_[0], expected);
 }
