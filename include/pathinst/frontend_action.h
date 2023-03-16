@@ -24,6 +24,8 @@ public:
   CreateASTConsumer(clang::CompilerInstance &compiler,
                     llvm::StringRef inFile) override;
 
+  virtual bool BeginInvocation(clang::CompilerInstance &compiler) override;
+
 private:
   std::shared_ptr<spdlog::logger> logger_;
   std::vector<std::string> &streams_;

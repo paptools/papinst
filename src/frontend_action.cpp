@@ -10,12 +10,14 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -26,6 +28,22 @@ namespace {
 std::map<int64_t, bool> s_inst_map;
 std::string s_fn_sig;
 // clang::LangOptions s_lang_opts;
+
+class DiagnosticConsumer : public clang::DiagnosticConsumer {
+public:
+  void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
+                        const clang::Diagnostic &info) override {
+    if (error_.empty() && level >= clang::DiagnosticsEngine::Error) {
+      llvm::SmallString<100> data;
+      info.FormatDiagnostic(data);
+      error_ = data.str().str();
+      ++NumErrors;
+    }
+  }
+
+private:
+  std::string error_;
+};
 
 // Returns the fully quality function signature.
 std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
@@ -218,6 +236,7 @@ public:
 
   virtual void HandleTranslationUnit(clang::ASTContext &context) override {
     if (context.getDiagnostics().hasErrorOccurred()) {
+      logger_->error("Failed to preprocess file.");
       return;
     }
 
@@ -263,5 +282,12 @@ FrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
                                   llvm::StringRef inFile) {
   return std::make_unique<ASTConsumer>(logger_, compiler.getASTContext(),
                                        streams_, instrumenter_);
+}
+
+bool FrontendAction::BeginInvocation(clang::CompilerInstance &compiler) {
+  // set the diagnostic consumer
+  compiler.getDiagnostics().setClient(new DiagnosticConsumer(),
+                                      /*ShouldOwnClient=*/true);
+  return true;
 }
 } // namespace pathinst
