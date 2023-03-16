@@ -75,6 +75,8 @@ public:
     // finder.addMatcher(
     //    clang::ast_matchers::returnStmt().bind("returnStmt"),
     //    this);
+
+    // Add matcher for function declarations.
     finder.addMatcher(
         clang::ast_matchers::functionDecl(clang::ast_matchers::anything())
             .bind("func"),
@@ -87,11 +89,6 @@ public:
     if (!block)
       return;
 
-    // if (block->Terminator.isValid()) return;
-
-    // std::cout << "\nCFG BLOCK" << std::endl;
-    // block->dump();
-
     auto &&first_element = block->begin();
     if (auto &&cfg_stmt = first_element->getAs<clang::CFGStmt>()) {
       auto &&stmt = cfg_stmt->getStmt();
@@ -100,119 +97,33 @@ public:
         // Use parent if this is an integer literal.
         stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
       }
-      // stmt->dumpColor();
 
       if (s_inst_map.find(stmt->getID(context_)) != s_inst_map.end()) {
-        // std::cout << "ALREADY INSTRUMENTED" << std::endl;
         return;
       } else {
-        // rewriter_.InsertTextBefore(stmt->getBeginLoc(),
-        //                            fmt::format(s_new_path_template,
-        //                            s_fn_sig));
       }
-
-      // std::cout << "PARENT" << std::endl;
-      // auto&& parent =
-      // context_.getParents(*stmt->getStmt()).begin()->get<clang::Stmt>();
-      // parent->dumpColor();
-
-      // rewriter_.InsertTextBefore(parent->getBeginLoc(), "/*inst*/");
-
-      // for (auto &&p : parent) {
-      //   auto&& p_stmt = p.get<clang::Stmt>();
-      //   std::cout << "PARENT IS A STMT" << std::endl;
-      //   p_stmt->dumpColor();
-      //   rewriter_.InsertTextAfter(p_stmt->getBeginLoc(), "/*block stmt*/");
-      //   //rewriter_.InsertTextAfter(
-      //   //    p_stmt->getBeginLoc(),
-      //   //    fmt::format(s_print_stmt, p_stmt->getID(context_)));
-      // }
-    } else {
-      // std::cout << "FIRST ELEMENT IS NOT A STMT" << std::endl;
     }
   }
 
   void HandleFnDecl(const clang::FunctionDecl *fn, clang::ASTContext *context) {
     if (auto &&body = fn->getBody()) {
       s_fn_sig = GetFunctionSignature(fn);
-      // std::cout << "\nFunction: " << s_fn_sig << std::endl;
-      // fn->dumpColor();
-
       assert(llvm::isa<clang::CompoundStmt>(body));
       auto &&compound_stmt = llvm::cast<clang::CompoundStmt>(body);
 
-      // rewriter_.InsertText(compound_stmt->getLBracLoc(),
-      //                     fmt::format(s_new_path_template, s_fn_sig),
-      //                    false, true);
       rewriter_.InsertTextAfterToken(compound_stmt->getLBracLoc(),
                                      instrumenter_->GetFnCalleeInst(s_fn_sig));
     }
-
-    //  body->dumpColor();
-
-    //  auto &&first_child_it = body->children().begin();
-    //  if (first_child_it != body->children().end()) {
-    //    auto &&first_child = *first_child_it;
-    //    std::cout << "FUNCTION DECL BODY -> FIRST CHILD" << std::endl;
-    //    first_child->dumpColor();
-    //    rewriter_.InsertText(first_child->getBeginLoc(),
-    //                         fmt::format(s_new_path_template, s_fn_sig),
-    //                         true, true);
-
-    //    // rewriter_.InsertTextBefore(first_child->getBeginLoc(),
-    //    //                            fmt::format(s_new_path_template,
-    //    //                            s_fn_sig));
-    //  } else {
-    //    std::cout << "FUNCTION DECL BODY -> HAS NO FIRST CHILD" << std::endl;
-    //  }
-    //} else {
-    //  assert(false && "FUNCTION DECL HAS NO BODY");
-    //}
-
-    //  first_child->dumpColor();
-    //  rewriter_.InsertTextBefore(
-    //      first_child->getBeginLoc(), fmt::format(s_new_path_template,
-    //      s_fn_sig));
-    //  s_inst_map[first_child->getID(context_)] = true;
-    //} else {
-    //  std::cout << "FN DECL BODY HAS NO CHILDREN" << std::endl;
-    //}
-
-    // std::cout << "WORKING WITH THE CFG" << std::endl;
-    // if (std::unique_ptr<clang::CFG> cfg =
-    //         clang::CFG::buildCFG(fn, body, context, options_)) {
-    //   // clang::LangOptions LO;
-    //   // cfg->dump(LO, /*ShowColors*/ true);
-
-    //  for (auto &&block : cfg->reverse_nodes()) {
-    //    HandleCFGBlock(block, fn->isMain());
-    //  }
-    //}
-
-    // std::cout << "DONE HANDLING FN DECL" << std::endl;
   }
 
   virtual void
   run(const clang::ast_matchers::MatchFinder::MatchResult &result) override {
-#if 0
-    if (auto &&stmt = result.Nodes.getNodeAs<clang::ReturnStmt>("returnStmt")) {
-      if (context_.getSourceManager().isInSystemHeader(stmt->getBeginLoc())) {
-        return;
-      }
-      //rewriter_.InsertTextBefore(
-      //    stmt->getBeginLoc(), fmt::format(s_print_stmt, stmt->getID(context_)));
-      rewriter_.InsertTextBefore(stmt->getBeginLoc(), "/*block stmt*/");
-      return;
-    }
-
-#else
     if (auto &&fn = result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
       if (context_.getSourceManager().isInSystemHeader(fn->getBeginLoc())) {
         return;
       }
       HandleFnDecl(fn, result.Context);
     }
-#endif
   }
 
 private:

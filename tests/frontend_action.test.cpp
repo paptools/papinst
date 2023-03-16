@@ -12,10 +12,6 @@
 #include <vector>
 
 namespace {
-const std::string include = "#include <pathinst/pathinst.h>\n";
-const std::string call =
-    "std::cout << __FILE__ << ':' << __LINE__ << std::endl;";
-
 class FrontEndActionTests : public ::testing::Test {
 public:
   FrontEndActionTests(void)
@@ -311,14 +307,14 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn() {B\n"
-                                    "  int a = 1;\n"
-                                    "  if (a == 1) {\n"
-                                    "    return a;\n"
-                                    "  } else if (a == 2) {\n"
-                                    "    return -1;\n"
-                                    "  }\n"
-                                    "  return 0;\n"
-                                    "}";
+                               "  int a = 1;\n"
+                               "  if (a == 1) {\n"
+                               "    return a;\n"
+                               "  } else if (a == 2) {\n"
+                               "    return -1;\n"
+                               "  }\n"
+                               "  return 0;\n"
+                               "}";
   ASSERT_EQ(streams_[0], expected);
 }
 
@@ -348,14 +344,14 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseifElse_Inst) {
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn() {B\n"
-                                    "  int a = 1;\n"
-                                    "  if (a == 1) {\n"
-                                    "    return a;\n"
-                                    "  } else if (a == 2) {\n"
-                                    "    return -1;\n"
-                                    "  } else {\n"
-                                    "    return 0;\n"
-                                    "  }\n"
-                                    "}";
+                               "  int a = 1;\n"
+                               "  if (a == 1) {\n"
+                               "    return a;\n"
+                               "  } else if (a == 2) {\n"
+                               "    return -1;\n"
+                               "  } else {\n"
+                               "    return 0;\n"
+                               "  }\n"
+                               "}";
   ASSERT_EQ(streams_[0], expected);
 }
