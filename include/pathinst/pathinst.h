@@ -1,5 +1,5 @@
-#ifndef PATHINST_PATH_CAP_H
-#define PATHINST_PATH_CAP_H
+#ifndef PATHINST_PATHINST_H
+#define PATHINST_PATHINST_H
 
 #include <iostream>
 #include <map>
@@ -38,6 +38,6 @@ private:
 };
 } // namespace pathinst
 
-#define PATHINST_NEW_PATH(p) pathinst::PathManager::Get().NewPath(p)
+#define PATHINST_CALLEE_NODE(p) pathinst::PathManager::Get().NewPath(p)
 
-#endif // PATHINST_PATH_CAP_H
+#endif // PATHINST_PATHINST_H

@@ -11,12 +11,12 @@ class DefaultInstrumenter : public Instrumenter {
 public:
   virtual ~DefaultInstrumenter(void) = default;
   virtual std::string GetFnCalleeInst(const std::string &sig) override {
-    static const std::string template_str = "PATHINST_NEW_PATH(\"{}\");";
+    static const std::string template_str = "PATHINST_CALLEE_NODE(\"{}\");";
     return fmt::format(template_str, sig);
   }
 
   virtual std::string GetPathCapIncludeInst(void) override {
-    return "#include <pathinst/path_cap.h>\n";
+    return "#include <pathinst/pathinst.h>\n";
   }
 };
 } // namespace

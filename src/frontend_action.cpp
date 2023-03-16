@@ -71,38 +71,17 @@ public:
   void start(void) {
     clang::ast_matchers::MatchFinder finder;
 
-    // Add matcher for return statements.
-    // finder.addMatcher(
-    //    clang::ast_matchers::returnStmt().bind("returnStmt"),
-    //    this);
+    // auto &&return_stmt_matcher =
+    //     clang::ast_matchers::returnStmt().bind("ReturnStmt");
+    // finder.addMatcher(return_stmt_matcher, this);
 
-    // Add matcher for function declarations.
-    finder.addMatcher(
-        clang::ast_matchers::functionDecl(clang::ast_matchers::anything())
-            .bind("func"),
-        this);
+    auto &&fn_def_matcher = clang::ast_matchers::functionDecl(
+        clang::ast_matchers::decl().bind("FnDef"),
+        clang::ast_matchers::isDefinition(),
+        clang::ast_matchers::unless(clang::ast_matchers::isImplicit()));
+    finder.addMatcher(fn_def_matcher, this);
 
     finder.matchAST(context_);
-  }
-
-  void HandleCFGBlock(clang::CFGBlock *block, bool is_main) {
-    if (!block)
-      return;
-
-    auto &&first_element = block->begin();
-    if (auto &&cfg_stmt = first_element->getAs<clang::CFGStmt>()) {
-      auto &&stmt = cfg_stmt->getStmt();
-
-      if (auto &&int_lit = llvm::dyn_cast<clang::IntegerLiteral>(stmt)) {
-        // Use parent if this is an integer literal.
-        stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
-      }
-
-      if (s_inst_map.find(stmt->getID(context_)) != s_inst_map.end()) {
-        return;
-      } else {
-      }
-    }
   }
 
   void HandleFnDecl(const clang::FunctionDecl *fn, clang::ASTContext *context) {
@@ -118,7 +97,7 @@ public:
 
   virtual void
   run(const clang::ast_matchers::MatchFinder::MatchResult &result) override {
-    if (auto &&fn = result.Nodes.getNodeAs<clang::FunctionDecl>("func")) {
+    if (auto &&fn = result.Nodes.getNodeAs<clang::FunctionDecl>("FnDef")) {
       if (context_.getSourceManager().isInSystemHeader(fn->getBeginLoc())) {
         return;
       }
@@ -192,8 +171,8 @@ FrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
 
 bool FrontendAction::BeginInvocation(clang::CompilerInstance &compiler) {
   // set the diagnostic consumer
-  compiler.getDiagnostics().setClient(new DiagnosticConsumer(),
-                                      /*ShouldOwnClient=*/true);
+  // compiler.getDiagnostics().setClient(new DiagnosticConsumer(),
+  //                                    /*ShouldOwnClient=*/true);
   return true;
 }
 } // namespace pathinst
