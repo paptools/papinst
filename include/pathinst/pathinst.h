@@ -1,25 +1,28 @@
 #ifndef PATHINST_PATHINST_H
 #define PATHINST_PATHINST_H
 
+#include <memory>
 #include <string>
 
 namespace pathinst {
-int &GetLevel();
-
-std::string GetIndent();
-
-struct Node {
-  std::string name;
-
-  Node(const std::string &name);
-  ~Node();
+class Node {
+public:
+  virtual ~Node() = default;
+  virtual const std::string &GetName() const = 0;
 };
+
+namespace NodeFactory {
+std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
+} // namespace NodeFactory
 } // namespace pathinst
 
+// Utility macros.
 #define TOKENPASTE(x, y) x##y
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)
-#define UNIQUE_NODE TOKENPASTE2(pathinst_node_, __LINE__)
+#define UNIQUE_NODE_NAME TOKENPASTE2(pathinst_node_, __LINE__)
 
-#define PATHINST_SCOPED_NODE(x) auto UNIQUE_NODE = pathinst::Node(x);
+// Instrumentation macros.
+#define PATHINST_CALLEE_NODE(x)                                                \
+  auto UNIQUE_NODE_NAME = pathinst::NodeFactory::CreateCalleeNode(x);
 
 #endif // PATHINST_PATHINST_H

@@ -33,6 +33,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 include("cmake/FindBoost.cmake")
 include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
+include("cmake/FindJson.cmake")
 include("cmake/FindSpdlog.cmake")
 
 ################################################################################
@@ -56,6 +57,11 @@ set(pathinst_public_headers
 set_target_properties(pathinst
   PROPERTIES
     PUBLIC_HEADER "${pathinst_public_headers}"
+)
+
+target_link_libraries(pathinst
+  PUBLIC
+    nlohmann_json::nlohmann_json
 )
 
 ################################################################################
