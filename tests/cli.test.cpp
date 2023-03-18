@@ -1,7 +1,7 @@
 #include "pathinst/cli.h"
 #include "pathinst/exception.h"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 TEST(CliTests, GetUsageMessage_BeforeParseArgs_ReturnsFullUsageMessage) {
   const std::string expected("Usage:\n"
@@ -30,6 +30,8 @@ TEST(CliTests, GetUsageMessage_AfterParseArgs_ReturnsFullUsageMessage) {
       "\n"
       "Options:\n"
       "  -v [ --verbose ]      Enable detailed application output.\n"
+      "  -n [ --dry-run ]      Display file edits to console instead of "
+      "writing.\n"
       "  -V [ --version ]      Output version information and exit.\n"
       "  -h [ --help ]         Display this help and exit.\n");
 

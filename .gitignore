@@ -1,6 +1,9 @@
 # Build directory.
 build/
 
+# Binary files.
+*.o
+
 # Python virtual environment.
 venv/
 .venv/
@@ -9,3 +12,6 @@ env/
 
 # Python cache files.
 __pycache__/
+
+# Pytest cache files.
+.pytest_cache/

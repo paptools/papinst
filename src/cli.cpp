@@ -48,6 +48,8 @@ std::shared_ptr<Options> ParseArgs(int argc, char **argv) {
   desc.add_options()
       ("verbose,v", po::bool_switch(&options->verbose),
        "Enable detailed application output.")
+      ("dry-run,n", po::bool_switch(&options->dry_run),
+       "Display file edits to console instead of writing.")
       ("version,V", po::bool_switch(&options->version),
        "Output version information and exit.")
       ("help,h", po::bool_switch(&options->help),

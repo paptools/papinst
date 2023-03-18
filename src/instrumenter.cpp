@@ -1,13 +1,29 @@
 #include "pathinst/instrumenter.h"
 
-#include "spdlog/spdlog.h"
+#include <fmt/format.h>
 
-#include <sstream>
+#include <memory>
 #include <string>
 
 namespace pathinst {
-const std::string Instrumenter::GetLibraryIncludeLine(void) const {
-  static std::string include_line = "#include \"pathinst/pathinst.h\"\n";
-  return include_line;
+namespace {
+class DefaultInstrumenter : public Instrumenter {
+public:
+  virtual ~DefaultInstrumenter(void) = default;
+  virtual std::string GetFnCalleeInst(const std::string &sig) override {
+    static const std::string template_str = "PATHINST_CALLEE_NODE(\"{}\");";
+    return fmt::format(template_str, sig);
+  }
+
+  virtual std::string GetPathCapIncludeInst(void) override {
+    return "#include <pathinst/pathinst.h>\n";
+  }
+};
+} // namespace
+
+namespace InstrumenterFactory {
+std::shared_ptr<Instrumenter> CreateDefaultInstrumenter(void) {
+  return std::make_shared<DefaultInstrumenter>();
 }
+} // namespace InstrumenterFactory
 } // namespace pathinst

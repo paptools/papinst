@@ -7,12 +7,21 @@ Repository for the path instrumenter.
 To build the project, run:
 
 ```bash
-mkdir build && cd build
-cmake -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) ..
-make -j8
+cmake -S . -B build --install-prefix=$PWD/install
+cmake --build build -j 8
+```
+
+## Installing
+
+To install the project, run:
+
+```bash
+cmake --install build
 ```
 
 ## Usage
+
+The provided examples use the project build directory.
 
 ### pathinst
 
@@ -20,7 +29,7 @@ To see the `pathinst` usage message, run the following from your build directory
 
 
 ```bash
-./pathinst --help
+cmake -E chdir build/bin ./pathinst --help
 ```
 
 ## Testing
@@ -28,7 +37,7 @@ To see the `pathinst` usage message, run the following from your build directory
 To run the unit tests, run the following command from your build directory:
 
 ```bash
-./unit_tests
+cmake -E chdir build/bin ./unit_tests
 ```
 
 ## Tools
@@ -41,3 +50,11 @@ with:
 ```bash
 ./tools/format.sh
 ```
+
+## Limitations
+
+- No support for parallel instances instrumentation of a single source file.
+  - E.g., if process A instruments foo with contents "foo A" and process B
+  instruments foo with contents "foo B", then by the time that process A
+  attempts to compile foo it might contain contents "foo B" instead of "foo A".
+- No support for header-only libraries.
