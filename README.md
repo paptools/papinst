@@ -1,6 +1,6 @@
-# pathinst
+# paptools
 
-Repository for the path instrumenter.
+Platform-agnostic performance tools.
 
 ## Building
 
@@ -37,7 +37,7 @@ cmake -E chdir build/bin ./pathinst --help
 To run the unit tests, run the following command from your build directory:
 
 ```bash
-cmake -E chdir build/bin ./unit_tests
+cmake -E chdir build ctest
 ```
 
 ## Tools
