@@ -1,43 +1,25 @@
 #ifndef PATHINST_PATHINST_H
 #define PATHINST_PATHINST_H
 
-#include <iostream>
-#include <map>
 #include <string>
-#include <vector>
 
 namespace pathinst {
-struct Path {
+int &GetLevel();
+
+std::string GetIndent();
+
+struct Node {
   std::string name;
-  std::vector<std::string> nodes;
-  Path(const std::string &name) : name(name), nodes() {}
-};
 
-class PathManager {
-public:
-  static PathManager &Get() {
-    static PathManager instance;
-    return instance;
-  }
-
-  ~PathManager() {
-    for (const auto &it : paths_) {
-      std::cout << "Path: " << it.first << std::endl;
-      for (const auto &node : it.second.nodes) {
-        std::cout << node << std::endl;
-      }
-    }
-  }
-
-  void NewPath(const std::string &name) { paths_.emplace(name, name); }
-
-private:
-  std::map<std::string, Path> paths_;
-
-  PathManager() {}
+  Node(const std::string &name);
+  ~Node();
 };
 } // namespace pathinst
 
-#define PATHINST_CALLEE_NODE(p) pathinst::PathManager::Get().NewPath(p)
+#define TOKENPASTE(x, y) x ## y
+#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
+#define UNIQUE_NODE TOKENPASTE2(pathinst_node_, __LINE__)
+
+#define PATHINST_CALLEE_NODE(x) auto UNIQUE_NODE = pathinst::Node(x);
 
 #endif // PATHINST_PATHINST_H
