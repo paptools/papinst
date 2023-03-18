@@ -1,10 +1,10 @@
-#ifndef PATHINST_PATHINST_H
-#define PATHINST_PATHINST_H
+#ifndef PATHTRACE_PATHTRACE_H
+#define PATHTRACE_PATHTRACE_H
 
 #include <memory>
 #include <string>
 
-namespace pathinst {
+namespace pathtrace {
 class Node {
 public:
   virtual ~Node() = default;
@@ -14,7 +14,7 @@ public:
 namespace NodeFactory {
 std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
 } // namespace NodeFactory
-} // namespace pathinst
+} // namespace pathtrace
 
 // Utility macros.
 #define TOKENPASTE(x, y) x##y
@@ -22,7 +22,7 @@ std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
 #define UNIQUE_NODE_NAME TOKENPASTE2(pathinst_node_, __LINE__)
 
 // Instrumentation macros.
-#define PATHINST_CALLEE_NODE(x)                                                \
-  auto UNIQUE_NODE_NAME = pathinst::NodeFactory::CreateCalleeNode(x);
+#define PATHTRACE_CALLEE_NODE(x)                                                \
+  auto UNIQUE_NODE_NAME = pathtrace::NodeFactory::CreateCalleeNode(x);
 
-#endif // PATHINST_PATHINST_H
+#endif // PATHTRACE_PATHTRACE_H
