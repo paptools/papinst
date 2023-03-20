@@ -2,6 +2,12 @@
 
 Platform-agnostic performance tools.
 
+## Requirements
+
+Requirements:
+
+* LLVM
+
 ## Building
 
 To build the project, run:
@@ -58,3 +64,20 @@ with:
   instruments foo with contents "foo B", then by the time that process A
   attempts to compile foo it might contain contents "foo B" instead of "foo A".
 - No support for header-only libraries.
+
+## Development
+
+### Addition Requirements
+
+Requirements:
+
+* Python 3
+
+### Environment Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements
+pre-commit install
+```
