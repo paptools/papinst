@@ -22,7 +22,7 @@ std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
 #define UNIQUE_NODE_NAME TOKENPASTE2(pathinst_node_, __LINE__)
 
 // Instrumentation macros.
-#define PATHTRACE_CALLEE_NODE(x)                                                \
+#define PATHTRACE_CALLEE_NODE(x)                                               \
   auto UNIQUE_NODE_NAME = pathtrace::NodeFactory::CreateCalleeNode(x);
 
 #endif // PATHTRACE_PATHTRACE_H

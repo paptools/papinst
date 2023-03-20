@@ -2,11 +2,10 @@
 
 #include <nlohmann/json.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <chrono>
-
 
 namespace pathtrace {
 namespace {
@@ -29,29 +28,27 @@ struct SessionJsonHandler {
     s_curr_json = &json["nodes"];
   }
 
-  ~SessionJsonHandler() {
-    std::cout << std::setw(2) << json << std::endl;
-  }
+  ~SessionJsonHandler() { std::cout << std::setw(2) << json << std::endl; }
 };
 SessionJsonHandler s_session_json_handler;
 
-//class MainNode : public Node {
-//public:
-//  RootNode(const std::string &name) : name_(name), j_(SerializeNode(this)) {
-//    s_curr_json = &j_["children"];
-//  }
-//  virtual ~RootNode() {
-//    std::cout << std::setw(2) << j_ << std::endl;
-//  }
-//  virtual const std::string &GetName() const override { return name_; }
-//  json *GetJson() { return &j_; }
+// class MainNode : public Node {
+// public:
+//   RootNode(const std::string &name) : name_(name), j_(SerializeNode(this)) {
+//     s_curr_json = &j_["children"];
+//   }
+//   virtual ~RootNode() {
+//     std::cout << std::setw(2) << j_ << std::endl;
+//   }
+//   virtual const std::string &GetName() const override { return name_; }
+//   json *GetJson() { return &j_; }
 //
-//private:
-//  std::string name_;
-//  json j_;
-//};
+// private:
+//   std::string name_;
+//   json j_;
+// };
 //
-//std::unique_ptr<Node> s_root_node = std::make_unique<RootNode>("Root");
+// std::unique_ptr<Node> s_root_node = std::make_unique<RootNode>("Root");
 
 class CalleeNode : public Node {
 public:

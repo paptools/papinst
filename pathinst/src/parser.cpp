@@ -94,7 +94,8 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
       logger_->error("Failed to parse file '{}'.", source_file);
     }
   }
-  command.push_back("-I/Users/ird/dev/github/iandinwoodie/paptools/pathtrace/include");
+  command.push_back(
+      "-I/Users/ird/dev/github/iandinwoodie/paptools/pathtrace/include");
 
   for (int i = 0; i < streams.size(); i++) {
     if (dry_run_) {
