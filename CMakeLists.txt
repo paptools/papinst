@@ -4,6 +4,11 @@
 cmake_minimum_required(VERSION 3.14)
 
 ################################################################################
+# CMake policies.
+
+cmake_policy(SET CMP0048 NEW)
+
+################################################################################
 # Project settings.
 
 project(paptools VERSION 0.1.0 LANGUAGES CXX C)
