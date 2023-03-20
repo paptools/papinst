@@ -5,6 +5,7 @@ repos:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: check-yaml
+    -   id: check-toml
     -   id: check-added-large-files
     -   id: check-shebang-scripts-are-executable
     -   id: requirements-txt-fixer
@@ -12,3 +13,11 @@ repos:
     rev: v15.0.7
     hooks:
     -   id: clang-format
+-   repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+    -   id: black
+-   repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.2
+    hooks:
+    -   id: shellcheck
