@@ -4,27 +4,27 @@
 ################################################################################
 # Path Trace library.
 
-add_library(pathtrace STATIC
-  "src/pathtrace.cpp"
+add_library(paptrace STATIC
+  "src/paptrace.cpp"
 )
 
-target_include_directories(pathtrace
+target_include_directories(paptrace
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
-set(pathtrace_public_headers
-  "include/pathtrace/pathtrace.h"
+set(paptrace_public_headers
+  "include/paptrace/paptrace.h"
 )
 
-set_target_properties(pathtrace
+set_target_properties(paptrace
   PROPERTIES
-    PUBLIC_HEADER "${pathtrace_public_headers}"
+    PUBLIC_HEADER "${paptrace_public_headers}"
 )
 
-target_link_libraries(pathtrace
+target_link_libraries(paptrace
   PUBLIC
     nlohmann_json::nlohmann_json
 )

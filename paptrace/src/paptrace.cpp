@@ -1,4 +1,4 @@
-#include "pathtrace/pathtrace.h"
+#include "paptrace/paptrace.h"
 
 #include <nlohmann/json.hpp>
 
@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace pathtrace {
+namespace paptrace {
 namespace {
 nlohmann::json *s_curr_json = nullptr;
 
@@ -74,4 +74,4 @@ std::unique_ptr<Node> CreateCalleeNode(const std::string &sig) {
   return std::make_unique<CalleeNode>(sig);
 }
 } // namespace NodeFactory
-} // namespace pathtrace
+} // namespace paptrace

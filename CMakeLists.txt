@@ -50,6 +50,6 @@ include("cmake/FindSpdlog.cmake")
 # Project subdirectories.
 
 add_subdirectory("papinst")
-add_subdirectory("pathtrace")
+add_subdirectory("paptrace")
 
 # ##############################################################################
