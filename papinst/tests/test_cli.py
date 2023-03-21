@@ -98,8 +98,12 @@ def test_cli_invalid_flag():
         universal_newlines=True,
     )
     assert result.returncode == 1
-    assert result.stdout == ""
-    assert result.stderr == "Error: unrecognised option '--invalid'\n"
+    patterns = [
+        utils.get_error_pattern() + r"Error: unrecognised option '--invalid'$",
+    ]
+    for idx, line in enumerate(result.stdout.splitlines()):
+        assert re.match(patterns[idx], line)
+    assert result.stderr == ""
 
 
 def test_cli_invalid_command():
