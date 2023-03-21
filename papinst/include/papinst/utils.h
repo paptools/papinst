@@ -1,10 +1,10 @@
-#ifndef PATHINST_UTILS_H
-#define PATHINST_UTILS_H
+#ifndef PAPINST_UTILS_H
+#define PAPINST_UTILS_H
 
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace utils {
 std::string ToString(const std::vector<std::string> &v, const char sep);
 
@@ -22,6 +22,6 @@ void SetDryRun(bool dry_run);
 
 bool GetDryRun(void);
 } // namespace utils
-} // namespace pathinst
+} // namespace papinst
 
-#endif // PATHINST_UTILS_H
+#endif // PAPINST_UTILS_H

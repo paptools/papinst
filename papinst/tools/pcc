@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Wrapper to allow running papinst using CMAKE_<LANG>_COMPILER_LAUNCHER.
+
+function main
+{
+  local script_dir
+  script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+  local wrapper_args="--verbose --dry-run"
+  if [ -n "${papinst_WRAPPER_ARGS}" ]; then
+    wrapper_args="${papinst_WRAPPER_ARGS}"
+  fi
+  "${script_dir}/papinst" "${wrapper_args}" -- "$@"
+}
+
+main "$@"

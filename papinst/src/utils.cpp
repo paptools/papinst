@@ -1,4 +1,4 @@
-#include "pathinst/utils.h"
+#include "papinst/utils.h"
 
 #include <boost/filesystem.hpp>
 #include <spdlog/spdlog.h>
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace utils {
 namespace {
 bool s_dry_run = false;
@@ -48,7 +48,7 @@ std::string GetFileContents(const std::string &filepath) {
 std::string CreateInstFile(const std::string &filepath) {
   boost::filesystem::path inst_filepath(filepath);
   auto extension = inst_filepath.extension();
-  inst_filepath.replace_extension(".pathinst" + extension.string());
+  inst_filepath.replace_extension(".papinst" + extension.string());
   spdlog::debug("Creating file '{}'.", inst_filepath.string());
   if (!s_dry_run) {
     boost::filesystem::copy_file(
@@ -70,4 +70,4 @@ void SetDryRun(bool dry_run) { s_dry_run = dry_run; }
 
 bool GetDryRun(void) { return s_dry_run; }
 } // namespace utils
-} // namespace pathinst
+} // namespace papinst

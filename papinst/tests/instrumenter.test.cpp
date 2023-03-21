@@ -1,4 +1,4 @@
-#include "pathinst/instrumenter.h"
+#include "papinst/instrumenter.h"
 
 #include <gtest/gtest.h>
 

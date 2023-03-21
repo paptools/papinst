@@ -1,10 +1,10 @@
-"""Collection of utilities for pathinst's tests."""
+"""Collection of utilities for papinst's tests."""
 import pathlib
 
 
 def get_exe_path():
-    """Return the path to the pathinst binary."""
-    return pathlib.Path(__file__).parent.parent / "build" / "pathinst"
+    """Return the path to the papinst binary."""
+    return pathlib.Path(__file__).parent.parent / "build" / "papinst"
 
 
 def get_timestamp_pattern():

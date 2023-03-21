@@ -1,4 +1,4 @@
-"""Collection of tests for pathinst's CLI."""
+"""Collection of tests for papinst's CLI."""
 import re
 import subprocess
 
@@ -45,7 +45,7 @@ def test_cli_version(version_cli_flag):
         universal_newlines=True,
     )
     assert result.returncode == 0
-    assert result.stdout == "pathinst 0.1.0\n"
+    assert result.stdout == "papinst 0.1.0\n"
     assert result.stderr == ""
 
 

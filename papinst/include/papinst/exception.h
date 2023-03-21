@@ -1,11 +1,11 @@
-#ifndef PATHINST_EXCEPTION_H
-#define PATHINST_EXCEPTION_H
+#ifndef PAPINST_EXCEPTION_H
+#define PAPINST_EXCEPTION_H
 
 #include <exception>
 #include <string>
 
-namespace pathinst {
-// Base class for all pathinst exceptions.
+namespace papinst {
+// Base class for all papinst exceptions.
 class Exception : public std::exception {
 public:
   // Explicit C-string constructor.
@@ -24,6 +24,6 @@ private:
   // Holds the error description message.
   std::string message_;
 };
-} // namespace pathinst
+} // namespace papinst
 
-#endif // PATHINST_ExCEPTION_H
+#endif // PAPINST_ExCEPTION_H

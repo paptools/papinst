@@ -1,11 +1,11 @@
-#ifndef PATHINST_CLI_OPTIONS_H
-#define PATHINST_CLI_OPTIONS_H
+#ifndef PAPINST_CLI_OPTIONS_H
+#define PAPINST_CLI_OPTIONS_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace cli {
 // This struct is used to hold option data parsed from the command line.
 struct Options {
@@ -39,6 +39,6 @@ const std::string &GetUsageMessage(void);
 // Returns the version message for this program.
 const std::string &GetVersionMessage(void);
 } // namespace cli
-} // namespace pathinst
+} // namespace papinst
 
-#endif // PATHINST_CLI_OPTIONS_H
+#endif // PAPINST_CLI_OPTIONS_H

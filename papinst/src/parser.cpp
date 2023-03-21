@@ -1,7 +1,7 @@
-#include "pathinst/parser.h"
-#include "pathinst/frontend_action.h"
-#include "pathinst/instrumenter.h"
-#include "pathinst/utils.h"
+#include "papinst/parser.h"
+#include "papinst/frontend_action.h"
+#include "papinst/instrumenter.h"
+#include "papinst/utils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/process/search_path.hpp>
@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace {
 std::map<std::string, int> s_source_file_pos;
 std::set<std::string> s_unsupported_flags = {"-g"};
@@ -28,7 +28,7 @@ Parser::Parser(std::shared_ptr<spdlog::logger> logger, bool dry_run)
 
 std::vector<std::string>
 Parser::ParseCompileCommand(std::vector<std::string> &command) {
-  std::string command_str = pathinst::utils::ToString(command, ' ');
+  std::string command_str = papinst::utils::ToString(command, ' ');
   logger_->debug("Parsing command '{}'.", command_str);
 
   auto compiler = command[0];
@@ -55,7 +55,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     } else if (s_unsupported_flags.find(command[i]) ==
                s_unsupported_flags.end()) {
       parse_args.push_back(command[i]);
-      // if (command[i].find("PATHINST_ENABLE") != std::string::npos) {
+      // if (command[i].find("papinst_ENABLE") != std::string::npos) {
       //   is_enabled = true;
       // }
     }
@@ -63,7 +63,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
   parse_args.push_back("-v");
 
   // if (!is_enabled) {
-  //   logger_->debug("PATHINST_ENABLE is not set. Skipping parse.");
+  //   logger_->debug("papinst_ENABLE is not set. Skipping parse.");
   //   return {};
   // }
 
@@ -95,7 +95,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     }
   }
   command.push_back(
-      "-I/Users/ird/dev/github/iandinwoodie/paptools/pathtrace/include");
+      "-I/Users/ird/dev/github/iandinwoodie/paptools/paptrace/include");
 
   for (int i = 0; i < streams.size(); i++) {
     if (dry_run_) {
@@ -111,4 +111,4 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
   return inst_filepaths;
 }
 
-} // namespace pathinst
+} // namespace papinst

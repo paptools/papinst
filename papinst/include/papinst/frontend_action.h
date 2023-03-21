@@ -1,7 +1,7 @@
-#ifndef PATHINST_FRONTEND_ACTION_H
-#define PATHINST_FRONTEND_ACTION_H
+#ifndef PAPINST_FRONTEND_ACTION_H
+#define PAPINST_FRONTEND_ACTION_H
 
-#include "pathinst/instrumenter.h"
+#include "papinst/instrumenter.h"
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 class FrontendAction : public clang::ASTFrontendAction {
 public:
   FrontendAction(std::shared_ptr<spdlog::logger> logger,
@@ -31,6 +31,6 @@ private:
   std::vector<std::string> &streams_;
   std::shared_ptr<Instrumenter> instrumenter_;
 };
-} // namespace pathinst
+} // namespace papinst
 
-#endif // PATHINST_FRONTEND_ACTION_H
+#endif // PAPINST_FRONTEND_ACTION_H

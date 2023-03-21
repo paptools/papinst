@@ -1,11 +1,11 @@
-#ifndef PATHINST_VERSION_H
-#define PATHINST_VERSION_H
+#ifndef PAPINST_VERSION_H
+#define PAPINST_VERSION_H
 
 #include <string>
 
-namespace pathinst {
+namespace papinst {
 // Version string according to SemVer standards (https://semver.org).
 const std::string kVersion = "0.1.0";
-} // namespace pathinst
+} // namespace papinst
 
-#endif // PATHINST_VERSION_H
+#endif // PAPINST_VERSION_H

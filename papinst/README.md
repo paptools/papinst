@@ -1,4 +1,4 @@
-# pathinst
+# papinst
 
 The path instrumenter executable.
 
@@ -23,13 +23,13 @@ cmake --install build
 
 The provided examples use the project build directory.
 
-### pathinst
+### papinst
 
-To see the `pathinst` usage message, run the following from your build directory:
+To see the `papinst` usage message, run the following from your build directory:
 
 
 ```bash
-cmake -E chdir build/bin ./pathinst --help
+cmake -E chdir build/bin ./papinst --help
 ```
 
 ## Testing

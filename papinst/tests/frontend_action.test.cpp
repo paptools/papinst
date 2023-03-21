@@ -1,4 +1,4 @@
-#include "pathinst/frontend_action.h"
+#include "papinst/frontend_action.h"
 #include "mocks/mock_instrumenter.h"
 
 #include <clang/Tooling/Tooling.h>
@@ -28,13 +28,13 @@ protected:
 } // namespace
 
 TEST_F(FrontEndActionTests, FnDecl_Invalid_Error) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst).Times(0);
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
 
   const std::string code = "void fn()";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_FALSE(success);
@@ -42,13 +42,13 @@ TEST_F(FrontEndActionTests, FnDecl_Invalid_Error) {
 }
 
 TEST_F(FrontEndActionTests, FnDecl_Valid_NoInst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst).Times(0);
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
 
   const std::string code = "void fn();";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -56,13 +56,13 @@ TEST_F(FrontEndActionTests, FnDecl_Valid_NoInst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_Invalid_Error) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst).Times(0);
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
 
   const std::string source_code = "void fn() {";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     source_code);
   ASSERT_FALSE(success);
@@ -70,8 +70,8 @@ TEST_F(FrontEndActionTests, FnDef_Invalid_Error) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_VoidEmpty_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -80,7 +80,7 @@ TEST_F(FrontEndActionTests, FnDef_VoidEmpty_Inst) {
 
   const std::string code = "void fn() {}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -90,8 +90,8 @@ TEST_F(FrontEndActionTests, FnDef_VoidEmpty_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_VoidReturn_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -100,7 +100,7 @@ TEST_F(FrontEndActionTests, FnDef_VoidReturn_Inst) {
 
   const std::string code = "void fn() { return; }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -110,8 +110,8 @@ TEST_F(FrontEndActionTests, FnDef_VoidReturn_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_MixedVoidImpls_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -120,7 +120,7 @@ TEST_F(FrontEndActionTests, FnDef_MixedVoidImpls_Inst) {
 
   const std::string code = "void fn_1() {}\nvoid fn_2() { return; }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -130,8 +130,8 @@ TEST_F(FrontEndActionTests, FnDef_MixedVoidImpls_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_ReturnValue_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -140,7 +140,7 @@ TEST_F(FrontEndActionTests, FnDef_ReturnValue_Inst) {
 
   const std::string code = "int fn(int a) { return a; }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -150,8 +150,8 @@ TEST_F(FrontEndActionTests, FnDef_ReturnValue_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_LocalConstructorAssignment_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -160,7 +160,7 @@ TEST_F(FrontEndActionTests, FnDef_LocalConstructorAssignment_Inst) {
 
   const std::string code = "int fn(int a) { int b = int(1); return a + b; }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -171,8 +171,8 @@ TEST_F(FrontEndActionTests, FnDef_LocalConstructorAssignment_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_WithPriorFnDecl_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -182,7 +182,7 @@ TEST_F(FrontEndActionTests, FnDef_WithPriorFnDecl_Inst) {
   const std::string code = "int fn(int a);\n"
                            "int fn(int a) { int b = int(1); return a + b; }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -194,8 +194,8 @@ TEST_F(FrontEndActionTests, FnDef_WithPriorFnDecl_Inst) {
 }
 
 TEST_F(FrontEndActionTests, FnDef_ContainsLambda_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -207,7 +207,7 @@ TEST_F(FrontEndActionTests, FnDef_ContainsLambda_Inst) {
                            "  return a + b();\n"
                            "}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -220,8 +220,8 @@ TEST_F(FrontEndActionTests, FnDef_ContainsLambda_Inst) {
 }
 
 TEST_F(FrontEndActionTests, ControlFlow_Ternary_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -231,7 +231,7 @@ TEST_F(FrontEndActionTests, ControlFlow_Ternary_Inst) {
   const std::string code =
       "int fn(int a) { int b = 1; return (a + b ? 0 : 1); }";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -242,8 +242,8 @@ TEST_F(FrontEndActionTests, ControlFlow_Ternary_Inst) {
 }
 
 TEST_F(FrontEndActionTests, ControlFlow_If_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -257,7 +257,7 @@ TEST_F(FrontEndActionTests, ControlFlow_If_Inst) {
                            "  return 0;\n"
                            "}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -272,8 +272,8 @@ TEST_F(FrontEndActionTests, ControlFlow_If_Inst) {
 }
 
 TEST_F(FrontEndActionTests, ControlFlow_IfElse_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -288,7 +288,7 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElse_Inst) {
                            "  }\n"
                            "}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -304,8 +304,8 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElse_Inst) {
 }
 
 TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -321,7 +321,7 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
                            "  return 0;\n"
                            "}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);
@@ -338,8 +338,8 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
 }
 
 TEST_F(FrontEndActionTests, ControlFlow_IfElseifElse_Inst) {
-  auto instrumenter = std::make_shared<pathinst::MockInstrumenter>();
-  EXPECT_CALL(*instrumenter, GetPathCapIncludeInst)
+  auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("A"));
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
@@ -356,7 +356,7 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseifElse_Inst) {
                            "  }\n"
                            "}";
   bool success =
-      clang::tooling::runToolOnCode(std::make_unique<pathinst::FrontendAction>(
+      clang::tooling::runToolOnCode(std::make_unique<papinst::FrontendAction>(
                                         logger_, streams_, instrumenter),
                                     code);
   ASSERT_TRUE(success);

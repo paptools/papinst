@@ -1,6 +1,6 @@
-#include "pathinst/frontend_action.h"
-#include "pathinst/instrumenter.h"
-#include "pathinst/utils.h"
+#include "papinst/frontend_action.h"
+#include "papinst/instrumenter.h"
+#include "papinst/utils.h"
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace {
 std::map<int64_t, bool> s_inst_map;
 std::string s_fn_sig;
@@ -141,7 +141,7 @@ public:
 
     auto &edit_buffer = rewriter_.getEditBuffer(file_id);
     edit_buffer.InsertTextAfter(/*OrigOffset*/ 0,
-                                instrumenter_->GetPathCapIncludeInst());
+                                instrumenter_->GetTraceIncludeInst());
 
     auto buffer = rewriter_.getRewriteBufferFor(file_id);
     streams_.emplace_back(std::string());
@@ -175,4 +175,4 @@ bool FrontendAction::BeginInvocation(clang::CompilerInstance &compiler) {
   //                                    /*ShouldOwnClient=*/true);
   return true;
 }
-} // namespace pathinst
+} // namespace papinst

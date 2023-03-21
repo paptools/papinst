@@ -1,6 +1,6 @@
-#include "pathinst/cli.h"
-#include "pathinst/exception.h"
-#include "pathinst/version.h"
+#include "papinst/cli.h"
+#include "papinst/exception.h"
+#include "papinst/version.h"
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace pathinst {
+namespace papinst {
 namespace cli {
 namespace {
 namespace po = boost::program_options;
@@ -20,9 +20,9 @@ namespace po = boost::program_options;
 // Note: The Options section of the usage message is populated by the
 // ParseOptions function.
 std::string sUsageMessage("Usage:\n"
-                          "  pathinst [options] -- <command>\n"
-                          "  pathinst -V|--version\n"
-                          "  pathinst -h|--help\n"
+                          "  papinst [options] -- <command>\n"
+                          "  papinst -V|--version\n"
+                          "  papinst -h|--help\n"
                           "\n"
                           "Description:\n"
                           "  The path instrumenter.\n");
@@ -88,7 +88,7 @@ std::shared_ptr<Options> ParseArgs(int argc, char **argv) {
       throw po::error("the argument 'command' is required but missing");
     }
   } catch (const po::error &ex) {
-    throw pathinst::Exception(ex.what());
+    throw papinst::Exception(ex.what());
   }
 
   options->status = Options::Status::Success;
@@ -98,8 +98,8 @@ std::shared_ptr<Options> ParseArgs(int argc, char **argv) {
 const std::string &GetUsageMessage(void) { return sUsageMessage; }
 
 const std::string &GetVersionMessage(void) {
-  static const std::string message("pathinst " + kVersion);
+  static const std::string message("papinst " + kVersion);
   return message;
 }
 } // namespace cli
-} // namespace pathinst
+} // namespace papinst
