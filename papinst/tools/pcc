@@ -3,13 +3,24 @@
 
 function main
 {
+  # print help if -h or --help is passed.
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "Usage:"
+    echo "  pcc <command>"
+    echo "  pcc -h|--help"
+    echo "Options:"
+    echo "  -h, --help  Print this help message."
+    return 0
+  fi
+
   local script_dir
   script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-  local wrapper_args="--verbose --dry-run"
-  if [ -n "${papinst_WRAPPER_ARGS}" ]; then
-    wrapper_args="${papinst_WRAPPER_ARGS}"
+  local wrapper_opts="--verbose --dry-run"
+  if [ -n "${PAPINST_WRAPPER_OPTS}" ]; then
+    wrapper_opts="${PAPINST_WRAPPER_OPTS}"
   fi
-  "${script_dir}/papinst" "${wrapper_args}" -- "$@"
+  # shellcheck disable=SC2086
+  "${script_dir}/papinst" $wrapper_opts -- "$@"
 }
 
 main "$@"

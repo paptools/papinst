@@ -13,7 +13,7 @@ def help_cli_flag(request):
     return request.param
 
 
-def test_cli_help(help_cli_flag):
+def test_help(help_cli_flag):
     """Test that invocation with the help flag displays the usage message."""
     result = subprocess.run(
         [utils.get_exe_path(), help_cli_flag],
@@ -22,7 +22,7 @@ def test_cli_help(help_cli_flag):
         universal_newlines=True,
     )
     assert result.returncode == 0
-    assert "Usage:" in result.stdout
+    assert "Usage:\n  papinst" in result.stdout
     assert "Description:" in result.stdout
     assert "Options:" in result.stdout
     assert result.stderr == ""
@@ -34,7 +34,7 @@ def version_cli_flag(request):
     return request.param
 
 
-def test_cli_version(version_cli_flag):
+def test_version(version_cli_flag):
     """
     Test that invocation with the version flag displays the version message.
     """
@@ -55,7 +55,7 @@ def verbose_cli_flag(request):
     return request.param
 
 
-def test_cli_verbose(verbose_cli_flag):
+def test_verbose(verbose_cli_flag):
     """Test that invocation with the verbose flag enabled verbose logging."""
     result = subprocess.run(
         [utils.get_exe_path(), verbose_cli_flag, "--", "echo", "hello"],
@@ -76,7 +76,7 @@ def test_cli_verbose(verbose_cli_flag):
     assert result.stderr == ""
 
 
-def test_cli_no_args():
+def test_no_args():
     """Test that invocation without any arguments displays the usage message."""
     result = subprocess.run(
         [utils.get_exe_path()],
@@ -89,7 +89,7 @@ def test_cli_no_args():
     assert result.stderr == ""
 
 
-def test_cli_invalid_flag():
+def test_invalid_flag():
     """Test that invocation with an invalid flag displays the usage message."""
     result = subprocess.run(
         [utils.get_exe_path(), "--invalid"],
@@ -106,7 +106,7 @@ def test_cli_invalid_flag():
     assert result.stderr == ""
 
 
-def test_cli_invalid_command():
+def test_invalid_command():
     """
     Test that invocation with an invalid command displays the error message.
     """
@@ -121,7 +121,7 @@ def test_cli_invalid_command():
     assert result.stderr == "sh: invalid: command not found\n"
 
 
-def test_cli_valid_command():
+def test_valid_command():
     """Test that invocation with a valid command executes the command."""
     result = subprocess.run(
         [utils.get_exe_path(), "--", "echo", "hello"],
