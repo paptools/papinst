@@ -55,17 +55,9 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     } else if (s_unsupported_flags.find(command[i]) ==
                s_unsupported_flags.end()) {
       parse_args.push_back(command[i]);
-      // if (command[i].find("papinst_ENABLE") != std::string::npos) {
-      //   is_enabled = true;
-      // }
     }
   }
-  parse_args.push_back("-v");
-
-  // if (!is_enabled) {
-  //   logger_->debug("papinst_ENABLE is not set. Skipping parse.");
-  //   return {};
-  // }
+  parse_args.push_back("-v"); // TODO: Enable only when verbose flag is set.
 
   if (source_files.empty()) {
     logger_->debug("No source files found in command '{}'. Skipping parse.",
