@@ -1,5 +1,5 @@
-# Copyright (c) 2023-present, Ian Dinwoodie. Distributed under the MIT License
-# (http://opensource.org/licenses/MIT).
+# Copyright (c) 2023-present, Ian Dinwoodie.
+# Distributed under the MIT License (http://opensource.org/licenses/MIT).
 
 cmake_minimum_required(VERSION 3.14)
 
@@ -11,10 +11,7 @@ cmake_policy(SET CMP0048 NEW)
 # ##############################################################################
 # Project settings.
 
-project(
-  paptools
-  VERSION 0.1.0
-  LANGUAGES CXX C)
+project(paptools VERSION 0.1.0 LANGUAGES CXX C)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE
@@ -34,6 +31,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 # add_definitions(-Wall -Wextra -Werror)
 
@@ -45,6 +43,8 @@ include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
 include("cmake/FindJson.cmake")
 include("cmake/FindSpdlog.cmake")
+
+find_package(fmt REQUIRED)
 
 # ##############################################################################
 # Project subdirectories.
