@@ -37,6 +37,7 @@ target_link_libraries(papinst
     spdlog::spdlog
     clangTooling
     ${llvm_libs}
+    fmt::fmt
 )
 
 # ##############################################################################

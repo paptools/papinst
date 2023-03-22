@@ -2,7 +2,6 @@
 #include "mocks/mock_instrumenter.h"
 
 #include <clang/Tooling/Tooling.h>
-#include <fmt/core.h>
 #include <gtest/gtest.h>
 #include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>

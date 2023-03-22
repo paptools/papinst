@@ -43,6 +43,8 @@ include("cmake/FindGoogleTest.cmake")
 include("cmake/FindJson.cmake")
 include("cmake/FindSpdlog.cmake")
 
+find_package(fmt REQUIRED)
+
 # ##############################################################################
 # Project subdirectories.
 
