@@ -1,5 +1,5 @@
-# Copyright (c) 2023-present, Ian Dinwoodie. Distributed under the MIT License
-# (http://opensource.org/licenses/MIT).
+# Copyright (c) 2023-present, Ian Dinwoodie.
+# Distributed under the MIT License (http://opensource.org/licenses/MIT).
 
 cmake_minimum_required(VERSION 3.14)
 
@@ -11,10 +11,7 @@ cmake_policy(SET CMP0048 NEW)
 # ##############################################################################
 # Project settings.
 
-project(
-  paptools
-  VERSION 0.1.0
-  LANGUAGES CXX C)
+project(paptools VERSION 0.1.0 LANGUAGES CXX C)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE
