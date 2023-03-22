@@ -84,14 +84,33 @@ public:
     finder.matchAST(context_);
   }
 
-  void HandleFnDecl(const clang::FunctionDecl *fn, clang::ASTContext *context) {
-    if (auto &&body = fn->getBody()) {
-      s_fn_sig = GetFunctionSignature(fn);
-      assert(llvm::isa<clang::CompoundStmt>(body));
-      auto &&compound_stmt = llvm::cast<clang::CompoundStmt>(body);
+  void HandleCFGBlock(clang::CFGBlock *block, bool is_main) {
+    if (!block)
+      return;
 
-      rewriter_.InsertTextAfterToken(compound_stmt->getLBracLoc(),
-                                     instrumenter_->GetFnCalleeInst(s_fn_sig));
+    auto &&first_element = block->begin();
+    if (auto &&cfg_stmt = first_element->getAs<clang::CFGStmt>()) {
+      auto &&stmt = cfg_stmt->getStmt();
+      // if (auto &&int_lit = llvm::dyn_cast<clang::IntegerLiteral>(stmt)) {
+      //   // Use parent if this is an integer literal.
+      //   stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
+      // }
+      stmt->dumpColor();
+      std::cout << "PARENT:" << std::endl;
+      stmt = context_.getParents(*stmt).begin()->get<clang::Stmt>();
+      stmt->dumpColor();
+
+      // Return if stmt is if-stmt.
+      if (llvm::isa<clang::IfStmt>(stmt)) {
+        return;
+      }
+
+      if (s_inst_map.find(stmt->getID(context_)) == s_inst_map.end()) {
+        rewriter_.InsertTextBefore(stmt->getBeginLoc(),
+                                   instrumenter_->GetCfInst());
+      } else {
+        std::cerr << "ALREADY INSTRUMENTED" << std::endl;
+      }
     }
   }
 
@@ -101,7 +120,26 @@ public:
       if (context_.getSourceManager().isInSystemHeader(fn->getBeginLoc())) {
         return;
       }
-      HandleFnDecl(fn, result.Context);
+
+      if (auto &&body = fn->getBody()) {
+        s_fn_sig = GetFunctionSignature(fn);
+        assert(llvm::isa<clang::CompoundStmt>(body));
+        auto &&compound_stmt = llvm::cast<clang::CompoundStmt>(body);
+
+        rewriter_.InsertTextAfterToken(
+            compound_stmt->getLBracLoc(),
+            instrumenter_->GetFnCalleeInst(s_fn_sig));
+
+        if (std::unique_ptr<clang::CFG> cfg =
+                clang::CFG::buildCFG(fn, body, &context_, options_)) {
+          clang::LangOptions lang_opts;
+          cfg->dump(lang_opts, /*ShowColors*/ true);
+
+          for (auto &&block : cfg->reverse_nodes()) {
+            HandleCFGBlock(block, fn->isMain());
+          }
+        }
+      }
     }
   }
 

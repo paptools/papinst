@@ -10,6 +10,7 @@ public:
   virtual ~Instrumenter(void) = default;
   virtual std::string GetFnCalleeInst(const std::string &sig) = 0;
   virtual std::string GetTraceIncludeInst(void) = 0;
+  virtual std::string GetCfInst(void) = 0;
 };
 
 namespace InstrumenterFactory {

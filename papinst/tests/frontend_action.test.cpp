@@ -31,6 +31,7 @@ TEST_F(FrontEndActionTests, FnDecl_Invalid_Error) {
   auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "void fn()";
   bool success =
@@ -45,6 +46,7 @@ TEST_F(FrontEndActionTests, FnDecl_Valid_NoInst) {
   auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "void fn();";
   bool success =
@@ -59,6 +61,7 @@ TEST_F(FrontEndActionTests, FnDef_Invalid_Error) {
   auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
   EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(0);
   EXPECT_CALL(*instrumenter, GetFnCalleeInst).Times(0);
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string source_code = "void fn() {";
   bool success =
@@ -77,6 +80,7 @@ TEST_F(FrontEndActionTests, FnDef_VoidEmpty_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "void fn() {}";
   bool success =
@@ -97,6 +101,9 @@ TEST_F(FrontEndActionTests, FnDef_VoidReturn_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(1)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code = "void fn() { return; }";
   bool success =
@@ -117,6 +124,7 @@ TEST_F(FrontEndActionTests, FnDef_MixedVoidImpls_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(2)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "void fn_1() {}\nvoid fn_2() { return; }";
   bool success =
@@ -137,6 +145,7 @@ TEST_F(FrontEndActionTests, FnDef_ReturnValue_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "int fn(int a) { return a; }";
   bool success =
@@ -157,6 +166,7 @@ TEST_F(FrontEndActionTests, FnDef_LocalConstructorAssignment_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "int fn(int a) { int b = int(1); return a + b; }";
   bool success =
@@ -178,6 +188,7 @@ TEST_F(FrontEndActionTests, FnDef_WithPriorFnDecl_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "int fn(int a);\n"
                            "int fn(int a) { int b = int(1); return a + b; }";
@@ -201,6 +212,7 @@ TEST_F(FrontEndActionTests, FnDef_ContainsLambda_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(2)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst).Times(0);
 
   const std::string code = "int fn(int a) {\n"
                            "  auto b = []() { return 1; };\n"
@@ -227,6 +239,9 @@ TEST_F(FrontEndActionTests, ControlFlow_Ternary_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(2)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code =
       "int fn(int a) { int b = 1; return (a + b ? 0 : 1); }";
@@ -237,7 +252,7 @@ TEST_F(FrontEndActionTests, ControlFlow_Ternary_Inst) {
   ASSERT_TRUE(success);
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected =
-      "Aint fn(int a) {B int b = 1; return (a + b ? 0 : 1); }";
+      "Aint fn(int a) {B int b = 1; return (a + b ? C0 : C1); }";
   ASSERT_EQ(streams_[0], expected);
 }
 
@@ -249,6 +264,9 @@ TEST_F(FrontEndActionTests, ControlFlow_If_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(2)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code = "int fn(int a) {\n"
                            "  if (a == 1) {\n"
@@ -264,9 +282,9 @@ TEST_F(FrontEndActionTests, ControlFlow_If_Inst) {
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn(int a) {B\n"
                                "  if (a == 1) {\n"
-                               "    return a;\n"
+                               "    Creturn a;\n"
                                "  }\n"
-                               "  return 0;\n"
+                               "  Creturn 0;\n"
                                "}";
   ASSERT_EQ(streams_[0], expected);
 }
@@ -279,6 +297,9 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElse_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(2)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code = "int fn(int a) {\n"
                            "  if (a == 1) {\n"
@@ -295,9 +316,9 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElse_Inst) {
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn(int a) {B\n"
                                "  if (a == 1) {\n"
-                               "    return a;\n"
+                               "    Creturn a;\n"
                                "  } else {\n"
-                               "    return 0;\n"
+                               "    Creturn 0;\n"
                                "  }\n"
                                "}";
   ASSERT_EQ(streams_[0], expected);
@@ -311,6 +332,9 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(3)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code = "int fn(int a) {\n"
                            "  if (a == 1) {\n"
@@ -328,11 +352,11 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseif_Inst) {
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn(int a) {B\n"
                                "  if (a == 1) {\n"
-                               "    return a;\n"
+                               "    Creturn a;\n"
                                "  } else if (a == 2) {\n"
-                               "    return -1;\n"
+                               "    Creturn -1;\n"
                                "  }\n"
-                               "  return 0;\n"
+                               "  Creturn 0;\n"
                                "}";
   ASSERT_EQ(streams_[0], expected);
 }
@@ -345,6 +369,9 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseifElse_Inst) {
   EXPECT_CALL(*instrumenter, GetFnCalleeInst)
       .Times(1)
       .WillRepeatedly(::testing::Return("B"));
+  EXPECT_CALL(*instrumenter, GetCfInst)
+      .Times(3)
+      .WillRepeatedly(::testing::Return("C"));
 
   const std::string code = "int fn(int a) {\n"
                            "  if (a == 1) {\n"
@@ -363,11 +390,11 @@ TEST_F(FrontEndActionTests, ControlFlow_IfElseifElse_Inst) {
   ASSERT_EQ(streams_.size(), 1);
   const std::string expected = "Aint fn(int a) {B\n"
                                "  if (a == 1) {\n"
-                               "    return a;\n"
+                               "    Creturn a;\n"
                                "  } else if (a == 2) {\n"
-                               "    return -1;\n"
+                               "    Creturn -1;\n"
                                "  } else {\n"
-                               "    return 0;\n"
+                               "    Creturn 0;\n"
                                "  }\n"
                                "}";
   ASSERT_EQ(streams_[0], expected);

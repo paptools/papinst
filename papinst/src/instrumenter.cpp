@@ -18,6 +18,8 @@ public:
   virtual std::string GetTraceIncludeInst(void) override {
     return "#include <paptrace/paptrace.h>\n";
   }
+
+  virtual std::string GetCfInst(void) override { return "PAPTRACE_CF_NODE();"; }
 };
 } // namespace
 
