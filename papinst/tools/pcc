@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Wrapper to allow running papinst using CMAKE_<LANG>_COMPILER_LAUNCHER.
+
+function main
+{
+  # print help if -h or --help is passed.
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "Usage:"
+    echo "  pcc <command>"
+    echo "  pcc -h|--help"
+    echo "Options:"
+    echo "  -h, --help  Print this help message."
+    return 0
+  fi
+
+  local script_dir
+  script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+  local wrapper_opts="--verbose --dry-run"
+  if [ -n "${PAPINST_WRAPPER_OPTS}" ]; then
+    wrapper_opts="${PAPINST_WRAPPER_OPTS}"
+  fi
+  # shellcheck disable=SC2086
+  "${script_dir}/papinst" $wrapper_opts -- "$@"
+}
+
+main "$@"

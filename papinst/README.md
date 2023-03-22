@@ -1,12 +1,6 @@
-# paptools
+# papinst
 
-Platform-agnostic performance tools.
-
-## Requirements
-
-Requirements:
-
-* LLVM
+The path instrumenter executable.
 
 ## Building
 
@@ -43,7 +37,7 @@ cmake -E chdir build/bin ./papinst --help
 To run the unit tests, run the following command from your build directory:
 
 ```bash
-cmake -E chdir build ctest
+cmake -E chdir build/bin ./unit_tests
 ```
 
 ## Tools
@@ -64,20 +58,3 @@ with:
   instruments foo with contents "foo B", then by the time that process A
   attempts to compile foo it might contain contents "foo B" instead of "foo A".
 - No support for header-only libraries.
-
-## Development
-
-### Addition Requirements
-
-Requirements:
-
-* Python 3
-
-### Environment Setup
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements
-pre-commit install
-```
