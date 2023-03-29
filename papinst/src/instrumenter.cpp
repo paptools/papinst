@@ -1,7 +1,9 @@
 #include "papinst/instrumenter.h"
 
+// Third-party headers.
 #include <fmt/format.h>
 
+// C++ standard library headers.
 #include <memory>
 #include <string>
 

@@ -1,8 +1,10 @@
 #ifndef PAPINST_FRONTEND_ACTION_H
 #define PAPINST_FRONTEND_ACTION_H
 
+// Local headers.
 #include "papinst/instrumenter.h"
 
+// Third-party headers.
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
@@ -10,6 +12,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <memory>
 #include <string>
 #include <vector>

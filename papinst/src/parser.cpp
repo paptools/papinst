@@ -1,14 +1,18 @@
 #include "papinst/parser.h"
+
+// Local headers.
 #include "papinst/frontend_action.h"
 #include "papinst/instrumenter.h"
 #include "papinst/utils.h"
 
+// Third-party headers.
 #include <boost/filesystem.hpp>
 #include <boost/process/search_path.hpp>
 #include <clang/Tooling/Tooling.h>
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <fstream>
 #include <iostream>
 #include <map>

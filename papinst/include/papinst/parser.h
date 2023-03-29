@@ -1,7 +1,10 @@
 #ifndef PAPINST_PARSER_H
 #define PAPINST_PARSER_H
 
+// Third-party headers.
 #include <spdlog/spdlog.h>
+
+// C++ standard library headers.
 #include <string>
 #include <vector>
 

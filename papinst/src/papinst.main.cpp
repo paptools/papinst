@@ -1,3 +1,4 @@
+// Local headers.
 #include "papinst/cli.h"
 #include "papinst/exception.h"
 #include "papinst/parser.h"
@@ -6,6 +7,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <cstdlib>
 #include <exception>
 #include <iostream>

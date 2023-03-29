@@ -1,7 +1,10 @@
 #include "papinst/frontend_action.h"
+
+// Local headers.
 #include "papinst/instrumenter.h"
 #include "papinst/utils.h"
 
+// Third-party headers.
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
@@ -15,6 +18,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <iostream>
 #include <memory>
 #include <sstream>

@@ -1,11 +1,14 @@
+// Local headers.
 #include "papinst/frontend_action.h"
 #include "mocks/mock_instrumenter.h"
 
+// Third-party headers.
 #include <clang/Tooling/Tooling.h>
 #include <gtest/gtest.h>
 #include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <memory>
 #include <string>
 #include <vector>

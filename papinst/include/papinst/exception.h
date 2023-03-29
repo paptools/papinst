@@ -1,6 +1,7 @@
 #ifndef PAPINST_EXCEPTION_H
 #define PAPINST_EXCEPTION_H
 
+// C++ standard library headers.
 #include <exception>
 #include <string>
 
@@ -26,4 +27,4 @@ private:
 };
 } // namespace papinst
 
-#endif // PAPINST_ExCEPTION_H
+#endif // PAPINST_EXCEPTION_H

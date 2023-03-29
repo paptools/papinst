@@ -1,6 +1,7 @@
 #ifndef PAPINST_VERSION_H
 #define PAPINST_VERSION_H
 
+// C++ standard library headers.
 #include <string>
 
 namespace papinst {

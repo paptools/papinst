@@ -1,8 +1,10 @@
 #include "papinst/utils.h"
 
+// Third-party headers.
 #include <boost/filesystem.hpp>
 #include <spdlog/spdlog.h>
 
+// C++ standard library headers.
 #include <fstream>
 #include <regex>
 #include <string>
