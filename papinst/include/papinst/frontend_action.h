@@ -10,7 +10,6 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/Support/raw_ostream.h>
 
 // C++ standard library headers.
 #include <memory>

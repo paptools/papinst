@@ -5,12 +5,14 @@
 # Platform-agnostic performance instrumenter library.
 
 add_library(papinst
+  "src/ast_consumer.cpp"
   "src/cli.cpp"
   "src/frontend_action.cpp"
   "src/instrumenter.cpp"
+  "src/logger.cpp"
+  "src/match_callback.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
-  "src/logger.cpp"
 )
 
 target_include_directories(papinst
