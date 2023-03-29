@@ -10,6 +10,7 @@ add_library(papinst
   "src/instrumenter.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
+  "src/logger.cpp"
 )
 
 target_include_directories(papinst

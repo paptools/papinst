@@ -2,6 +2,7 @@
 
 // Local headers.
 #include "papinst/instrumenter.h"
+#include "papinst/logger.h"
 #include "papinst/utils.h"
 
 // Third-party headers.
@@ -13,10 +14,10 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <fmt/format.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>
-#include <spdlog/spdlog.h>
 
 // C++ standard library headers.
 #include <iostream>
@@ -156,8 +157,8 @@ private:
 
 class ASTConsumer : public clang::ASTConsumer {
 public:
-  ASTConsumer(std::shared_ptr<spdlog::logger> logger,
-              clang::ASTContext &context, std::vector<std::string> &streams,
+  ASTConsumer(std::shared_ptr<Logger> logger, clang::ASTContext &context,
+              std::vector<std::string> &streams,
               std::shared_ptr<Instrumenter> instrumenter)
       : logger_(logger),
         rewriter_(context.getSourceManager(), context.getLangOpts()),
@@ -165,7 +166,7 @@ public:
 
   virtual void HandleTranslationUnit(clang::ASTContext &context) override {
     if (context.getDiagnostics().hasErrorOccurred()) {
-      logger_->error("Failed to preprocess file.");
+      logger_->Error("Failed to preprocess file.");
       return;
     }
 
@@ -176,8 +177,9 @@ public:
     auto file_id = source_manager.getMainFileID();
     auto file_entry = source_manager.getFileEntryForID(file_id);
     if (rewriter_.getRewriteBufferFor(file_id) == nullptr) {
-      logger_->debug("No changes for file '{}'.",
-                     std::string(file_entry->getName()));
+      logger_->Debug(
+          fmt::format("No changes for file '{}'.", file_entry->getName()));
+      // std::string_view(file_entry->getName())));
       return;
     }
 
@@ -192,14 +194,14 @@ public:
   }
 
 private:
-  std::shared_ptr<spdlog::logger> logger_;
+  std::shared_ptr<Logger> logger_;
   clang::Rewriter rewriter_;
   std::vector<std::string> &streams_;
   std::shared_ptr<Instrumenter> instrumenter_;
 };
 } // namespace
 
-FrontendAction::FrontendAction(std::shared_ptr<spdlog::logger> logger,
+FrontendAction::FrontendAction(std::shared_ptr<Logger> logger,
                                std::vector<std::string> &streams,
                                std::shared_ptr<Instrumenter> instrumenter)
     : logger_(logger), streams_(streams), instrumenter_(instrumenter) {}

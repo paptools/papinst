@@ -1,12 +1,11 @@
 // Local headers.
 #include "papinst/frontend_action.h"
 #include "mocks/mock_instrumenter.h"
+#include "mocks/mock_logger.h"
 
 // Third-party headers.
 #include <clang/Tooling/Tooling.h>
 #include <gtest/gtest.h>
-#include <spdlog/sinks/null_sink.h>
-#include <spdlog/spdlog.h>
 
 // C++ standard library headers.
 #include <memory>
@@ -16,15 +15,19 @@
 namespace {
 class FrontEndActionTests : public ::testing::Test {
 public:
-  FrontEndActionTests(void)
-      : logger_(spdlog::null_logger_mt("null_logger")), streams_() {}
+  FrontEndActionTests(void) : streams_(), logger_(nullptr) {}
 
-  virtual ~FrontEndActionTests(void) override { spdlog::shutdown(); }
+  virtual void SetUp(void) override {
+    logger_ = std::make_shared<papinst::MockLogger>();
+  }
 
-  virtual void SetUp(void) override { streams_.clear(); }
+  virtual void TearDown(void) override {
+    streams_.clear();
+    logger_.reset();
+  }
 
 protected:
-  std::shared_ptr<spdlog::logger> logger_;
+  std::shared_ptr<papinst::MockLogger> logger_;
   std::vector<std::string> streams_;
 };
 } // namespace

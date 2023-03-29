@@ -1,6 +1,9 @@
 #ifndef PAPINST_UTILS_H
 #define PAPINST_UTILS_H
 
+// Local headers.
+#include "papinst/logger.h"
+
 // C++ standard library headers.
 #include <string>
 #include <vector>
@@ -15,9 +18,11 @@ bool IsSourceFile(const std::string &filepath);
 
 std::string GetFileContents(const std::string &filepath);
 
-std::string CreateInstFile(const std::string &filepath);
+std::string CreateInstFile(std::shared_ptr<Logger> logger,
+                           const std::string &filepath);
 
-void RemoveInstFile(const std::string &filepath);
+void RemoveInstFile(std::shared_ptr<Logger> logger,
+                    const std::string &filepath);
 
 void SetDryRun(bool dry_run);
 

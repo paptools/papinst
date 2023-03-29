@@ -7,6 +7,9 @@
 // Third-party headers.
 #include <gmock/gmock.h>
 
+// C++ standard library headers.
+#include <string>
+
 namespace papinst {
 class MockInstrumenter : public Instrumenter {
 public:
