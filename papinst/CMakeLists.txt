@@ -5,14 +5,15 @@
 # Platform-agnostic performance instrumenter library.
 
 add_library(papinst
-  "src/ast_consumer.cpp"
+  "src/ast_consumer_listener.cpp"
   "src/cli.cpp"
   "src/frontend_action.cpp"
   "src/instrumenter.cpp"
   "src/logger.cpp"
-  "src/match_callback.cpp"
+  #"src/match_callback.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
+  "src/ast_visitor.cpp"
 )
 
 target_include_directories(papinst
@@ -61,16 +62,24 @@ configure_file("tools/pcc" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pcc" COPYONLY)
 # Unit tests.
 
 add_executable(papinst_unit_tests
+  #"tests/ast_consumer_listener.test.cpp"
+  "tests/ast_visitor.test.cpp"
   "tests/cli.test.cpp"
   "tests/frontend_action.test.cpp"
 )
 
 target_include_directories(papinst_unit_tests
   PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/include>
 )
 
-target_link_libraries(papinst_unit_tests PRIVATE papinst gtest gtest_main gmock)
+target_link_libraries(papinst_unit_tests
+  PRIVATE
+    papinst
+    gtest
+    gtest_main
+    gmock
+)
 
 include(GoogleTest)
 gtest_discover_tests(papinst_unit_tests)

@@ -1,7 +1,7 @@
 #include "papinst/frontend_action.h"
 
 // Local headers.
-#include "papinst/ast_consumer.h"
+#include "papinst/ast_consumer_listener.h"
 #include "papinst/instrumenter.h"
 #include "papinst/logger.h"
 #include "papinst/utils.h"
@@ -16,42 +16,54 @@
 #include <string>
 #include <vector>
 
+#include <clang/AST/ASTContext.h>
+
 namespace papinst {
 namespace {
-// #include <llvm/ADT/SmallString.h>
-// class DiagnosticConsumer : public clang::DiagnosticConsumer {
-// public:
-//   void HandleDiagnostic(clang::DiagnosticsEngine::Level level,
-//                         const clang::Diagnostic &info) override {
-//     if (error_.empty() && level >= clang::DiagnosticsEngine::Error) {
-//       llvm::SmallString<100> data;
-//       info.FormatDiagnostic(data);
-//       error_ = data.str().str();
-//       ++NumErrors;
-//     }
-//   }
-//
-// private:
-//   std::string error_;
-// };
+class DefaultASTConsumer : public clang::ASTConsumer {
+public:
+  DefaultASTConsumer(std::shared_ptr<ASTConsumerListener> listener)
+      : listener_(listener) {}
+
+  virtual ~DefaultASTConsumer() = default;
+
+  void HandleTranslationUnit(clang::ASTContext &context) override {
+    if (listener_) {
+      if (context.getDiagnostics().hasErrorOccurred()) {
+        listener_->ProcessError("Error occurred during translation unit.");
+      } else {
+        listener_->ProcessTranslationUnit(context);
+      }
+    }
+  }
+
+private:
+  std::shared_ptr<ASTConsumerListener> listener_;
+};
+
+class DefaultFrontendAction : public FrontendAction {
+public:
+  DefaultFrontendAction(
+      std::shared_ptr<ASTConsumerListener> ast_consumer_listener)
+      : ast_consumer_listener_(ast_consumer_listener) {}
+
+  virtual ~DefaultFrontendAction() = default;
+
+  std::unique_ptr<clang::ASTConsumer>
+  CreateASTConsumer(clang::CompilerInstance &compiler,
+                    llvm::StringRef inFile) override {
+    auto consumer =
+        std::make_unique<DefaultASTConsumer>(ast_consumer_listener_);
+    return std::move(consumer);
+  }
+
+private:
+  std::shared_ptr<ASTConsumerListener> ast_consumer_listener_;
+};
 } // namespace
 
-FrontendAction::FrontendAction(std::shared_ptr<Logger> logger,
-                               std::vector<std::string> &streams,
-                               std::shared_ptr<Instrumenter> instrumenter)
-    : logger_(logger), streams_(streams), instrumenter_(instrumenter) {}
-
-std::unique_ptr<clang::ASTConsumer>
-FrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
-                                  llvm::StringRef inFile) {
-  return std::make_unique<papinst::ASTConsumer>(
-      logger_, compiler.getASTContext(), streams_, instrumenter_);
-}
-
-bool FrontendAction::BeginInvocation(clang::CompilerInstance &compiler) {
-  // set the diagnostic consumer
-  // compiler.getDiagnostics().setClient(new DiagnosticConsumer(),
-  //                                    /*ShouldOwnClient=*/true);
-  return true;
+std::unique_ptr<FrontendAction> FrontendAction::Create(
+    std::shared_ptr<ASTConsumerListener> ast_consumer_listener) {
+  return std::make_unique<DefaultFrontendAction>(ast_consumer_listener);
 }
 } // namespace papinst

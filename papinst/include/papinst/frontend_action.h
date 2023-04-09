@@ -2,6 +2,7 @@
 #define PAPINST_FRONTEND_ACTION_H
 
 // Local headers.
+#include "papinst/ast_consumer_listener.h"
 #include "papinst/instrumenter.h"
 #include "papinst/logger.h"
 
@@ -19,19 +20,17 @@
 namespace papinst {
 class FrontendAction : public clang::ASTFrontendAction {
 public:
-  FrontendAction(std::shared_ptr<Logger> logger,
-                 std::vector<std::string> &streams,
-                 std::shared_ptr<Instrumenter> instrumenter);
+  // Factory method.
+  static std::unique_ptr<FrontendAction>
+  Create(std::shared_ptr<ASTConsumerListener> ast_consumer_listener);
+
+  // Virtual destructor.
+  virtual ~FrontendAction() = default;
+
+  // Returns a pointer to the ASTConsumer instance.
   virtual std::unique_ptr<clang::ASTConsumer>
   CreateASTConsumer(clang::CompilerInstance &compiler,
-                    llvm::StringRef inFile) override;
-
-  virtual bool BeginInvocation(clang::CompilerInstance &compiler) override;
-
-private:
-  std::shared_ptr<Logger> logger_;
-  std::vector<std::string> &streams_;
-  std::shared_ptr<Instrumenter> instrumenter_;
+                    llvm::StringRef inFile) = 0;
 };
 } // namespace papinst
 

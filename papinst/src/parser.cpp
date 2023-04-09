@@ -1,6 +1,7 @@
 #include "papinst/parser.h"
 
 // Local headers.
+#include "papinst/ast_consumer_listener.h"
 #include "papinst/frontend_action.h"
 #include "papinst/instrumenter.h"
 #include "papinst/logger.h"
@@ -84,8 +85,9 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     command[s_source_file_pos[source_file]] = inst_filepath;
 
     bool success = clang::tooling::runToolOnCodeWithArgs(
-        std::make_unique<FrontendAction>(
-            logger_, streams, InstrumenterFactory::CreateDefaultInstrumenter()),
+        FrontendAction::Create(ASTConsumerListener::Create(
+            logger_, streams, InstrumenterFactory::CreateDefaultInstrumenter(),
+            nullptr)),
         source_code, parse_args, inst_filepath, compiler);
     if (!success) {
       logger_->Error(fmt::format("Failed to parse file '{}'.", source_file));
