@@ -12,7 +12,6 @@ class MockASTVisitorListener : public ASTVisitorListener {
 public:
   MOCK_METHOD(void, SetRewriter, (clang::Rewriter & rewriter), (override));
   MOCK_METHOD(void, Initialize, (clang::ASTContext & context), (override));
-  MOCK_METHOD(void, ProcessStmt, (clang::Stmt * stmt), (override));
   MOCK_METHOD(void, ProcessFnDef, (clang::FunctionDecl * decl), (override));
   MOCK_METHOD(void, ProcessIfStmt, (clang::IfStmt * stmt), (override));
   MOCK_METHOD(void, ProcessSwitchStmt, (clang::SwitchStmt * stmt), (override));

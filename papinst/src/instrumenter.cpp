@@ -14,7 +14,7 @@ public:
   ~DefaultInstrumenter(void) = default;
 
   std::string GetStmtInst(int stmt_id) override {
-    static const std::string template_str = "PAPTRACE_CALLEE_NODE(\"{}\");";
+    static const std::string template_str = "PAPTRACE_STMT_NODE(\"{}\");";
     return fmt::format(template_str, stmt_id);
   }
 

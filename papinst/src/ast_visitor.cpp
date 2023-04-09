@@ -46,17 +46,47 @@ public:
 
   void Initialize(clang::ASTContext &context) override { context_ = &context; }
 
-  void ProcessStmt(clang::Stmt *stmt) override {
+  void ProcessFnDef(clang::FunctionDecl *decl) override {
     assert(context_);
-    auto stmt_id = stmt->getID(*context_);
-    std::cout << "stmt ID: " << stmt_id << std::endl;
-    // stmt->dumpColor();
-    rewriter_->InsertTextBefore(stmt->getBeginLoc(),
-                                instrumenter_->GetStmtInst(stmt_id));
+    if (auto body = decl->getBody()) {
+      // auto stmt_id = decl->getBody()->getID(*context_);
+      // std::cout << "stmt ID: " << stmt_id << std::endl;
+      auto sig = GetFunctionSignature(decl);
+      auto compound_stmt =
+          clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
+      rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
+                                      instrumenter_->GetFnCalleeInst(sig));
+    }
   }
 
-  void ProcessFnDef(clang::FunctionDecl *decl) override {}
-  void ProcessIfStmt(clang::IfStmt *stmt) override {}
+  void ProcessIfStmt(clang::IfStmt *stmt) override {
+    assert(context_);
+    auto then_stmt = stmt->getThen();
+    auto then_id = then_stmt->getID(*context_);
+    if (clang::isa<clang::CompoundStmt>(then_stmt)) {
+      rewriter_->InsertTextAfterToken(then_stmt->getBeginLoc(),
+                                      instrumenter_->GetStmtInst(then_id));
+    } else {
+      std::ostringstream oss;
+      oss << "{" << instrumenter_->GetStmtInst(then_id)
+          << rewriter_->getRewrittenText(then_stmt->getSourceRange()) << ";}";
+      rewriter_->ReplaceText(then_stmt->getSourceRange(), oss.str());
+    }
+
+    if (auto else_stmt = stmt->getElse()) {
+      auto else_id = else_stmt->getID(*context_);
+      if (clang::isa<clang::CompoundStmt>(else_stmt)) {
+        rewriter_->InsertTextAfterToken(else_stmt->getBeginLoc(),
+                                        instrumenter_->GetStmtInst(else_id));
+      } else {
+        std::ostringstream oss;
+        oss << "{" << instrumenter_->GetStmtInst(else_id)
+            << rewriter_->getRewrittenText(else_stmt->getSourceRange()) << ";}";
+        rewriter_->ReplaceText(else_stmt->getSourceRange(), oss.str());
+      }
+    }
+  }
+
   void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {}
   void ProcessWhileStmt(clang::WhileStmt *stmt) override {}
   void ProcessForStmt(clang::ForStmt *stmt) override {}
@@ -89,16 +119,6 @@ public:
     assert(context_);
     // if (!context_->getSourceManager().isInSystemHeader(decl->getBeginLoc()))
     if (decl->isThisDeclarationADefinition()) {
-      decl->dumpColor();
-
-      // auto &&body = decl->getBody();
-      // auto id = body->getID(*context_);
-      // std::cout << "instrumenting stmt: " << id << std::endl;
-      // instrumented_stmts_.insert(id);
-      // auto fn_sig =
-      // instrumenter_->GetFnCalleeInst(GetFunctionSignature(decl));
-      //  rewriter_.InsertTextAfterToken(compound_stmt->getLBracLoc(),
-      //                                 instrumenter_->GetFnCalleeInst(s_fn_sig));
       listener_->ProcessFnDef(decl);
     }
     return true;
@@ -106,7 +126,6 @@ public:
 
   bool VisitStmt(clang::Stmt *stmt) override {
     assert(context_);
-    listener_->ProcessStmt(stmt);
 
     if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
       listener_->ProcessIfStmt(if_stmt);

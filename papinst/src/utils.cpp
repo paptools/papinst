@@ -33,7 +33,7 @@ std::string ToString(const std::vector<std::string> &v, const char sep) {
 
 bool IsSupportedCompiler(const std::string &compiler) {
   boost::filesystem::path compiler_path(compiler);
-  std::regex pattern(R"(^(gcc|g\+\+|clang|clang\+\+))");
+  std::regex pattern(R"(^(gcc|g\+\+|clang|clang\+\+|cc|c\+\+))");
   return std::regex_search(compiler_path.filename().string(), pattern);
 }
 

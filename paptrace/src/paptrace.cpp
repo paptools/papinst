@@ -23,7 +23,7 @@ struct SessionJsonHandler {
 
   SessionJsonHandler() : json() {
     // TODO" Find a way to syncronize this with the version of the library.
-    json["version"] = "0.1.0";
+    json["version"] = "0.1.1";
     json["nodes"] = nlohmann::json::array();
     s_curr_json = &json["nodes"];
   }
@@ -67,11 +67,25 @@ private:
   nlohmann::json *parent_json_;
   nlohmann::json j_;
 };
+
+class StmtNode : public Node {
+public:
+  StmtNode(const std::string &name) : name_(name), j_(SerializeNode(this)) {}
+  virtual ~StmtNode() { s_curr_json->push_back(j_); }
+  virtual const std::string &GetName() const override { return name_; }
+
+private:
+  std::string name_;
+  nlohmann::json j_;
+};
 } // namespace
 
 namespace NodeFactory {
 std::unique_ptr<Node> CreateCalleeNode(const std::string &sig) {
   return std::make_unique<CalleeNode>(sig);
+}
+std::unique_ptr<Node> CreateStmtNode(const std::string &stmt_id) {
+  return std::make_unique<StmtNode>(stmt_id);
 }
 } // namespace NodeFactory
 } // namespace paptrace

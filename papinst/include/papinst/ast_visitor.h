@@ -24,7 +24,6 @@ public:
 
   virtual void SetRewriter(clang::Rewriter &rewriter) = 0;
   virtual void Initialize(clang::ASTContext &context) = 0;
-  virtual void ProcessStmt(clang::Stmt *stmt) = 0;
   virtual void ProcessFnDef(clang::FunctionDecl *decl) = 0;
   virtual void ProcessIfStmt(clang::IfStmt *stmt) = 0;
   virtual void ProcessSwitchStmt(clang::SwitchStmt *stmt) = 0;

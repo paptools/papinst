@@ -13,6 +13,7 @@ public:
 
 namespace NodeFactory {
 std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
+std::unique_ptr<Node> CreateStmtNode(const std::string &stmt_id);
 } // namespace NodeFactory
 } // namespace paptrace
 
@@ -24,5 +25,7 @@ std::unique_ptr<Node> CreateCalleeNode(const std::string &sig);
 // Instrumentation macros.
 #define PAPTRACE_CALLEE_NODE(x)                                                \
   auto UNIQUE_NODE_NAME = paptrace::NodeFactory::CreateCalleeNode(x);
+#define PAPTRACE_STMT_NODE(x)                                                  \
+  auto UNIQUE_NODE_NAME = paptrace::NodeFactory::CreateStmtNode(x);
 
 #endif // PAPTRACE_PAPTRACE_H
