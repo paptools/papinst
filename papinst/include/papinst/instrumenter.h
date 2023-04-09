@@ -10,9 +10,9 @@ namespace papinst {
 class Instrumenter {
 public:
   virtual ~Instrumenter(void) = default;
+  virtual std::string GetStmtInst(int stmt_id) = 0;
   virtual std::string GetFnCalleeInst(const std::string &sig) = 0;
   virtual std::string GetTraceIncludeInst(void) = 0;
-  virtual std::string GetCfInst(void) = 0;
 };
 
 // Collection of factory methods for creating instrumenters.

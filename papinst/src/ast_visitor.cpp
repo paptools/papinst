@@ -3,6 +3,10 @@
 // Local headers.
 #include "papinst/instrumenter.h"
 
+// Third-party headers.
+#include <clang/AST/ASTContext.h>
+#include <clang/Rewrite/Core/Rewriter.h>
+
 // C++ standard library headers.
 #include <iostream> // TODO: Remove this once debugging is done.
 #include <map>
@@ -30,19 +34,59 @@ std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
   return ss.str();
 }
 
-class ASTVisitorImpl : public ASTVisitor {
+class DefaultASTVisitorListener : public ASTVisitorListener {
 public:
-  ASTVisitorImpl(std::shared_ptr<ASTVisitorListener> listener)
+  DefaultASTVisitorListener(std::shared_ptr<Instrumenter> instrumenter)
+      : instrumenter_(instrumenter), context_(nullptr), rewriter_(nullptr) {}
+  ~DefaultASTVisitorListener() = default;
+
+  void SetRewriter(clang::Rewriter &rewriter) override {
+    rewriter_ = &rewriter;
+  }
+
+  void Initialize(clang::ASTContext &context) override { context_ = &context; }
+
+  void ProcessStmt(clang::Stmt *stmt) override {
+    assert(context_);
+    auto stmt_id = stmt->getID(*context_);
+    std::cout << "stmt ID: " << stmt_id << std::endl;
+    // stmt->dumpColor();
+    rewriter_->InsertTextBefore(stmt->getBeginLoc(),
+                                instrumenter_->GetStmtInst(stmt_id));
+  }
+
+  void ProcessFnDef(clang::FunctionDecl *decl) override {}
+  void ProcessIfStmt(clang::IfStmt *stmt) override {}
+  void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {}
+  void ProcessWhileStmt(clang::WhileStmt *stmt) override {}
+  void ProcessForStmt(clang::ForStmt *stmt) override {}
+  void ProcessDoStmt(clang::DoStmt *stmt) override {}
+
+private:
+  std::shared_ptr<Instrumenter> instrumenter_;
+  clang::ASTContext *context_;
+  clang::Rewriter *rewriter_;
+};
+
+class DefaultASTVisitor : public ASTVisitor {
+public:
+  DefaultASTVisitor(std::shared_ptr<ASTVisitorListener> listener)
       : listener_(listener) {}
 
-  virtual ~ASTVisitorImpl() = default;
+  virtual ~DefaultASTVisitor() = default;
+
+  void SetRewriter(clang::Rewriter &rewriter) override {
+    listener_->SetRewriter(rewriter);
+  }
 
   bool TraverseAST(clang::ASTContext &context) override {
     context_ = &context;
+    listener_->Initialize(context);
     return RecursiveASTVisitor::TraverseAST(context);
   }
 
   bool VisitFunctionDecl(clang::FunctionDecl *decl) override {
+    assert(context_);
     // if (!context_->getSourceManager().isInSystemHeader(decl->getBeginLoc()))
     if (decl->isThisDeclarationADefinition()) {
       decl->dumpColor();
@@ -61,8 +105,9 @@ public:
   }
 
   bool VisitStmt(clang::Stmt *stmt) override {
-    // std::cout << "stmt ID: " << stmt->getID(*context_) << std::endl;
-    // stmt->dumpColor();
+    assert(context_);
+    listener_->ProcessStmt(stmt);
+
     if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
       listener_->ProcessIfStmt(if_stmt);
     } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {
@@ -80,12 +125,16 @@ public:
 private:
   clang::ASTContext *context_;
   std::shared_ptr<ASTVisitorListener> listener_;
-  // std::set<int64_t> instrumented_stmts_;
 };
 } // namespace
 
+std::shared_ptr<ASTVisitorListener>
+ASTVisitorListener::Create(std::shared_ptr<Instrumenter> instrumenter) {
+  return std::make_shared<DefaultASTVisitorListener>(instrumenter);
+}
+
 std::shared_ptr<ASTVisitor>
 ASTVisitor::Create(std::shared_ptr<ASTVisitorListener> listener) {
-  return std::make_shared<ASTVisitorImpl>(listener);
+  return std::make_shared<DefaultASTVisitor>(listener);
 }
 } // namespace papinst

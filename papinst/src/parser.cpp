@@ -84,10 +84,11 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     inst_filepaths.push_back(inst_filepath);
     command[s_source_file_pos[source_file]] = inst_filepath;
 
+    auto instrumenter = InstrumenterFactory::CreateDefaultInstrumenter();
     bool success = clang::tooling::runToolOnCodeWithArgs(
         FrontendAction::Create(ASTConsumerListener::Create(
-            logger_, streams, InstrumenterFactory::CreateDefaultInstrumenter(),
-            nullptr)),
+            logger_, streams, instrumenter,
+            ASTVisitor::Create(ASTVisitorListener::Create(instrumenter)))),
         source_code, parse_args, inst_filepath, compiler);
     if (!success) {
       logger_->Error(fmt::format("Failed to parse file '{}'.", source_file));

@@ -60,17 +60,22 @@ protected:
 } // namespace
 
 TEST_F(ASTVisitorTests, Fn_Decl_Is_Not_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
   const std::string code = "void fn();";
   RunVisitorOnCode(code);
 }
 
 TEST_F(ASTVisitorTests, Fn_Def_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(1);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   const std::string code = "void fn() {}";
   RunVisitorOnCode(code);
 }
 
 TEST_F(ASTVisitorTests, If_Stmt_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(10);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessIfStmt).Times(1);
   const std::string code = R"(
@@ -83,6 +88,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, If_Else_Stmts_Are_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(10);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessIfStmt).Times(1);
   const std::string code = R"(
@@ -95,6 +102,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, If_Elseif_Stmts_Are_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(17);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessIfStmt).Times(2);
   const std::string code = R"(
@@ -108,6 +117,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, If_Elseif_Else_Stmts_Are_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(17);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessIfStmt).Times(2);
   const std::string code = R"(
@@ -121,6 +132,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, Switch_Stmts_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(12);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessSwitchStmt).Times(1);
   const std::string code = R"(
@@ -135,6 +148,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, While_Stmt_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(11);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessWhileStmt).Times(1);
   const std::string code = R"(
@@ -147,6 +162,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, For_Stmt_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(16);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessForStmt).Times(1);
   const std::string code = R"(
@@ -159,6 +176,8 @@ int fn(int a) {
 }
 
 TEST_F(ASTVisitorTests, Do_Stmt_Is_Processed) {
+  EXPECT_CALL(*listener_, Initialize).Times(1);
+  EXPECT_CALL(*listener_, ProcessStmt).Times(11);
   EXPECT_CALL(*listener_, ProcessFnDef).Times(1);
   EXPECT_CALL(*listener_, ProcessDoStmt).Times(1);
   const std::string code = R"(

@@ -38,7 +38,11 @@ public:
 
     logger_->Debug("Processing translation unit.");
     clang::Rewriter rewriter(context.getSourceManager(), context.getLangOpts());
-    visitor_->TraverseDecl(context.getTranslationUnitDecl());
+    visitor_->SetRewriter(rewriter);
+    visitor_->TraverseAST(context);
+
+    // visitor_->TraverseDecl(context.getTranslationUnitDecl());
+
     // MatchCallback match_callback(context, rewriter, instrumenter_);
     // match_callback.start();
 

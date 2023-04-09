@@ -13,10 +13,10 @@
 namespace papinst {
 class MockInstrumenter : public Instrumenter {
 public:
+  MOCK_METHOD(std::string, GetStmtInst, (int stmt_id), (override));
   MOCK_METHOD(std::string, GetFnCalleeInst, (const std::string &sig),
               (override));
   MOCK_METHOD(std::string, GetTraceIncludeInst, (), (override));
-  MOCK_METHOD(std::string, GetCfInst, (), (override));
 };
 } // namespace papinst
 

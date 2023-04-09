@@ -65,6 +65,7 @@ TEST_F(ASTConsumerListenerTests, Test1) {
   auto visitor = std::make_shared<papinst::MockASTVisitor>();
   EXPECT_CALL(*visitor, VisitStmt).Times(1);
   auto instrumenter = std::make_shared<papinst::MockInstrumenter>();
+  EXPECT_CALL(*instrumenter, GetTraceIncludeInst).Times(1);
 
   const std::string code = "int main() { return 1; }";
   bool success = clang::tooling::runToolOnCode(
