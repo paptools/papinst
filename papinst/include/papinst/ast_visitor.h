@@ -34,6 +34,7 @@ public:
   // virtual void ProcessCXXTryStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessCXXForRangeStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
+  virtual void ProcessReturnStmt(clang::ReturnStmt *stmt) = 0;
 };
 
 class ASTVisitor : public clang::RecursiveASTVisitor<ASTVisitor> {

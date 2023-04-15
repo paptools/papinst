@@ -88,9 +88,14 @@ public:
   }
 
   void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {}
+
   void ProcessWhileStmt(clang::WhileStmt *stmt) override {}
+
   void ProcessForStmt(clang::ForStmt *stmt) override {}
+
   void ProcessDoStmt(clang::DoStmt *stmt) override {}
+
+  void ProcessReturnStmt(clang::ReturnStmt *stmt) override {}
 
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
@@ -137,6 +142,8 @@ public:
       listener_->ProcessForStmt(for_stmt);
     } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
       listener_->ProcessDoStmt(do_stmt);
+    } else if (auto return_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
+      listener_->ProcessReturnStmt(return_stmt);
     }
     return true;
   }
