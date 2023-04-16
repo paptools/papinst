@@ -4,10 +4,10 @@
 #include "papinst/ast_visitor.h"
 #include "papinst/instrumenter.h"
 #include "papinst/logger.h"
-#include "papinst/match_callback.h"
 
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
+#include <clang/Basic/SourceManager.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
 #include <llvm/Support/raw_ostream.h>

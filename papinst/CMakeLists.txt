@@ -10,7 +10,6 @@ add_library(papinst
   "src/frontend_action.cpp"
   "src/instrumenter.cpp"
   "src/logger.cpp"
-  #"src/match_callback.cpp"
   "src/parser.cpp"
   "src/utils.cpp"
   "src/ast_visitor.cpp"
