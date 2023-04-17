@@ -39,7 +39,7 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
 
   auto compiler = command[0];
   if (!utils::IsSupportedCompiler(compiler)) {
-    logger_->Warning(fmt::format(
+    logger_->Debug(fmt::format(
         "Executable '{}' is not a supported compiler. Skipping parse.",
         compiler));
     return {};
