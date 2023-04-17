@@ -42,9 +42,8 @@ include("cmake/FindBoost.cmake")
 include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
 include("cmake/FindJson.cmake")
+include("cmake/FindFmt.cmake")
 include("cmake/FindSpdlog.cmake")
-
-find_package(fmt REQUIRED)
 
 # ##############################################################################
 # Project subdirectories.

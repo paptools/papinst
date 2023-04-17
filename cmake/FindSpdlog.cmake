@@ -4,6 +4,8 @@
 set(spdlog_version "1.11.0")
 message(STATUS "Fetching spdlog ${spdlog_version}")
 
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Enable external FMTLIB in spdlog" FORCE)
+
 include(FetchContent)
 
 FetchContent_Declare(spdlog
