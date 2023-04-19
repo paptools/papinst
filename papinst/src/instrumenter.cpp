@@ -13,14 +13,15 @@ class DefaultInstrumenter : public Instrumenter {
 public:
   ~DefaultInstrumenter(void) = default;
 
-  std::string GetStmtInst(int stmt_id) override {
-    static const std::string template_str = "PAPTRACE_STMT_NODE(\"{}\");";
-    return fmt::format(template_str, stmt_id);
+  std::string GetTraceCalleeInst(int id, const std::string &sig) override {
+    static const std::string template_str =
+        "\nPAPTRACE_TRACE_CALLEE({}, \"{}\");";
+    return fmt::format(template_str, id, sig);
   }
 
-  std::string GetFnCalleeInst(const std::string &sig) override {
-    static const std::string template_str = "PAPTRACE_CALLEE_NODE(\"{}\");";
-    return fmt::format(template_str, sig);
+  std::string GetTraceStmtInst(int stmt_id) override {
+    static const std::string template_str = "\nPAPTRACE_TRACE_STMT(\"{}\");";
+    return fmt::format(template_str, stmt_id);
   }
 
   std::string GetTraceIncludeInst(void) override {

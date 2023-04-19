@@ -1,91 +1,154 @@
 #include "paptrace/paptrace.h"
 
+// Third-party headers.
 #include <nlohmann/json.hpp>
 
-#include <chrono>
+// C++ standard library headers.
+#include <cassert>
+#include <fstream>
 #include <iostream>
+#include <list>
 #include <memory>
+#include <stack>
 #include <string>
 
 namespace paptrace {
 namespace {
-nlohmann::json *s_curr_json = nullptr;
+std::stack<Node *> s_node_stack;
 
-nlohmann::json SerializeNode(Node *node) {
-  nlohmann::json json;
-  json["node"] = node->GetName();
-  json["children"] = nlohmann::json::array();
-  return json;
-}
+class SessionNode : public Node {
+public:
+  SessionNode() : children_() { Register(); }
 
-struct SessionJsonHandler {
-  nlohmann::json json;
-
-  SessionJsonHandler() : json() {
-    // TODO" Find a way to syncronize this with the version of the library.
-    json["version"] = "0.1.1";
-    json["nodes"] = nlohmann::json::array();
-    s_curr_json = &json["nodes"];
+  ~SessionNode() {
+    Deregister();
+    Save();
   }
 
-  ~SessionJsonHandler() { std::cout << std::setw(2) << json << std::endl; }
-};
-SessionJsonHandler s_session_json_handler;
+  std::string Serialize() const override {
+    auto j_children = nlohmann::json::array();
+    for (const auto &child : children_) {
+      j_children.push_back(nlohmann::json::parse(child));
+    }
+    nlohmann::json obj = {{"version", "0.1.0"}, {"traces", j_children}};
+    return obj.dump();
+  }
 
-// class MainNode : public Node {
-// public:
-//   RootNode(const std::string &name) : name_(name), j_(SerializeNode(this)) {
-//     s_curr_json = &j_["children"];
-//   }
-//   virtual ~RootNode() {
-//     std::cout << std::setw(2) << j_ << std::endl;
-//   }
-//   virtual const std::string &GetName() const override { return name_; }
-//   json *GetJson() { return &j_; }
-//
-// private:
-//   std::string name_;
-//   json j_;
-// };
-//
-// std::unique_ptr<Node> s_root_node = std::make_unique<RootNode>("Root");
+  void AddParam(const Param &param) override {}
+
+  void AddChild(Node *child) override {
+    assert(child);
+    children_.push_back(child->Serialize());
+  }
+
+private:
+  std::list<std::string> children_;
+
+  void Register() { s_node_stack.push(this); }
+
+  void Deregister() {
+    assert(s_node_stack.top() == this);
+    s_node_stack.pop();
+  }
+
+  void Save() {
+    nlohmann::json json = nlohmann::json::parse(Serialize());
+    std::ofstream ofs("paptrace.json");
+    ofs << std::setw(2) << json << std::endl;
+    std::cout << "Paptace data saved to \"paptrace.json\"." << std::endl;
+  }
+};
+SessionNode s_session_node;
 
 class CalleeNode : public Node {
 public:
-  CalleeNode(const std::string &name)
-      : name_(name), parent_json_(s_curr_json), j_(SerializeNode(this)) {
-    s_curr_json = &j_["children"];
+  CalleeNode(const std::string &sig) : sig_(sig), params_(), children_() {
+    Register();
   }
-  virtual ~CalleeNode() {
-    parent_json_->push_back(j_);
-    s_curr_json = parent_json_;
+
+  ~CalleeNode() { Deregister(); }
+
+  std::string Serialize() const override {
+    auto j_params = nlohmann::json::array();
+    for (const auto &param : params_) {
+      j_params.push_back(nlohmann::json::parse(param.Serialize()));
+    }
+    auto j_children = nlohmann::json::array();
+    for (const auto &child : children_) {
+      j_children.push_back(nlohmann::json::parse(child));
+    }
+    nlohmann::json obj = {{"callee",
+                           {
+                               {"sig", sig_},
+                               {"params", j_params},
+                               {"children", j_children},
+                           }}};
+    return obj.dump();
   }
-  virtual const std::string &GetName() const override { return name_; }
+
+  void AddParam(const Param &param) override { params_.push_back(param); }
+
+  void AddChild(Node *child) override {
+    assert(child);
+    children_.push_back(child->Serialize());
+  }
 
 private:
-  std::string name_;
-  nlohmann::json *parent_json_;
-  nlohmann::json j_;
+  std::string sig_;
+  std::list<Param> params_;
+  std::list<std::string> children_;
+
+  void Register() { s_node_stack.push(this); }
+
+  void Deregister() {
+    assert(s_node_stack.top() == this);
+    s_node_stack.pop();
+    assert(s_node_stack.top());
+    s_node_stack.top()->AddChild(this);
+  }
 };
 
 class StmtNode : public Node {
 public:
-  StmtNode(const std::string &name) : name_(name), j_(SerializeNode(this)) {}
-  virtual ~StmtNode() { s_curr_json->push_back(j_); }
-  virtual const std::string &GetName() const override { return name_; }
+  StmtNode(const std::string &id) : id_(id) {}
+
+  ~StmtNode() = default;
+
+  std::string Serialize() const override {
+    nlohmann::json obj = {{"stmt", {{"id", id_}}}};
+    return obj.dump();
+  }
+
+  void AddParam(const Param &param) override {}
+
+  void AddChild(Node *child) override {}
 
 private:
-  std::string name_;
-  nlohmann::json j_;
+  std::string id_;
 };
 } // namespace
 
-namespace NodeFactory {
-std::unique_ptr<Node> CreateCalleeNode(const std::string &sig) {
+// struct Param {
+Param::Param(const std::string &name, const std::string &value)
+    : name(name), value(value) {}
+
+std::string Param::Serialize() const {
+  nlohmann::json json;
+  json["name"] = name;
+  json["value"] = value;
+  return json.dump();
+}
+// } struct Param
+
+// class Node {
+std::unique_ptr<Node> Node::Create(const std::string &sig) {
   return std::make_unique<CalleeNode>(sig);
 }
-std::unique_ptr<Node> CreateStmtNode(const std::string &stmt_id) {
-  return std::make_unique<StmtNode>(stmt_id);
+// } class Node
+
+void AddStmt(const std::string &id) {
+  assert(s_node_stack.top());
+  auto stmt_node = StmtNode(id);
+  s_node_stack.top()->AddChild(&stmt_node);
 }
-} // namespace NodeFactory
 } // namespace paptrace

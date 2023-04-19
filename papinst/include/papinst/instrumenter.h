@@ -10,8 +10,8 @@ namespace papinst {
 class Instrumenter {
 public:
   virtual ~Instrumenter(void) = default;
-  virtual std::string GetStmtInst(int stmt_id) = 0;
-  virtual std::string GetFnCalleeInst(const std::string &sig) = 0;
+  virtual std::string GetTraceCalleeInst(int id, const std::string &sig) = 0;
+  virtual std::string GetTraceStmtInst(int stmt_id) = 0;
   virtual std::string GetTraceIncludeInst(void) = 0;
 };
 

@@ -1,7 +1,6 @@
 // Local headers.
 #include "papinst/ast_visitor.h"
 #include "papinst/mock_ast_visitor.h"
-#include "papinst/mock_instrumenter.h"
 
 // Third-party headers.
 #include <clang/Tooling/Tooling.h>

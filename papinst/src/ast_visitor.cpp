@@ -6,6 +6,7 @@
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <fmt/format.h>
 
 // C++ standard library headers.
 #include <iostream> // TODO: Remove this once debugging is done.
@@ -34,6 +35,12 @@ std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
   return ss.str();
 }
 
+// IRD TODO: Move to inst impl.
+std::string GetTraceParamInst(int id, const std::string &param) {
+  static const std::string template_str = "\nPAPTRACE_TRACE_PARAM({}, {});";
+  return fmt::format(template_str, id, param);
+}
+
 class DefaultASTVisitorListener : public ASTVisitorListener {
 public:
   DefaultASTVisitorListener(std::shared_ptr<Instrumenter> instrumenter)
@@ -48,27 +55,37 @@ public:
 
   void ProcessFnDef(clang::FunctionDecl *decl) override {
     assert(context_);
+
     if (auto body = decl->getBody()) {
       // auto stmt_id = decl->getBody()->getID(*context_);
       // std::cout << "stmt ID: " << stmt_id << std::endl;
+
       auto sig = GetFunctionSignature(decl);
+      auto id = body->getID(*context_);
+      std::ostringstream oss;
+      oss << instrumenter_->GetTraceCalleeInst(id, sig);
+      for (auto param : decl->parameters()) {
+        oss << GetTraceParamInst(id, param->getNameAsString());
+        auto param_str = param->getNameAsString();
+      }
+
       auto compound_stmt =
           clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
-      rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
-                                      instrumenter_->GetFnCalleeInst(sig));
+      rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(), oss.str());
     }
   }
 
   void ProcessIfStmt(clang::IfStmt *stmt) override {
     assert(context_);
+
     auto then_stmt = stmt->getThen();
     auto then_id = then_stmt->getID(*context_);
     if (clang::isa<clang::CompoundStmt>(then_stmt)) {
       rewriter_->InsertTextAfterToken(then_stmt->getBeginLoc(),
-                                      instrumenter_->GetStmtInst(then_id));
+                                      instrumenter_->GetTraceStmtInst(then_id));
     } else {
       std::ostringstream oss;
-      oss << "{" << instrumenter_->GetStmtInst(then_id)
+      oss << "{" << instrumenter_->GetTraceStmtInst(then_id)
           << rewriter_->getRewrittenText(then_stmt->getSourceRange()) << ";}";
       rewriter_->ReplaceText(then_stmt->getSourceRange(), oss.str());
     }
@@ -76,11 +93,11 @@ public:
     if (auto else_stmt = stmt->getElse()) {
       auto else_id = else_stmt->getID(*context_);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
-        rewriter_->InsertTextAfterToken(else_stmt->getBeginLoc(),
-                                        instrumenter_->GetStmtInst(else_id));
+        rewriter_->InsertTextAfterToken(
+            else_stmt->getBeginLoc(), instrumenter_->GetTraceStmtInst(else_id));
       } else {
         std::ostringstream oss;
-        oss << "{" << instrumenter_->GetStmtInst(else_id)
+        oss << "{" << instrumenter_->GetTraceStmtInst(else_id)
             << rewriter_->getRewrittenText(else_stmt->getSourceRange()) << ";}";
         rewriter_->ReplaceText(else_stmt->getSourceRange(), oss.str());
       }

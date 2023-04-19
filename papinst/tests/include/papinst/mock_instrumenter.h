@@ -13,9 +13,9 @@
 namespace papinst {
 class MockInstrumenter : public Instrumenter {
 public:
-  MOCK_METHOD(std::string, GetStmtInst, (int stmt_id), (override));
-  MOCK_METHOD(std::string, GetFnCalleeInst, (const std::string &sig),
+  MOCK_METHOD(std::string, GetTraceCalleeInst, (int id, const std::string &sig),
               (override));
+  MOCK_METHOD(std::string, GetTraceStmtInst, (int stmt_id), (override));
   MOCK_METHOD(std::string, GetTraceIncludeInst, (), (override));
 };
 } // namespace papinst
