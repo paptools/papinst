@@ -15,7 +15,7 @@ public:
 
   std::string GetTraceCalleeInst(int id, const std::string &sig) override {
     static const std::string template_str =
-        "\nPAPTRACE_TRACE_CALLEE({}, \"{}\");";
+        "\nPAPTRACE_CALLEE_NODE({}, \"{}\");";
     return fmt::format(template_str, id, sig);
   }
 

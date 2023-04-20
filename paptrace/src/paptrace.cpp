@@ -25,13 +25,13 @@ public:
     Save();
   }
 
-  std::string Serialize() const override {
+  nlohmann::json Serialize() const override {
     auto j_children = nlohmann::json::array();
     for (const auto &child : children_) {
-      j_children.push_back(nlohmann::json::parse(child));
+      j_children.push_back(child);
     }
     nlohmann::json obj = {{"version", "0.1.0"}, {"traces", j_children}};
-    return obj.dump();
+    return obj;
   }
 
   void AddParam(const Param &param) override {}
@@ -42,7 +42,7 @@ public:
   }
 
 private:
-  std::list<std::string> children_;
+  std::list<nlohmann::json> children_;
 
   void Register() { s_node_stack.push(this); }
 
@@ -52,9 +52,8 @@ private:
   }
 
   void Save() {
-    nlohmann::json json = nlohmann::json::parse(Serialize());
     std::ofstream ofs("paptrace.json");
-    ofs << std::setw(2) << json << std::endl;
+    ofs << std::setw(2) << Serialize() << std::endl;
     std::cout << "Paptace data saved to \"paptrace.json\"." << std::endl;
   }
 };
@@ -68,14 +67,14 @@ public:
 
   ~CalleeNode() { Deregister(); }
 
-  std::string Serialize() const override {
+  nlohmann::json Serialize() const override {
     auto j_params = nlohmann::json::array();
     for (const auto &param : params_) {
-      j_params.push_back(nlohmann::json::parse(param.Serialize()));
+      j_params.push_back(param.Serialize());
     }
     auto j_children = nlohmann::json::array();
     for (const auto &child : children_) {
-      j_children.push_back(nlohmann::json::parse(child));
+      j_children.push_back(child);
     }
     nlohmann::json obj = {{"callee",
                            {
@@ -83,7 +82,7 @@ public:
                                {"params", j_params},
                                {"children", j_children},
                            }}};
-    return obj.dump();
+    return obj;
   }
 
   void AddParam(const Param &param) override { params_.push_back(param); }
@@ -96,7 +95,7 @@ public:
 private:
   std::string sig_;
   std::list<Param> params_;
-  std::list<std::string> children_;
+  std::list<nlohmann::json> children_;
 
   void Register() { s_node_stack.push(this); }
 
@@ -114,9 +113,9 @@ public:
 
   ~StmtNode() = default;
 
-  std::string Serialize() const override {
+  nlohmann::json Serialize() const override {
     nlohmann::json obj = {{"stmt", {{"id", id_}}}};
-    return obj.dump();
+    return obj;
   }
 
   void AddParam(const Param &param) override {}
@@ -132,11 +131,9 @@ private:
 Param::Param(const std::string &name, const std::string &value)
     : name(name), value(value) {}
 
-std::string Param::Serialize() const {
-  nlohmann::json json;
-  json["name"] = name;
-  json["value"] = value;
-  return json.dump();
+nlohmann::json Param::Serialize() const {
+  nlohmann::json obj = {{"param", {{"name", name}, {"value", value}}}};
+  return obj;
 }
 // } struct Param
 

@@ -4,6 +4,9 @@
 // Local headers.
 #include "paptrace/utils.h"
 
+// Third-party headers.
+#include <nlohmann/json.hpp>
+
 // C++ standard library headers.
 #include <iostream>
 #include <memory>
@@ -15,7 +18,7 @@ struct Param {
   const std::string value;
 
   Param(const std::string &name, const std::string &value);
-  std::string Serialize() const;
+  nlohmann::json Serialize() const;
 };
 
 class Node {
@@ -26,7 +29,7 @@ public:
   // Virtual destructor.
   virtual ~Node() = default;
 
-  virtual std::string Serialize() const = 0;
+  virtual nlohmann::json Serialize() const = 0;
   virtual void AddParam(const Param &param) = 0;
   virtual void AddChild(Node *child) = 0;
 };
@@ -39,11 +42,8 @@ void AddStmt(const std::string &id);
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)
 #define NODE_NAME(id) TOKENPASTE2(paptrace_node_, id)
 
-// #define PAPTRACE_TRACE_STMT(x) \
-//  paptrace::AddChild(paptrace::NodeFactory::CreateStmtNode(x));
-
 // Instrumentation macros.
-#define PAPTRACE_TRACE_CALLEE(id, sig)                                         \
+#define PAPTRACE_CALLEE_NODE(id, sig)                                          \
   auto NODE_NAME(id) = paptrace::Node::Create(sig);
 #define PAPTRACE_TRACE_PARAM(id, x)                                            \
   NODE_NAME(id)->AddParam(                                                     \

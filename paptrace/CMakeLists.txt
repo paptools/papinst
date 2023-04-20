@@ -2,30 +2,7 @@
 # Distributed under the MIT License (http://opensource.org/licenses/MIT).
 
 ################################################################################
-# Google Test library.
-
-#add_library(mygtest STATIC
-#  "src/gmock-gtest-all.cc"
-#  "include/gmock/gmock.hh"
-#  "include/gtest/gtest.hh"
-#)
-#target_compile_definitions(mygtest PUBLIC GTEST_HAS_STD_WSTRING=1)
-#target_include_directories(mygtest SYSTEM
-#  PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  INTERFACE
-#    $<INSTALL_INTERFACE:include>
-#)
-#
-#find_package(Threads)
-#if(Threads_FOUND)
-#  target_link_libraries(gtest ${CMAKE_THREAD_LIBS_INIT})
-#else()
-#  target_compile_definitions(gtest PUBLIC GTEST_HAS_PTHREAD=0)
-#endif()
-
-################################################################################
-# Path Trace library.
+# Path trace library.
 
 add_library(paptrace STATIC
   "src/paptrace.cpp"
@@ -41,6 +18,7 @@ target_include_directories(paptrace
 
 set(paptrace_public_headers
   "include/paptrace/paptrace.h"
+  "include/paptrace/utils.h"
 )
 
 set_target_properties(paptrace
@@ -52,5 +30,21 @@ target_link_libraries(paptrace
   PUBLIC
     nlohmann_json::nlohmann_json
 )
+
+################################################################################
+# Install rules.
+
+if (PAPTOOLS_INSTALL)
+  set(paptrace_install_targets paptrace)
+  install(TARGETS ${paptrace_install_targets}
+    EXPORT "${targets_export_name}"
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paptrace"
+  )
+  list(APPEND install_targets ${paptrace_install_targets})
+  set(install_targets ${install_targets} PARENT_SCOPE)
+endif ()
 
 ################################################################################

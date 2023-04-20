@@ -43,7 +43,7 @@ target_link_libraries(papinst
     fmt::fmt
 )
 
-# ##############################################################################
+################################################################################
 # Platform-agnostic performance instrumenter executable.
 
 add_executable(papinst_exe "src/papinst.main.cpp")
@@ -52,12 +52,12 @@ target_link_libraries(papinst_exe PRIVATE papinst)
 
 set_target_properties(papinst_exe PROPERTIES OUTPUT_NAME "papinst")
 
-# ##############################################################################
+################################################################################
 # Path instrumenter executable wrapper script.
 
 configure_file("tools/pcc" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pcc" COPYONLY)
 
-# ##############################################################################
+################################################################################
 # Unit tests.
 
 add_executable(papinst_unit_tests
@@ -75,9 +75,9 @@ target_include_directories(papinst_unit_tests
 target_link_libraries(papinst_unit_tests
   PRIVATE
     papinst
-    gtest
-    gtest_main
-    gmock
+    GTest::gtest
+    GTest::gtest_main
+    GTest::gmock
 )
 
 include(GoogleTest)
@@ -86,4 +86,26 @@ gtest_discover_tests(papinst_unit_tests)
 add_test(NAME papinst_integration_cli_tests
          COMMAND pytest "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.py")
 
-# ##############################################################################
+################################################################################
+# Install rules.
+
+if (PAPTOOLS_INSTALL)
+  set(papinst_install_targets
+    papinst
+    papinst_exe
+  )
+  install(TARGETS ${papinst_install_targets}
+    EXPORT "${targets_export_name}"
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+  install(PROGRAMS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pcc"
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+  list(APPEND install_targets ${papinst_install_targets})
+  set(install_targets ${install_targets} PARENT_SCOPE)
+endif ()
+
+################################################################################
