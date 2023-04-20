@@ -13,8 +13,7 @@ if (NOT fmt_FOUND)
 
   include(FetchContent)
   FetchContent_Declare(fmt
-    GIT_REPOSITORY "https://github.com/fmtlib/fmt.git"
-    GIT_TAG "${fmt_version}"
+    URL "https://github.com/fmtlib/fmt/archive/refs/tags/${fmt_version}.tar.gz"
   )
   FetchContent_MakeAvailable(fmt)
 endif ()

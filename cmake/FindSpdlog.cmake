@@ -9,7 +9,6 @@ set(SPDLOG_INSTALL ON CACHE BOOL "")
 
 include(FetchContent)
 FetchContent_Declare(spdlog
-  GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
-  GIT_TAG "v${spdlog_version}"
+  URL "https://github.com/gabime/spdlog/archive/refs/tags/v${spdlog_version}.tar.gz"
 )
 FetchContent_MakeAvailable(spdlog)

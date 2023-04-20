@@ -15,9 +15,7 @@ if (NOT Boost_FOUND)
 
   include(FetchContent)
   FetchContent_Declare(Boost
-    GIT_REPOSITORY "https://github.com/boostorg/boost.git"
-    GIT_TAG "boost-${boost_version}"
-    GIT_SHALLOW TRUE
+    URL "https://github.com/boostorg/boost/archive/refs/tags/boost-${boost_version}.tar.gz"
   )
   FetchContent_MakeAvailable(Boost)
 endif ()
