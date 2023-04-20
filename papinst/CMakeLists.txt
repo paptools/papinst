@@ -28,6 +28,13 @@ target_compile_definitions(papinst
     ${LLVM_DEFINITIONS}
 )
 
+if (NOT LLVM_ENABLE_RTTI)
+  target_compile_options(papinst
+    PUBLIC
+      -fno-rtti
+  )
+endif ()
+
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 target_link_libraries(papinst
