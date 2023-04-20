@@ -19,14 +19,12 @@ target_include_directories(papinst
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    ${CLANG_INCLUDE_DIRS}
-    ${LLVM_INCLUDE_DIRS}
+    #${LLVM_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/>
 )
 
 target_compile_definitions(papinst
   PUBLIC
-    ${CLANG_DEFINITIONS}
     ${LLVM_DEFINITIONS}
 )
 
