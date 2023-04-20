@@ -6,7 +6,6 @@
 
 add_library(paptrace STATIC
   "src/paptrace.cpp"
-  "src/gtest.cc"
 )
 
 target_include_directories(paptrace
@@ -29,13 +28,14 @@ set_target_properties(paptrace
 target_link_libraries(paptrace
   PUBLIC
     nlohmann_json::nlohmann_json
+    GTest::gtest
 )
 
 ################################################################################
 # Install rules.
 
 if (PAPTOOLS_INSTALL)
-  set(paptrace_install_targets paptrace)
+  set(paptrace_install_targets paptrace gtest)
   install(TARGETS ${paptrace_install_targets}
     EXPORT "${targets_export_name}"
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -43,6 +43,7 @@ if (PAPTOOLS_INSTALL)
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/paptrace"
   )
+
   list(APPEND install_targets ${paptrace_install_targets})
   set(install_targets ${install_targets} PARENT_SCOPE)
 endif ()

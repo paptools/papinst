@@ -37,7 +37,7 @@ option(PAPTOOLS_INSTALL "Generate the install targets." ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 # add_definitions(-Wall -Wextra -Werror)
 
@@ -92,7 +92,6 @@ if (PAPTOOLS_INSTALL)
   install(FILES "${project_config}" "${version_config}"
     DESTINATION "${project_cmake_dir}"
   )
-
 endif ()
 
 ################################################################################
