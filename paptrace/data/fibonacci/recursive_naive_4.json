@@ -2,10 +2,8 @@
   "sig": "unsigned long long fibonacci::RecursiveNaive(unsigned short)",
   "params": [
     {
-      "param": {
-        "name": "n",
-        "value": "2"
-      }
+      "name": "n",
+      "value": "4"
     }
   ]
 }

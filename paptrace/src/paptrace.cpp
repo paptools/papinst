@@ -76,12 +76,12 @@ public:
     for (const auto &child : children_) {
       j_children.push_back(child);
     }
-    nlohmann::json obj = {{"callee",
-                           {
-                               {"sig", sig_},
-                               {"params", j_params},
-                               {"children", j_children},
-                           }}};
+    nlohmann::json obj = {
+        {"type", "callee"},
+        {"sig", sig_},
+        {"params", j_params},
+        {"children", j_children},
+    };
     return obj;
   }
 
@@ -114,7 +114,7 @@ public:
   ~StmtNode() = default;
 
   nlohmann::json Serialize() const override {
-    nlohmann::json obj = {{"stmt", {{"id", id_}}}};
+    nlohmann::json obj = {{"type", "stmt"}, {"id", id_}};
     return obj;
   }
 
@@ -132,7 +132,7 @@ Param::Param(const std::string &name, const std::string &value)
     : name(name), value(value) {}
 
 nlohmann::json Param::Serialize() const {
-  nlohmann::json obj = {{"param", {{"name", name}, {"value", value}}}};
+  nlohmann::json obj = {{"name", name}, {"value", value}};
   return obj;
 }
 // } struct Param

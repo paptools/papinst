@@ -10,6 +10,7 @@ function main {
     cmake -S . -B build --install-prefix="${repo_dir}/install"
   fi
   cmake --build build -j 8
+  cmake --install build
 }
 
 main "$@"

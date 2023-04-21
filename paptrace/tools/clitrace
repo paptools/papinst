@@ -4,15 +4,15 @@ import json
 import argparse
 
 
-g_sigs = {}
+g_f_ids = {}
+g_s_ids = {}
 
 
 def load_traces(trace_file):
     with open(trace_file, "r") as f:
         data = json.load(f)
     traces = {}
-    for entry in data["traces"]:
-        trace = entry["callee"]
+    for trace in data["traces"]:
         sig = trace["sig"]
         if sig not in traces:
             traces[sig] = [trace]
@@ -40,25 +40,62 @@ def get_trace(traces, request):
     )
 
 
-def to_expr(trace):
-    print(f"\nto_expr: {trace}")
-    # print("HAS SIG" if "sig" in trace else "NO SIG")
-    # print("HAS CHILDREN" if "children" in trace else "NO CHILDREN")
-    # print("HAS STMT" if "stmt" in trace else "NO STMT")
-    # components = []
-    # if "children" in trace:
-    #    for child in trace["children"]:
-    #        components.append(to_expr(child))
-    # if "stmt" in trace:
-    #    components.append(f"stmt_{trace['stmt']['id']}")
-    # if "sig" in trace:
-    #    if trace["sig"] not in g_sigs:
-    #        g_sigs[trace["sig"]] = len(g_sigs)
-    #    components.append(f"fn_{g_sigs[trace['sig']]}")
-    # expr = (" + ").join(components) if len(components) > 0 else ""
-    # print(f"EXPR: {expr}")
-    expr = ""
+def to_params_str(params):
+    return ", ".join([f"{x['name']}={x['value']}" for x in params])
+
+
+def to_summary(obj, symb="", indent=""):
+    summary = ""
+    if obj["type"] == "callee":
+        params = f"{{{to_params_str(obj['params'])}}}"
+        summary += f"{indent}{symb}{obj['sig']} @ {params}"
+    elif obj["type"] == "stmt":
+        summary += f"{indent}{symb}stmt_{obj['id']}"
+    if "children" in obj:
+        for child in obj["children"]:
+            summary += f"\n{to_summary(child, '+ ', indent + '  ')}"
+    return summary
+
+
+def to_f_id(sig):
+    global g_f_ids
+    if sig not in g_f_ids:
+        g_f_ids[sig] = f"f{len(g_f_ids)}"
+    return g_f_ids[sig]
+
+
+def to_s_id(id):
+    global g_s_ids
+    if id not in g_s_ids:
+        g_s_ids[id] = f"s{id}"
+    return g_s_ids[id]
+
+
+def to_expr_list(obj, is_simple):
+    expr = []
+    if "children" in obj and len(obj["children"]) > 0:
+        for child in obj["children"]:
+            expr.extend(to_expr_list(child, is_simple))
+    else:
+        if obj["type"] == "stmt":
+            expr.append(to_s_id(obj["id"]))
+        elif obj["type"] == "callee":
+            if is_simple:
+                expr.append(to_f_id(obj["sig"]))
+            else:
+                params = to_params_str(obj["params"])
+                expr.append(f"{to_f_id(obj['sig'])}({params})")
     return expr
+
+
+def to_expr(trace, is_simple):
+    rhs = " + ".join(to_expr_list(trace, is_simple))
+    if is_simple:
+        lhs = to_f_id(trace["sig"])
+    else:
+        params = to_params_str(trace["params"])
+        lhs = f"{to_f_id(trace['sig'])}({params})"
+    return f"{lhs} = {rhs}"
 
 
 def main():
@@ -73,12 +110,18 @@ def main():
 
     traces = load_traces(args.trace_file)
     request = load_request(args.request_file)
-
     trace = get_trace(traces, request)
-    print(f"Found requested trace:\n{print(json.dumps(trace, indent=2))}")
 
-    expr = to_expr(trace)
-    print(f"\nEXPR:\n{expr}")
+    console_sep = "-" * 80
+    print(f"\n{console_sep}")
+
+    summary = to_summary(trace)
+    print(f"Trace summary:\n{summary}")
+
+    expr = to_expr(trace, is_simple=False)
+    print(f"\nTrace expr (full):\n{expr}")
+    expr = to_expr(trace, is_simple=True)
+    print(f"\nTrace expr (simple):\n{expr}")
 
 
 if __name__ == "__main__":
