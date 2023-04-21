@@ -1,0 +1,3 @@
+# data
+
+Paptrace data directory.

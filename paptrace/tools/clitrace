@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+import json
+import argparse
+
+
+g_sigs = {}
+
+
+def load_traces(trace_file):
+    with open(trace_file, "r") as f:
+        data = json.load(f)
+    traces = {}
+    for entry in data["traces"]:
+        trace = entry["callee"]
+        sig = trace["sig"]
+        if sig not in traces:
+            traces[sig] = [trace]
+        else:
+            traces[sig].append(trace)
+    return traces
+
+
+def load_request(request_file):
+    with open(request_file, "r") as f:
+        data = json.load(f)
+    return data
+
+
+def get_trace(traces, request):
+    trace_list = traces[request["sig"]]
+    if len(trace_list) == 0:
+        raise Exception(f"No trace for {request['sig']}")
+    for trace in trace_list:
+        if trace["params"] == request["params"]:
+            return trace
+    raise Exception(
+        f"No trace for {request['sig']} with params {request['params']}\n."
+        f"Available traces: {trace_list}"
+    )
+
+
+def to_expr(trace):
+    print(f"\nto_expr: {trace}")
+    # print("HAS SIG" if "sig" in trace else "NO SIG")
+    # print("HAS CHILDREN" if "children" in trace else "NO CHILDREN")
+    # print("HAS STMT" if "stmt" in trace else "NO STMT")
+    # components = []
+    # if "children" in trace:
+    #    for child in trace["children"]:
+    #        components.append(to_expr(child))
+    # if "stmt" in trace:
+    #    components.append(f"stmt_{trace['stmt']['id']}")
+    # if "sig" in trace:
+    #    if trace["sig"] not in g_sigs:
+    #        g_sigs[trace["sig"]] = len(g_sigs)
+    #    components.append(f"fn_{g_sigs[trace['sig']]}")
+    # expr = (" + ").join(components) if len(components) > 0 else ""
+    # print(f"EXPR: {expr}")
+    expr = ""
+    return expr
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Command line utility for paptrace."
+    )
+    parser.add_argument(
+        "trace_file", help="Path to paptrace generate JSON file."
+    )
+    parser.add_argument("request_file", help="Path to user request JSON file.")
+    args = parser.parse_args()
+
+    traces = load_traces(args.trace_file)
+    request = load_request(args.request_file)
+
+    trace = get_trace(traces, request)
+    print(f"Found requested trace:\n{print(json.dumps(trace, indent=2))}")
+
+    expr = to_expr(trace)
+    print(f"\nEXPR:\n{expr}")
+
+
+if __name__ == "__main__":
+    main()
