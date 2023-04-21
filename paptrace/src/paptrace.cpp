@@ -77,7 +77,7 @@ public:
       j_children.push_back(child);
     }
     nlohmann::json obj = {
-        {"type", "callee"},
+        {"type", "FunctionCall"},
         {"sig", sig_},
         {"params", j_params},
         {"children", j_children},
@@ -93,7 +93,7 @@ public:
   }
 
 private:
-  std::string sig_;
+  const std::string sig_;
   std::list<Param> params_;
   std::list<nlohmann::json> children_;
 
@@ -109,12 +109,13 @@ private:
 
 class StmtNode : public Node {
 public:
-  StmtNode(const std::string &id) : id_(id) {}
+  StmtNode(const std::string &type, const std::string &id)
+      : type_(type), id_(id) {}
 
   ~StmtNode() = default;
 
   nlohmann::json Serialize() const override {
-    nlohmann::json obj = {{"type", "stmt"}, {"id", id_}};
+    nlohmann::json obj = {{"type", type_}, {"id", id_}};
     return obj;
   }
 
@@ -123,7 +124,8 @@ public:
   void AddChild(Node *child) override {}
 
 private:
-  std::string id_;
+  const std::string type_;
+  const std::string id_;
 };
 } // namespace
 
@@ -143,9 +145,9 @@ std::unique_ptr<Node> Node::Create(const std::string &sig) {
 }
 // } class Node
 
-void AddStmt(const std::string &id) {
+void AddStmt(const std::string &type, const std::string &id) {
   assert(s_node_stack.top());
-  auto stmt_node = StmtNode(id);
+  auto stmt_node = StmtNode(type, id);
   s_node_stack.top()->AddChild(&stmt_node);
 }
 } // namespace paptrace

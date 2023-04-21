@@ -81,11 +81,12 @@ public:
     auto then_stmt = stmt->getThen();
     auto then_id = then_stmt->getID(*context_);
     if (clang::isa<clang::CompoundStmt>(then_stmt)) {
-      rewriter_->InsertTextAfterToken(then_stmt->getBeginLoc(),
-                                      instrumenter_->GetTraceStmtInst(then_id));
+      rewriter_->InsertTextAfterToken(
+          then_stmt->getBeginLoc(),
+          instrumenter_->GetTraceIfThenStmtInst(then_id));
     } else {
       std::ostringstream oss;
-      oss << "{" << instrumenter_->GetTraceStmtInst(then_id)
+      oss << "{" << instrumenter_->GetTraceIfThenStmtInst(then_id)
           << rewriter_->getRewrittenText(then_stmt->getSourceRange()) << ";}";
       rewriter_->ReplaceText(then_stmt->getSourceRange(), oss.str());
     }
@@ -94,10 +95,11 @@ public:
       auto else_id = else_stmt->getID(*context_);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
         rewriter_->InsertTextAfterToken(
-            else_stmt->getBeginLoc(), instrumenter_->GetTraceStmtInst(else_id));
+            else_stmt->getBeginLoc(),
+            instrumenter_->GetTraceIfElseStmtInst(else_id));
       } else {
         std::ostringstream oss;
-        oss << "{" << instrumenter_->GetTraceStmtInst(else_id)
+        oss << "{" << instrumenter_->GetTraceIfElseStmtInst(else_id)
             << rewriter_->getRewrittenText(else_stmt->getSourceRange()) << ";}";
         rewriter_->ReplaceText(else_stmt->getSourceRange(), oss.str());
       }

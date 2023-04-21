@@ -19,8 +19,13 @@ public:
     return fmt::format(template_str, id, sig);
   }
 
-  std::string GetTraceStmtInst(int stmt_id) override {
-    static const std::string template_str = "\nPAPTRACE_TRACE_STMT(\"{}\");";
+  std::string GetTraceIfThenStmtInst(int stmt_id) override {
+    static const std::string template_str = "\nPAPTRACE_IF_THEN_STMT(\"{}\");";
+    return fmt::format(template_str, stmt_id);
+  }
+
+  std::string GetTraceIfElseStmtInst(int stmt_id) override {
+    static const std::string template_str = "\nPAPTRACE_IF_ELSE_STMT(\"{}\");";
     return fmt::format(template_str, stmt_id);
   }
 

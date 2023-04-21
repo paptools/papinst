@@ -44,13 +44,21 @@ def to_params_str(params):
     return ", ".join([f"{x['name']}={x['value']}" for x in params])
 
 
+def to_s_id(id):
+    global g_s_ids
+    if id not in g_s_ids:
+        g_s_ids[id] = f"s{id}"
+    return g_s_ids[id]
+
+
 def to_summary(obj, symb="", indent=""):
     summary = ""
-    if obj["type"] == "callee":
+    obj_type = obj["type"]
+    if obj_type == "FunctionCall":
         params = f"{{{to_params_str(obj['params'])}}}"
         summary += f"{indent}{symb}{obj['sig']} @ {params}"
-    elif obj["type"] == "stmt":
-        summary += f"{indent}{symb}stmt_{obj['id']}"
+    elif "Stmt" in obj_type:
+        summary += f"{indent}{symb}{obj_type} ({to_s_id(obj['id'])})"
     if "children" in obj:
         for child in obj["children"]:
             summary += f"\n{to_summary(child, '+ ', indent + '  ')}"
@@ -64,37 +72,23 @@ def to_f_id(sig):
     return g_f_ids[sig]
 
 
-def to_s_id(id):
-    global g_s_ids
-    if id not in g_s_ids:
-        g_s_ids[id] = f"s{id}"
-    return g_s_ids[id]
-
-
-def to_expr_list(obj, is_simple):
+def to_expr_list(obj):
     expr = []
     if "children" in obj and len(obj["children"]) > 0:
         for child in obj["children"]:
-            expr.extend(to_expr_list(child, is_simple))
+            expr.extend(to_expr_list(child))
     else:
-        if obj["type"] == "stmt":
+        obj_type = obj["type"]
+        if "Stmt" in obj_type:
             expr.append(to_s_id(obj["id"]))
-        elif obj["type"] == "callee":
-            if is_simple:
-                expr.append(to_f_id(obj["sig"]))
-            else:
-                params = to_params_str(obj["params"])
-                expr.append(f"{to_f_id(obj['sig'])}({params})")
+        elif obj_type == "FunctionCall":
+            expr.append(to_f_id(obj["sig"]))
     return expr
 
 
-def to_expr(trace, is_simple):
-    rhs = " + ".join(to_expr_list(trace, is_simple))
-    if is_simple:
-        lhs = to_f_id(trace["sig"])
-    else:
-        params = to_params_str(trace["params"])
-        lhs = f"{to_f_id(trace['sig'])}({params})"
+def to_expr(trace):
+    rhs = " + ".join(to_expr_list(trace))
+    lhs = to_f_id(trace["sig"])
     return f"{lhs} = {rhs}"
 
 
@@ -107,10 +101,8 @@ def handle_request(traces, request):
     summary = to_summary(trace)
     print(f"Trace summary:\n{summary}")
 
-    expr = to_expr(trace, is_simple=False)
-    print(f"\nTrace expr (full):\n{expr}")
-    expr = to_expr(trace, is_simple=True)
-    print(f"\nTrace expr (simple):\n{expr}")
+    expr = to_expr(trace)
+    print(f"\nTrace expr:\n{expr}")
 
 
 def main():
