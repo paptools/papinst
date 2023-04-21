@@ -21,8 +21,8 @@ def load_traces(trace_file):
     return traces
 
 
-def load_request(request_file):
-    with open(request_file, "r") as f:
+def load_requests(requests_file):
+    with open(requests_file, "r") as f:
         data = json.load(f)
     return data
 
@@ -98,18 +98,7 @@ def to_expr(trace, is_simple):
     return f"{lhs} = {rhs}"
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Command line utility for paptrace."
-    )
-    parser.add_argument(
-        "trace_file", help="Path to paptrace generate JSON file."
-    )
-    parser.add_argument("request_file", help="Path to user request JSON file.")
-    args = parser.parse_args()
-
-    traces = load_traces(args.trace_file)
-    request = load_request(args.request_file)
+def handle_request(traces, request):
     trace = get_trace(traces, request)
 
     console_sep = "-" * 80
@@ -122,6 +111,23 @@ def main():
     print(f"\nTrace expr (full):\n{expr}")
     expr = to_expr(trace, is_simple=True)
     print(f"\nTrace expr (simple):\n{expr}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Command line utility for paptrace."
+    )
+    parser.add_argument(
+        "trace_file", help="Path to paptrace generate JSON file."
+    )
+    parser.add_argument("request_file", help="Path to user request JSON file.")
+    args = parser.parse_args()
+
+    traces = load_traces(args.trace_file)
+    requests = load_requests(args.request_file)
+
+    for request in requests:
+        handle_request(traces, request)
 
 
 if __name__ == "__main__":
