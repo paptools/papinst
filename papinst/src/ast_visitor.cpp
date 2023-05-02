@@ -151,6 +151,9 @@ public:
   bool VisitStmt(clang::Stmt *stmt) override {
     assert(context_);
 
+    std::cout << "VisitStmt:" << std::endl;
+    stmt->dumpColor();
+
     if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
       listener_->ProcessIfStmt(if_stmt);
     } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {

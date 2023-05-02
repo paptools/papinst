@@ -2,10 +2,15 @@
 
 import json
 import argparse
+import sympy
+from sympy import O, oo
+from sympy.parsing.sympy_parser import parse_expr
 
 
 g_f_ids = {}
 g_s_ids = {}
+
+g_exprs = {}
 
 
 def load_traces(trace_file):
@@ -54,7 +59,7 @@ def to_s_id(id):
 def to_summary(obj, symb="", indent=""):
     summary = ""
     obj_type = obj["type"]
-    if obj_type == "FunctionCall":
+    if obj_type == "CallExpr":
         params = f"{{{to_params_str(obj['params'])}}}"
         summary += f"{indent}{symb}{obj['sig']} @ {params}"
     elif "Stmt" in obj_type:
@@ -81,15 +86,14 @@ def to_expr_list(obj):
         obj_type = obj["type"]
         if "Stmt" in obj_type:
             expr.append(to_s_id(obj["id"]))
-        elif obj_type == "FunctionCall":
+        elif obj_type == "CallExpr":
             expr.append(to_f_id(obj["sig"]))
     return expr
 
 
 def to_expr(trace):
     rhs = " + ".join(to_expr_list(trace))
-    lhs = to_f_id(trace["sig"])
-    return f"{lhs} = {rhs}"
+    return f"{to_f_id(trace['sig'])} = {rhs}"
 
 
 def handle_request(traces, request):
@@ -101,8 +105,19 @@ def handle_request(traces, request):
     summary = to_summary(trace)
     print(f"Trace summary:\n{summary}")
 
-    expr = to_expr(trace)
-    print(f"\nTrace expr:\n{expr}")
+    expr_str = to_expr(trace)
+    print(f"\nTrace expr:\n{expr_str}")
+
+    rhs = " + ".join(to_expr_list(trace))
+    expr = parse_expr(rhs)
+    print(f"{to_f_id(trace['sig'])} = {expr}")
+
+    global g_exprs
+    f_id = to_f_id(trace["sig"])
+    if f_id not in g_exprs:
+        g_exprs[f_id] = {}
+    n = int(trace["params"][0]["value"])
+    g_exprs[f_id][n] = expr
 
 
 def main():
@@ -120,6 +135,38 @@ def main():
 
     for request in requests:
         handle_request(traces, request)
+
+    # TODO: Remove the code in this function below this line; it was added for
+    # experimentation purposes.
+    print(f"\nSymbolic exprs:\n{g_exprs}")
+
+    # Define the function f2(n)
+    n = sympy.symbols("n")
+    f1, s2105888 = sympy.symbols("f1 s2105888")
+    f2 = sympy.Function("f2")(n)
+
+    # Define the known values of f2(n)
+    f2_0 = f1
+    f2_2 = 2 * f1 + s2105888
+    f2_4 = 4 * f1 + 3 * s2105888
+
+    # Create a system of equations for f2(n)
+    eq1 = sympy.Eq(f2.subs(n, 0), f2_0)
+    eq2 = sympy.Eq(f2.subs(n, 2), f2_2)
+    eq3 = sympy.Eq(f2.subs(n, 4), f2_4)
+
+    # Solve the system of equations for f2(n)
+    sol = sympy.solve([eq1, eq2, eq3], (f2))
+    print(sol)
+
+    # f2_0 = g_exprs["f2"][0]
+    # eq_f0_0 = sympy.Eq(f.subs(n, 0), f0_0)
+    # f2_2 = g_exprs["f2"][2]
+    # eq_f0_2 = sympy.Eq(f.subs(n, 2), f0_2)
+    # f2_4 = g_exprs["f2"][4]
+    # eq_f0_4 = sympy.Eq(f.subs(n, 4), f0_4)
+    # sol = sympy.solve([eq_f0_0, eq_f0_2, eq_f0_4], (f))
+    # print(sol)
 
 
 if __name__ == "__main__":

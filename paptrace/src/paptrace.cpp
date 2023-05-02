@@ -77,7 +77,7 @@ public:
       j_children.push_back(child);
     }
     nlohmann::json obj = {
-        {"type", "FunctionCall"},
+        {"type", "CallExpr"},
         {"sig", sig_},
         {"params", j_params},
         {"children", j_children},
