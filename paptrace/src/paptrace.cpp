@@ -109,8 +109,7 @@ private:
 
 class StmtNode : public Node {
 public:
-  StmtNode(const std::string &type, const std::string &id)
-      : type_(type), id_(id) {}
+  StmtNode(const std::string &type, int id) : type_(type), id_(id) {}
 
   ~StmtNode() = default;
 
@@ -125,7 +124,7 @@ public:
 
 private:
   const std::string type_;
-  const std::string id_;
+  int id_;
 };
 } // namespace
 
@@ -145,7 +144,7 @@ std::unique_ptr<Node> Node::Create(const std::string &sig) {
 }
 // } class Node
 
-void AddStmt(const std::string &type, const std::string &id) {
+void AddStmt(const std::string &type, int id) {
   assert(s_node_stack.top());
   auto stmt_node = StmtNode(type, id);
   s_node_stack.top()->AddChild(&stmt_node);

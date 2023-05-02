@@ -20,12 +20,12 @@ public:
   }
 
   std::string GetTraceIfThenStmtInst(int stmt_id) override {
-    static const std::string template_str = "\nPAPTRACE_IF_THEN_STMT(\"{}\");";
+    static const std::string template_str = "\nPAPTRACE_IF_THEN_STMT({});";
     return fmt::format(template_str, stmt_id);
   }
 
   std::string GetTraceIfElseStmtInst(int stmt_id) override {
-    static const std::string template_str = "\nPAPTRACE_IF_ELSE_STMT(\"{}\");";
+    static const std::string template_str = "\nPAPTRACE_IF_ELSE_STMT({});";
     return fmt::format(template_str, stmt_id);
   }
 

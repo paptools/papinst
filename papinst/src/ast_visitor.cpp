@@ -5,6 +5,7 @@
 
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
+#include <clang/Basic/SourceManager.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
 
@@ -39,6 +40,11 @@ std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
 std::string GetTraceParamInst(int id, const std::string &param) {
   static const std::string template_str = "\nPAPTRACE_TRACE_PARAM({}, {});";
   return fmt::format(template_str, id, param);
+}
+
+std::string GetTraceStmtInst(int id, const std::string &type) {
+  static const std::string template_str = "PAPTRACE_TRACE_STMT(\"{}\", {});";
+  return fmt::format(template_str, type, id);
 }
 
 class DefaultASTVisitorListener : public ASTVisitorListener {
@@ -110,11 +116,36 @@ public:
 
   void ProcessWhileStmt(clang::WhileStmt *stmt) override {}
 
-  void ProcessForStmt(clang::ForStmt *stmt) override {}
+  void ProcessForStmt(clang::ForStmt *stmt) override {
+    assert(context_);
+
+    if (auto body = stmt->getBody()) {
+      auto id = body->getID(*context_);
+      if (clang::isa<clang::CompoundStmt>(body)) {
+        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
+        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
+                                        GetTraceStmtInst(id, "ForStmt"));
+      } else {
+        std::ostringstream oss;
+        oss << "{" << GetTraceStmtInst(id, "ForStmt")
+            << rewriter_->getRewrittenText(body->getSourceRange()) << "}";
+        rewriter_->ReplaceText(body->getSourceRange(), oss.str());
+      }
+    }
+  }
 
   void ProcessDoStmt(clang::DoStmt *stmt) override {}
 
-  void ProcessReturnStmt(clang::ReturnStmt *stmt) override {}
+  // IRD TODO: account for ternary return.
+  void ProcessReturnStmt(clang::ReturnStmt *stmt) override {
+    assert(context_);
+
+    auto id = stmt->getID(*context_);
+    std::ostringstream oss;
+    oss << GetTraceStmtInst(id, "ReturnStmt")
+        << rewriter_->getRewrittenText(stmt->getSourceRange());
+    rewriter_->ReplaceText(stmt->getSourceRange(), oss.str());
+  }
 
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
@@ -151,21 +182,22 @@ public:
   bool VisitStmt(clang::Stmt *stmt) override {
     assert(context_);
 
-    std::cout << "VisitStmt:" << std::endl;
-    stmt->dumpColor();
-
-    if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
-      listener_->ProcessIfStmt(if_stmt);
-    } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {
-      listener_->ProcessSwitchStmt(switch_stmt);
-    } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
-      listener_->ProcessWhileStmt(while_stmt);
-    } else if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
-      listener_->ProcessForStmt(for_stmt);
-    } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
-      listener_->ProcessDoStmt(do_stmt);
-    } else if (auto return_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
-      listener_->ProcessReturnStmt(return_stmt);
+    // std::cout << "VisitStmt:" << std::endl;
+    // stmt->dumpColor();
+    if (context_->getSourceManager().isInMainFile(stmt->getBeginLoc())) {
+      if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
+        listener_->ProcessIfStmt(if_stmt);
+      } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {
+        listener_->ProcessSwitchStmt(switch_stmt);
+      } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
+        listener_->ProcessWhileStmt(while_stmt);
+      } else if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
+        listener_->ProcessForStmt(for_stmt);
+      } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
+        listener_->ProcessDoStmt(do_stmt);
+      } else if (auto return_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
+        listener_->ProcessReturnStmt(return_stmt);
+      }
     }
     return true;
   }
