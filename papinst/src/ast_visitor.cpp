@@ -114,7 +114,23 @@ public:
 
   void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {}
 
-  void ProcessWhileStmt(clang::WhileStmt *stmt) override {}
+  void ProcessWhileStmt(clang::WhileStmt *stmt) override {
+    assert(context_);
+
+    if (auto body = stmt->getBody()) {
+      auto id = body->getID(*context_);
+      if (clang::isa<clang::CompoundStmt>(body)) {
+        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
+        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
+                                        GetTraceStmtInst(id, "WhileStmt"));
+      } else {
+        std::ostringstream oss;
+        oss << "{" << GetTraceStmtInst(id, "WhileStmt")
+            << rewriter_->getRewrittenText(body->getSourceRange()) << ";}";
+        rewriter_->ReplaceText(body->getSourceRange(), oss.str());
+      }
+    }
+  }
 
   void ProcessForStmt(clang::ForStmt *stmt) override {
     assert(context_);
@@ -128,7 +144,7 @@ public:
       } else {
         std::ostringstream oss;
         oss << "{" << GetTraceStmtInst(id, "ForStmt")
-            << rewriter_->getRewrittenText(body->getSourceRange()) << "}";
+            << rewriter_->getRewrittenText(body->getSourceRange()) << ";}";
         rewriter_->ReplaceText(body->getSourceRange(), oss.str());
       }
     }
