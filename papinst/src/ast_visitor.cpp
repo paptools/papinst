@@ -87,28 +87,45 @@ public:
 
     auto then_stmt = stmt->getThen();
     auto then_id = then_stmt->getID(*context_);
+    // std::cout << "IfThen: "
+    //           << rewriter_->getRewrittenText(then_stmt->getSourceRange())
+    //           << std::endl;
     if (clang::isa<clang::CompoundStmt>(then_stmt)) {
       rewriter_->InsertTextAfterToken(
           then_stmt->getBeginLoc(),
           instrumenter_->GetTraceIfThenStmtInst(then_id));
     } else {
+      auto semi_loc = clang::Lexer::getLocForEndOfToken(
+          then_stmt->getEndLoc(), 0, context_->getSourceManager(),
+          context_->getLangOpts());
+      auto rewrite_range =
+          clang::SourceRange(then_stmt->getBeginLoc(), semi_loc);
       std::ostringstream oss;
       oss << "{" << instrumenter_->GetTraceIfThenStmtInst(then_id)
-          << rewriter_->getRewrittenText(then_stmt->getSourceRange()) << ";}";
-      rewriter_->ReplaceText(then_stmt->getSourceRange(), oss.str());
+          << rewriter_->getRewrittenText(rewrite_range) << "}";
+      rewriter_->ReplaceText(rewrite_range, oss.str());
     }
 
     if (auto else_stmt = stmt->getElse()) {
-      auto else_id = else_stmt->getID(*context_);
-      if (clang::isa<clang::CompoundStmt>(else_stmt)) {
-        rewriter_->InsertTextAfterToken(
-            else_stmt->getBeginLoc(),
-            instrumenter_->GetTraceIfElseStmtInst(else_id));
-      } else {
-        std::ostringstream oss;
-        oss << "{" << instrumenter_->GetTraceIfElseStmtInst(else_id)
-            << rewriter_->getRewrittenText(else_stmt->getSourceRange()) << ";}";
-        rewriter_->ReplaceText(else_stmt->getSourceRange(), oss.str());
+      // Only handle else statements here. Else-if statements will be handled by
+      // calls to the ProcessIfStmt method.
+      if (!clang::isa<clang::IfStmt>(else_stmt)) {
+        auto else_id = else_stmt->getID(*context_);
+        if (clang::isa<clang::CompoundStmt>(else_stmt)) {
+          rewriter_->InsertTextAfterToken(
+              else_stmt->getBeginLoc(),
+              instrumenter_->GetTraceIfElseStmtInst(else_id));
+        } else {
+          auto semi_loc = clang::Lexer::getLocForEndOfToken(
+              else_stmt->getEndLoc(), 0, context_->getSourceManager(),
+              context_->getLangOpts());
+          auto rewrite_range =
+              clang::SourceRange(else_stmt->getBeginLoc(), semi_loc);
+          std::ostringstream oss;
+          oss << "{" << instrumenter_->GetTraceIfElseStmtInst(else_id)
+              << rewriter_->getRewrittenText(rewrite_range) << "}";
+          rewriter_->ReplaceText(rewrite_range, oss.str());
+        }
       }
     }
   }
