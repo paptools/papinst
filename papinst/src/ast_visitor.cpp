@@ -87,9 +87,6 @@ public:
 
     auto then_stmt = stmt->getThen();
     auto then_id = then_stmt->getID(*context_);
-    // std::cout << "IfThen: "
-    //           << rewriter_->getRewrittenText(then_stmt->getSourceRange())
-    //           << std::endl;
     if (clang::isa<clang::CompoundStmt>(then_stmt)) {
       rewriter_->InsertTextAfterToken(
           then_stmt->getBeginLoc(),
@@ -107,8 +104,11 @@ public:
     }
 
     if (auto else_stmt = stmt->getElse()) {
-      // Only handle else statements here. Else-if statements will be handled by
+      // Only handle Else statements here. Else-If statements will be handled by
       // calls to the ProcessIfStmt method.
+      // TODO: There is currently no difference in the traces for (a) adjacent
+      // If statements and (b) Else-If statements. We should update the trace to
+      // distinguish between these two cases.
       if (!clang::isa<clang::IfStmt>(else_stmt)) {
         auto else_id = else_stmt->getID(*context_);
         if (clang::isa<clang::CompoundStmt>(else_stmt)) {
