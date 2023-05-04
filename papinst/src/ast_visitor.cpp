@@ -130,7 +130,35 @@ public:
     }
   }
 
-  void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {}
+  void ProcessSwitchStmt(clang::SwitchStmt *stmt) override {
+    assert(context_);
+
+    if (auto case_stmt = stmt->getSwitchCaseList()) {
+      do {
+        if (auto sub_stmt = case_stmt->getSubStmt()) {
+          auto id = sub_stmt->getID(*context_);
+          if (clang::isa<clang::CompoundStmt>(sub_stmt)) {
+            auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(sub_stmt);
+            rewriter_->InsertTextAfterToken(compound_stmt->getBeginLoc(),
+                                            GetTraceStmtInst(id, "CaseStmt"));
+          } else {
+            if (!clang::isa<clang::SwitchCase>(sub_stmt)) {
+              auto semi_loc = clang::Lexer::getLocForEndOfToken(
+                  sub_stmt->getEndLoc(), 0, context_->getSourceManager(),
+                  context_->getLangOpts());
+              auto rewrite_range =
+                  clang::SourceRange(sub_stmt->getBeginLoc(), semi_loc);
+              std::ostringstream oss;
+              oss << "{" << GetTraceStmtInst(id, "CaseStmt")
+                  << rewriter_->getRewrittenText(rewrite_range) << "}";
+              rewriter_->ReplaceText(rewrite_range, oss.str());
+            }
+          }
+        }
+        case_stmt = case_stmt->getNextSwitchCase();
+      } while (case_stmt);
+    }
+  }
 
   void ProcessWhileStmt(clang::WhileStmt *stmt) override {
     assert(context_);
@@ -178,8 +206,6 @@ public:
 
   void ProcessDoStmt(clang::DoStmt *stmt) override {
     assert(context_);
-
-    stmt->dumpColor();
 
     if (auto body = stmt->getBody()) {
       auto id = body->getID(*context_);
