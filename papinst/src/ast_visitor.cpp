@@ -6,6 +6,7 @@
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Lex/Lexer.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
 
@@ -124,10 +125,14 @@ public:
         rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
                                         GetTraceStmtInst(id, "WhileStmt"));
       } else {
+        auto semi_loc = clang::Lexer::getLocForEndOfToken(
+            body->getEndLoc(), 0, context_->getSourceManager(),
+            context_->getLangOpts());
+        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
         std::ostringstream oss;
         oss << "{" << GetTraceStmtInst(id, "WhileStmt")
-            << rewriter_->getRewrittenText(body->getSourceRange()) << ";}";
-        rewriter_->ReplaceText(body->getSourceRange(), oss.str());
+            << rewriter_->getRewrittenText(rewrite_range) << "}";
+        rewriter_->ReplaceText(rewrite_range, oss.str());
       }
     }
   }
@@ -142,15 +147,41 @@ public:
         rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
                                         GetTraceStmtInst(id, "ForStmt"));
       } else {
+        auto semi_loc = clang::Lexer::getLocForEndOfToken(
+            body->getEndLoc(), 0, context_->getSourceManager(),
+            context_->getLangOpts());
+        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
         std::ostringstream oss;
         oss << "{" << GetTraceStmtInst(id, "ForStmt")
-            << rewriter_->getRewrittenText(body->getSourceRange()) << ";}";
-        rewriter_->ReplaceText(body->getSourceRange(), oss.str());
+            << rewriter_->getRewrittenText(rewrite_range) << "}";
+        rewriter_->ReplaceText(rewrite_range, oss.str());
       }
     }
   }
 
-  void ProcessDoStmt(clang::DoStmt *stmt) override {}
+  void ProcessDoStmt(clang::DoStmt *stmt) override {
+    assert(context_);
+
+    stmt->dumpColor();
+
+    if (auto body = stmt->getBody()) {
+      auto id = body->getID(*context_);
+      if (clang::isa<clang::CompoundStmt>(body)) {
+        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
+        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
+                                        GetTraceStmtInst(id, "DoStmt"));
+      } else {
+        auto semi_loc = clang::Lexer::getLocForEndOfToken(
+            body->getEndLoc(), 0, context_->getSourceManager(),
+            context_->getLangOpts());
+        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
+        std::ostringstream oss;
+        oss << "{" << GetTraceStmtInst(id, "DoStmt")
+            << rewriter_->getRewrittenText(rewrite_range) << "}";
+        rewriter_->ReplaceText(rewrite_range, oss.str());
+      }
+    }
+  }
 
   // IRD TODO: account for ternary return.
   void ProcessReturnStmt(clang::ReturnStmt *stmt) override {
