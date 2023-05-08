@@ -294,22 +294,22 @@ public:
     rewriter_->ReplaceText(stmt->getSourceRange(), oss.str());
   }
 
-  // void ProcessCallExpr(clang::CallExpr *expr) override {
-  //   assert(context_);
+  void ProcessCallExpr(clang::CallExpr *expr) override {
+    // assert(context_);
 
-  //  auto id = expr->getID(*context_);
-  //  std::ostringstream oss;
-  //  oss << "(" << GetTraceCallExprInst(id, "CallExpr") << ",";
-  //  if (auto err = s_replacements.add(
-  //          PrependSourceLoc(*context_, expr->getBeginLoc(), oss.str()))) {
-  //    llvm::errs() << "Error: " << err;
-  //  }
+    // auto id = expr->getID(*context_);
+    // std::ostringstream oss;
+    // oss << "(" << GetTraceCallExprInst(id, "CallExpr") << ",";
+    // if (auto err = s_replacements.add(
+    //         PrependSourceLoc(*context_, expr->getBeginLoc(), oss.str()))) {
+    //   llvm::errs() << "Error: " << err;
+    // }
 
-  //  if (auto err = s_replacements.add(
-  //          AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
-  //    llvm::errs() << "Error: " << err;
-  //  }
-  //}
+    // if (auto err = s_replacements.add(
+    //         AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
+    //   llvm::errs() << "Error: " << err;
+    // }
+  }
 
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
