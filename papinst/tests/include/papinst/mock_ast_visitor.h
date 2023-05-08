@@ -19,6 +19,7 @@ public:
   MOCK_METHOD(void, ProcessForStmt, (clang::ForStmt * stmt), (override));
   MOCK_METHOD(void, ProcessDoStmt, (clang::DoStmt * stmt), (override));
   MOCK_METHOD(void, ProcessReturnStmt, (clang::ReturnStmt * stmt), (override));
+  MOCK_METHOD(void, ProcessCallExpr, (clang::CallExpr * expr), (override));
 };
 
 class MockASTVisitor : public ASTVisitor {

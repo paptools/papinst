@@ -9,6 +9,7 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/Core/Replacement.h>
 #include <fmt/format.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -19,6 +20,7 @@
 
 namespace papinst {
 namespace {
+
 class DefaultASTConsumerListener : public ASTConsumerListener {
 public:
   DefaultASTConsumerListener(std::shared_ptr<Logger> logger,
@@ -40,11 +42,13 @@ public:
     clang::Rewriter rewriter(context.getSourceManager(), context.getLangOpts());
     visitor_->SetRewriter(rewriter);
     visitor_->TraverseAST(context);
-
     // visitor_->TraverseDecl(context.getTranslationUnitDecl());
 
-    // MatchCallback match_callback(context, rewriter, instrumenter_);
-    // match_callback.start();
+    auto replacements = GetReplacements();
+    for (auto &replacement : replacements) {
+      logger_->Debug(fmt::format("Replacement: '{}'", replacement.toString()));
+    }
+    clang::tooling::applyAllReplacements(replacements, rewriter);
 
     auto &&source_manager = context.getSourceManager();
     auto file_id = source_manager.getMainFileID();

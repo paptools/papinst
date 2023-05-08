@@ -8,6 +8,7 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/Core/Replacement.h>
 
 // C++ standard library headers.
 #include <memory>
@@ -35,7 +36,10 @@ public:
   // virtual void ProcessCXXForRangeStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
   virtual void ProcessReturnStmt(clang::ReturnStmt *stmt) = 0;
+  virtual void ProcessCallExpr(clang::CallExpr *expr) = 0;
 };
+
+clang::tooling::Replacements &GetReplacements();
 
 class ASTVisitor : public clang::RecursiveASTVisitor<ASTVisitor> {
 public:
