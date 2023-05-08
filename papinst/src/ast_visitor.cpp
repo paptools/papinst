@@ -88,34 +88,36 @@ public:
   void ProcessFnDef(clang::FunctionDecl *decl) override {
     assert(context_);
 
-    if (auto body = decl->getBody()) {
-      // Skip if the function is not user defined.
-      if (!context_->getSourceManager().isInMainFile(body->getBeginLoc())) {
-        return;
-      }
+    auto body = decl->getBody();
+    // Skip if the function is not user defined.
+    if (!body ||
+        !context_->getSourceManager().isInMainFile(body->getBeginLoc())) {
+      return;
+    }
 
-      auto sig = GetFunctionSignature(decl);
+    auto sig = GetFunctionSignature(decl);
 #ifdef PAPINST_OUTPUT_CFG
-      auto options = clang::CFG::BuildOptions();
-      if (std::unique_ptr<clang::CFG> cfg =
-              clang::CFG::buildCFG(decl, body, context_, options)) {
-        clang::LangOptions lang_opts;
-        cfg->dump(lang_opts, /*ShowColors*/ true);
-        llvm::WriteGraph(llvm::outs(), cfg.get(), true, sig);
-      }
+    auto options = clang::CFG::BuildOptions();
+    if (std::unique_ptr<clang::CFG> cfg =
+            clang::CFG::buildCFG(decl, body, context_, options)) {
+      clang::LangOptions lang_opts;
+      cfg->dump(lang_opts, /*ShowColors*/ true);
+      llvm::WriteGraph(llvm::outs(), cfg.get(), true, sig);
+    }
 #endif // PAPINST_OUTPUT_CFG
 
-      auto id = body->getID(*context_);
-      std::ostringstream oss;
-      oss << instrumenter_->GetTraceCalleeInst(id, sig);
-      for (auto param : decl->parameters()) {
-        oss << GetTraceParamInst(id, param->getNameAsString());
-        auto param_str = param->getNameAsString();
-      }
+    auto id = body->getID(*context_);
+    std::ostringstream oss;
+    oss << instrumenter_->GetTraceCalleeInst(id, sig);
+    for (auto param : decl->parameters()) {
+      oss << GetTraceParamInst(id, param->getNameAsString());
+      auto param_str = param->getNameAsString();
+    }
 
-      auto compound_stmt =
-          clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
-      rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(), oss.str());
+    auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
+    if (auto err = s_replacements.add(AppendSourceLoc(
+            *context_, compound_stmt->getLBracLoc(), oss.str()))) {
+      llvm::errs() << "Error: " << err;
     }
   }
 
@@ -194,21 +196,31 @@ public:
       do {
         if (auto sub_stmt = case_stmt->getSubStmt()) {
           auto id = sub_stmt->getID(*context_);
-          if (clang::isa<clang::CompoundStmt>(sub_stmt)) {
-            auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(sub_stmt);
-            rewriter_->InsertTextAfterToken(compound_stmt->getBeginLoc(),
-                                            GetTraceStmtInst(id, "CaseStmt"));
+          auto inst_text = GetTraceStmtInst(id, "CaseStmt");
+          if (auto compound_stmt =
+                  clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
+            if (auto err = s_replacements.add(AppendSourceLoc(
+                    *context_, compound_stmt->getBeginLoc(), inst_text))) {
+              llvm::errs() << "Error: " << err;
+            }
           } else {
             if (!clang::isa<clang::SwitchCase>(sub_stmt)) {
+              std::ostringstream oss;
+              oss << " {" << inst_text;
+              inst_text = oss.str();
+
+              if (auto err = s_replacements.add(PrependSourceLoc(
+                      *context_, sub_stmt->getBeginLoc(), inst_text))) {
+                llvm::errs() << "Error: " << err;
+              }
+
               auto semi_loc = clang::Lexer::getLocForEndOfToken(
                   sub_stmt->getEndLoc(), 0, context_->getSourceManager(),
                   context_->getLangOpts());
-              auto rewrite_range =
-                  clang::SourceRange(sub_stmt->getBeginLoc(), semi_loc);
-              std::ostringstream oss;
-              oss << "{" << GetTraceStmtInst(id, "CaseStmt")
-                  << rewriter_->getRewrittenText(rewrite_range) << "}";
-              rewriter_->ReplaceText(rewrite_range, oss.str());
+              if (auto err = s_replacements.add(
+                      AppendSourceLoc(*context_, semi_loc, "}"))) {
+                llvm::errs() << "Error: " << err;
+              }
             }
           }
         }
@@ -353,7 +365,7 @@ public:
       if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
         listener_->ProcessIfStmt(if_stmt);
       } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {
-        // listener_->ProcessSwitchStmt(switch_stmt);
+        listener_->ProcessSwitchStmt(switch_stmt);
       } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
         // listener_->ProcessWhileStmt(while_stmt);
       } else if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
