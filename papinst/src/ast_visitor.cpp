@@ -5,16 +5,17 @@
 
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
+#include <clang/Analysis/CFG.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
+#include <llvm/Support/GraphWriter.h>
 
 // C++ standard library headers.
 #include <iostream> // TODO: Remove this once debugging is done.
 #include <map>
 #include <memory>
-// #include <set>
 #include <sstream>
 #include <string>
 
@@ -64,10 +65,20 @@ public:
     assert(context_);
 
     if (auto body = decl->getBody()) {
-      // auto stmt_id = decl->getBody()->getID(*context_);
-      // std::cout << "stmt ID: " << stmt_id << std::endl;
+      // Skip if the function is not user defined.
+      if (!context_->getSourceManager().isInMainFile(body->getBeginLoc())) {
+        return;
+      }
 
+      auto options = clang::CFG::BuildOptions();
       auto sig = GetFunctionSignature(decl);
+      if (std::unique_ptr<clang::CFG> cfg =
+              clang::CFG::buildCFG(decl, body, context_, options)) {
+        clang::LangOptions lang_opts;
+        cfg->dump(lang_opts, /*ShowColors*/ true);
+        llvm::WriteGraph(llvm::outs(), cfg.get(), true, sig);
+      }
+
       auto id = body->getID(*context_);
       std::ostringstream oss;
       oss << instrumenter_->GetTraceCalleeInst(id, sig);
