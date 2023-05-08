@@ -5,12 +5,14 @@
 
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
-#include <clang/Analysis/CFG.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
+#ifdef PAPINST_OUTPUT_CFG
+#include <clang/Analysis/CFG.h>
 #include <llvm/Support/GraphWriter.h>
+#endif // PAPINST_OUTPUT_CFG
 
 // C++ standard library headers.
 #include <iostream> // TODO: Remove this once debugging is done.
@@ -70,14 +72,16 @@ public:
         return;
       }
 
-      auto options = clang::CFG::BuildOptions();
       auto sig = GetFunctionSignature(decl);
+#ifdef PAPINST_OUTPUT_CFG
+      auto options = clang::CFG::BuildOptions();
       if (std::unique_ptr<clang::CFG> cfg =
               clang::CFG::buildCFG(decl, body, context_, options)) {
         clang::LangOptions lang_opts;
         cfg->dump(lang_opts, /*ShowColors*/ true);
         llvm::WriteGraph(llvm::outs(), cfg.get(), true, sig);
       }
+#endif // PAPINST_OUTPUT_CFG
 
       auto id = body->getID(*context_);
       std::ostringstream oss;
