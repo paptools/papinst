@@ -274,9 +274,11 @@ public:
     if (it != visited_repls_.end()) {
       auto prev_repl = it->second;
       if (prev_repl != replacement) {
-        llvm::errs() << "Error: different replacements for same offset\n";
-        llvm::errs() << "  prev: " << prev_repl.getReplacementText() << "\n";
-        llvm::errs() << "  curr: " << replacement.getReplacementText() << "\n";
+        llvm::errs() << "Warning: different replacements for same offset\n"
+                     << "  prev (retained): " << prev_repl.getReplacementText()
+                     << "\n"
+                     << "  curr (discarded): "
+                     << replacement.getReplacementText() << "\n";
       }
       return;
     } else {
