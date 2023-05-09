@@ -53,9 +53,14 @@ std::string GetTraceStmtInst(int id, const std::string &type) {
   return fmt::format(template_str, type, id);
 }
 
-std::string GetTraceCallExprInst(int id, const std::string &sig) {
+std::string GetTraceCallerInst(int id, const std::string &sig) {
   static const std::string template_str = "PAPTRACE_CALLER_NODE({}, \"{}\")";
   return fmt::format(template_str, id, sig);
+}
+
+std::string GetTraceCallerParamInst(const std::string &param) {
+  static const std::string template_str = "PAPTRACE_CALLER_PARAM({})";
+  return fmt::format(template_str, param);
 }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
@@ -111,7 +116,6 @@ public:
     oss << instrumenter_->GetTraceCalleeInst(id, sig);
     for (auto param : decl->parameters()) {
       oss << GetTraceParamInst(id, param->getNameAsString());
-      auto param_str = param->getNameAsString();
     }
 
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
@@ -259,19 +263,28 @@ public:
   void ProcessCallExpr(clang::CallExpr *expr) override {
     assert(context_);
 
-    auto id = expr->getID(*context_);
+    // Skip caller instrumentation for functions with callee instrumentation.
     auto callee = expr->getDirectCallee();
     assert(callee); // TODO: When does this fail?
-    auto sig = GetFunctionSignature(callee);
-
-    // Skip caller instrumentation for functions with callee instrumentation.
     if (callee->isDefined() &&
         context_->getSourceManager().isInMainFile(callee->getBeginLoc())) {
       return;
     }
 
+    auto id = expr->getID(*context_);
+    auto sig = GetFunctionSignature(callee);
     std::ostringstream oss;
-    oss << "(" << GetTraceCallExprInst(id, sig) << ",";
+    oss << "(" << GetTraceCallerInst(id, sig);
+    for (auto arg : expr->arguments()) {
+      if (!arg->IgnoreUnlessSpelledInSource()) {
+        continue;
+      }
+      auto arg_str = clang::Lexer::getSourceText(
+          clang::CharSourceRange::getTokenRange(arg->getSourceRange()),
+          context_->getSourceManager(), context_->getLangOpts());
+      oss << "\n" << GetTraceCallerParamInst(std::string(arg_str));
+    }
+    oss << ",";
     auto inst_text = oss.str();
 
     auto replacement =
@@ -288,6 +301,7 @@ public:
       }
       return;
     } else {
+      llvm::errs() << "PASS\n";
       if (auto err = Add(replacement)) {
         llvm::errs() << "Error: " << err << "\n";
       }
