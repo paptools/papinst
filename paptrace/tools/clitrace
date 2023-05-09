@@ -59,7 +59,7 @@ def to_s_id(id):
 def to_summary(obj, symb="", indent=""):
     summary = ""
     obj_type = obj["type"]
-    if obj_type == "CallExpr":
+    if obj_type == "CalleeExpr" or obj_type == "CallerExpr":
         params = f"{{{to_params_str(obj['params'])}}}"
         summary += f"{indent}{symb}{obj['sig']} @ {params}"
     elif "Stmt" in obj_type:
@@ -158,15 +158,6 @@ def main():
     # Solve the system of equations for f2(n)
     sol = sympy.solve([eq1, eq2, eq3], (f2))
     print(sol)
-
-    # f2_0 = g_exprs["f2"][0]
-    # eq_f0_0 = sympy.Eq(f.subs(n, 0), f0_0)
-    # f2_2 = g_exprs["f2"][2]
-    # eq_f0_2 = sympy.Eq(f.subs(n, 2), f0_2)
-    # f2_4 = g_exprs["f2"][4]
-    # eq_f0_4 = sympy.Eq(f.subs(n, 4), f0_4)
-    # sol = sympy.solve([eq_f0_0, eq_f0_2, eq_f0_4], (f))
-    # print(sol)
 
 
 if __name__ == "__main__":
