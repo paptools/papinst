@@ -193,37 +193,30 @@ public:
     assert(context_);
 
     if (auto case_stmt = stmt->getSwitchCaseList()) {
+      clang::SourceLocation prev_semi_loc;
       do {
-        if (auto sub_stmt = case_stmt->getSubStmt()) {
-          auto id = sub_stmt->getID(*context_);
-          auto inst_text = GetTraceStmtInst(id, "CaseStmt");
-          if (auto compound_stmt =
-                  clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
+        auto sub_stmt = case_stmt->getSubStmt();
+        auto id = sub_stmt->getID(*context_);
+        auto inst_text = GetTraceStmtInst(id, "CaseStmt");
+        if (auto compound_stmt =
+                clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
+          if (auto err = s_replacements.add(AppendSourceLoc(
+                  *context_, compound_stmt->getBeginLoc(), inst_text))) {
+            llvm::errs() << "Error: " << err;
+          }
+        } else {
+          auto semi_loc = clang::Lexer::getLocForEndOfToken(
+              case_stmt->getEndLoc(), 0, context_->getSourceManager(),
+              context_->getLangOpts());
+          if (semi_loc != prev_semi_loc) {
             if (auto err = s_replacements.add(AppendSourceLoc(
-                    *context_, compound_stmt->getBeginLoc(), inst_text))) {
+                    *context_, case_stmt->getColonLoc(), inst_text))) {
               llvm::errs() << "Error: " << err;
             }
-          } else {
-            if (!clang::isa<clang::SwitchCase>(sub_stmt)) {
-              std::ostringstream oss;
-              oss << " {" << inst_text;
-              inst_text = oss.str();
-
-              if (auto err = s_replacements.add(PrependSourceLoc(
-                      *context_, sub_stmt->getBeginLoc(), inst_text))) {
-                llvm::errs() << "Error: " << err;
-              }
-
-              auto semi_loc = clang::Lexer::getLocForEndOfToken(
-                  sub_stmt->getEndLoc(), 0, context_->getSourceManager(),
-                  context_->getLangOpts());
-              if (auto err = s_replacements.add(
-                      AppendSourceLoc(*context_, semi_loc, "}"))) {
-                llvm::errs() << "Error: " << err;
-              }
-            }
+            prev_semi_loc = semi_loc;
           }
         }
+
         case_stmt = case_stmt->getNextSwitchCase();
       } while (case_stmt);
     }
