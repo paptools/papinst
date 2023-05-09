@@ -226,21 +226,8 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
-      auto id = body->getID(*context_);
-      if (clang::isa<clang::CompoundStmt>(body)) {
-        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
-        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
-                                        GetTraceStmtInst(id, "WhileStmt"));
-      } else {
-        auto semi_loc = clang::Lexer::getLocForEndOfToken(
-            body->getEndLoc(), 0, context_->getSourceManager(),
-            context_->getLangOpts());
-        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
-        std::ostringstream oss;
-        oss << "{" << GetTraceStmtInst(id, "WhileStmt")
-            << rewriter_->getRewrittenText(rewrite_range) << "}";
-        rewriter_->ReplaceText(rewrite_range, oss.str());
-      }
+      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(),
+                      "WhileStmt");
     }
   }
 
@@ -248,21 +235,7 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
-      auto id = body->getID(*context_);
-      if (clang::isa<clang::CompoundStmt>(body)) {
-        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
-        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
-                                        GetTraceStmtInst(id, "ForStmt"));
-      } else {
-        auto semi_loc = clang::Lexer::getLocForEndOfToken(
-            body->getEndLoc(), 0, context_->getSourceManager(),
-            context_->getLangOpts());
-        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
-        std::ostringstream oss;
-        oss << "{" << GetTraceStmtInst(id, "ForStmt")
-            << rewriter_->getRewrittenText(rewrite_range) << "}";
-        rewriter_->ReplaceText(rewrite_range, oss.str());
-      }
+      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(), "ForStmt");
     }
   }
 
@@ -270,21 +243,7 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
-      auto id = body->getID(*context_);
-      if (clang::isa<clang::CompoundStmt>(body)) {
-        auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body);
-        rewriter_->InsertTextAfterToken(compound_stmt->getLBracLoc(),
-                                        GetTraceStmtInst(id, "DoStmt"));
-      } else {
-        auto semi_loc = clang::Lexer::getLocForEndOfToken(
-            body->getEndLoc(), 0, context_->getSourceManager(),
-            context_->getLangOpts());
-        auto rewrite_range = clang::SourceRange(body->getBeginLoc(), semi_loc);
-        std::ostringstream oss;
-        oss << "{" << GetTraceStmtInst(id, "DoStmt")
-            << rewriter_->getRewrittenText(rewrite_range) << "}";
-        rewriter_->ReplaceText(rewrite_range, oss.str());
-      }
+      ProcessLoopBody(body, stmt->getBeginLoc(), body->getEndLoc(), "DoStmt");
     }
   }
 
@@ -320,6 +279,36 @@ private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
   clang::Rewriter *rewriter_;
+
+  void ProcessLoopBody(clang::Stmt *body,
+                       const clang::SourceLocation &begin_loc,
+                       const clang::SourceLocation &end_loc,
+                       const std::string &type) {
+    auto id = body->getID(*context_);
+    auto inst_text = GetTraceStmtInst(id, type);
+    if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
+      if (auto err = s_replacements.add(AppendSourceLoc(
+              *context_, compound_stmt->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err;
+      }
+    } else {
+      std::ostringstream oss;
+      oss << " {" << inst_text;
+      inst_text = oss.str();
+
+      if (auto err = s_replacements.add(
+              AppendSourceLoc(*context_, begin_loc, inst_text))) {
+        llvm::errs() << "Error: " << err;
+      }
+
+      auto semi_loc = clang::Lexer::getLocForEndOfToken(
+          end_loc, 0, context_->getSourceManager(), context_->getLangOpts());
+      if (auto err =
+              s_replacements.add(AppendSourceLoc(*context_, semi_loc, "}"))) {
+        llvm::errs() << "Error: " << err;
+      }
+    }
+  }
 };
 
 class DefaultASTVisitor : public ASTVisitor {
@@ -341,8 +330,6 @@ public:
 
   bool VisitFunctionDecl(clang::FunctionDecl *decl) override {
     assert(context_);
-    // if
-    // (!context_->getSourceManager().isInSystemHeader(decl->getBeginLoc()))
     if (decl->isThisDeclarationADefinition()) {
       listener_->ProcessFnDef(decl);
     }
@@ -360,11 +347,11 @@ public:
       } else if (auto switch_stmt = clang::dyn_cast<clang::SwitchStmt>(stmt)) {
         listener_->ProcessSwitchStmt(switch_stmt);
       } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
-        // listener_->ProcessWhileStmt(while_stmt);
+        listener_->ProcessWhileStmt(while_stmt);
       } else if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
-        // listener_->ProcessForStmt(for_stmt);
+        listener_->ProcessForStmt(for_stmt);
       } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
-        // listener_->ProcessDoStmt(do_stmt);
+        listener_->ProcessDoStmt(do_stmt);
       } else if (auto return_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
         // listener_->ProcessReturnStmt(return_stmt);
       } else if (auto call_expr = clang::dyn_cast<clang::CallExpr>(stmt)) {
