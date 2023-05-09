@@ -34,7 +34,7 @@ public:
     return obj;
   }
 
-  void AddParam(const Param &param) override {}
+  Node *AddParam(const Param &param) override { return this; }
 
   void AddChild(Node *child) override {
     assert(child);
@@ -86,7 +86,10 @@ public:
     return obj;
   }
 
-  void AddParam(const Param &param) override { params_.push_back(param); }
+  Node *AddParam(const Param &param) override {
+    params_.push_back(param);
+    return this;
+  }
 
   void AddChild(Node *child) override {
     assert(child);
@@ -120,7 +123,7 @@ public:
     return obj;
   }
 
-  void AddParam(const Param &param) override {}
+  Node *AddParam(const Param &param) override { return this; }
 
   void AddChild(Node *child) override {}
 

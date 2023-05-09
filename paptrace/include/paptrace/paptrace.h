@@ -31,7 +31,7 @@ public:
   virtual ~Node() = default;
 
   virtual nlohmann::json Serialize() const = 0;
-  virtual void AddParam(const Param &param) = 0;
+  virtual Node *AddParam(const Param &param) = 0;
   virtual void AddChild(Node *child) = 0;
 };
 
@@ -50,6 +50,8 @@ void AddStmt(const std::string &type, int id);
   NODE_NAME(id)->AddParam(                                                     \
       paptrace::Param(#x, paptrace::utils::PrintToString(x)))
 #define PAPTRACE_CALLER_NODE(id, sig) paptrace::Node::Create("CallerExpr", sig)
+#define PAPTRACE_CALLER_PARAM(x)                                               \
+  ->AddParam(paptrace::Param(#x, paptrace::utils::PrintToString(x)))
 #define PAPTRACE_IF_THEN_STMT(x) paptrace::AddStmt("IfThenStmt", x)
 #define PAPTRACE_IF_ELSE_STMT(x) paptrace::AddStmt("IfElseStmt", x)
 #define PAPTRACE_TRACE_STMT(x, id) paptrace::AddStmt(x, id)
