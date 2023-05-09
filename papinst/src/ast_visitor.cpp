@@ -53,9 +53,11 @@ std::string GetTraceStmtInst(int id, const std::string &type) {
   return fmt::format(template_str, type, id);
 }
 
-std::string GetTraceCallExprInst(int id, const std::string &type) {
-  static const std::string template_str = "PAPTRACE_TRACE_STMT(\"{}\", {})";
-  return fmt::format(template_str, type, id);
+std::string GetTraceCallExprInst(int id, const std::string &type,
+                                 const std::string &repr) {
+  static const std::string template_str =
+      "PAPTRACE_TRACE_STMT(\"{} -> {}\", {})";
+  return fmt::format(template_str, type, repr, id);
 }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
@@ -115,9 +117,10 @@ public:
     }
 
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
-    if (auto err = s_replacements.add(AppendSourceLoc(
-            *context_, compound_stmt->getLBracLoc(), oss.str()))) {
+    if (auto err = Add(AppendSourceLoc(*context_, compound_stmt->getLBracLoc(),
+                                       oss.str()))) {
       llvm::errs() << "Error: " << err;
+      llvm::errs() << "Error: " << err << "\n";
     }
   }
 
@@ -128,9 +131,9 @@ public:
       auto then_id = then_stmt->getID(*context_);
       auto inst_text = instrumenter_->GetTraceIfThenStmtInst(then_id);
       if (clang::isa<clang::CompoundStmt>(then_stmt)) {
-        if (auto err = s_replacements.add(AppendSourceLoc(
-                *context_, then_stmt->getBeginLoc(), inst_text))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, then_stmt->getBeginLoc(),
+                                           inst_text))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
       } else {
         std::ostringstream oss;
@@ -138,17 +141,15 @@ public:
         inst_text = oss.str();
 
         auto begin_loc = stmt->getRParenLoc();
-        if (auto err = s_replacements.add(
-                AppendSourceLoc(*context_, begin_loc, inst_text))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
 
         auto semi_loc = clang::Lexer::getLocForEndOfToken(
             then_stmt->getEndLoc(), 0, context_->getSourceManager(),
             context_->getLangOpts());
-        if (auto err =
-                s_replacements.add(AppendSourceLoc(*context_, semi_loc, "}"))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
       }
     }
@@ -163,9 +164,9 @@ public:
       auto else_id = else_stmt->getID(*context_);
       auto inst_text = instrumenter_->GetTraceIfElseStmtInst(else_id);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
-        if (auto err = s_replacements.add(AppendSourceLoc(
-                *context_, else_stmt->getBeginLoc(), inst_text))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, else_stmt->getBeginLoc(),
+                                           inst_text))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
       } else {
         std::ostringstream oss;
@@ -173,17 +174,15 @@ public:
         inst_text = oss.str();
 
         auto begin_loc = stmt->getElseLoc().getLocWithOffset(4);
-        if (auto err = s_replacements.add(
-                AppendSourceLoc(*context_, begin_loc, inst_text))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
 
         auto semi_loc = clang::Lexer::getLocForEndOfToken(
             else_stmt->getEndLoc(), 0, context_->getSourceManager(),
             context_->getLangOpts());
-        if (auto err =
-                s_replacements.add(AppendSourceLoc(*context_, semi_loc, "}"))) {
-          llvm::errs() << "Error: " << err;
+        if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
+          llvm::errs() << "Error: " << err << "\n";
         }
       }
     }
@@ -200,18 +199,18 @@ public:
         auto inst_text = GetTraceStmtInst(id, "CaseStmt");
         if (auto compound_stmt =
                 clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
-          if (auto err = s_replacements.add(AppendSourceLoc(
+          if (auto err = Add(AppendSourceLoc(
                   *context_, compound_stmt->getBeginLoc(), inst_text))) {
-            llvm::errs() << "Error: " << err;
+            llvm::errs() << "Error: " << err << "\n";
           }
         } else {
           auto semi_loc = clang::Lexer::getLocForEndOfToken(
               case_stmt->getEndLoc(), 0, context_->getSourceManager(),
               context_->getLangOpts());
           if (semi_loc != prev_semi_loc) {
-            if (auto err = s_replacements.add(AppendSourceLoc(
+            if (auto err = Add(AppendSourceLoc(
                     *context_, case_stmt->getColonLoc(), inst_text))) {
-              llvm::errs() << "Error: " << err;
+              llvm::errs() << "Error: " << err << "\n";
             }
             prev_semi_loc = semi_loc;
           }
@@ -253,33 +252,51 @@ public:
 
     auto id = stmt->getID(*context_);
     auto inst_text = GetTraceStmtInst(id, "ReturnStmt");
-    if (auto err = s_replacements.add(
-            PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
-      llvm::errs() << "Error: " << err;
+    if (auto err =
+            Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err << "\n";
     }
   }
 
   void ProcessCallExpr(clang::CallExpr *expr) override {
-    // assert(context_);
+    assert(context_);
 
-    // auto id = expr->getID(*context_);
-    // std::ostringstream oss;
-    // oss << "(" << GetTraceCallExprInst(id, "CallExpr") << ",";
-    // if (auto err = s_replacements.add(
-    //         PrependSourceLoc(*context_, expr->getBeginLoc(), oss.str()))) {
-    //   llvm::errs() << "Error: " << err;
-    // }
+    auto id = expr->getID(*context_);
+    auto callee = expr->getDirectCallee();
+    assert(callee); // TODO: When does this fail?
+    auto sig = GetFunctionSignature(callee);
 
-    // if (auto err = s_replacements.add(
-    //         AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
-    //   llvm::errs() << "Error: " << err;
-    // }
+    std::ostringstream oss;
+    oss << "(" << GetTraceCallExprInst(id, "CallExpr", sig) << ",";
+    auto inst_text = oss.str();
+
+    auto replacement =
+        PrependSourceLoc(*context_, expr->getBeginLoc(), inst_text);
+    auto it = visited_repls_.find(replacement.getOffset());
+    if (it != visited_repls_.end()) {
+      auto prev_repl = it->second;
+      if (prev_repl != replacement) {
+        llvm::errs() << "Error: different replacements for same offset\n";
+        llvm::errs() << "  prev: " << prev_repl.getReplacementText() << "\n";
+        llvm::errs() << "  curr: " << replacement.getReplacementText() << "\n";
+      }
+      return;
+    } else {
+      if (auto err = Add(replacement)) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+
+      if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+    }
   }
 
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
   clang::Rewriter *rewriter_;
+  std::map<unsigned int, clang::tooling::Replacement> visited_repls_;
 
   void ProcessLoopBody(clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
@@ -288,7 +305,7 @@ private:
     auto id = body->getID(*context_);
     auto inst_text = GetTraceStmtInst(id, type);
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
-      if (auto err = s_replacements.add(AppendSourceLoc(
+      if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {
         llvm::errs() << "Error: " << err;
       }
@@ -297,18 +314,21 @@ private:
       oss << " {" << inst_text;
       inst_text = oss.str();
 
-      if (auto err = s_replacements.add(
-              AppendSourceLoc(*context_, begin_loc, inst_text))) {
-        llvm::errs() << "Error: " << err;
+      if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
       }
 
       auto semi_loc = clang::Lexer::getLocForEndOfToken(
           end_loc, 0, context_->getSourceManager(), context_->getLangOpts());
-      if (auto err =
-              s_replacements.add(AppendSourceLoc(*context_, semi_loc, "}"))) {
-        llvm::errs() << "Error: " << err;
+      if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
+        llvm::errs() << "Error: " << err << "\n";
       }
     }
+  }
+
+  llvm::Error Add(const clang::tooling::Replacement &replacement) {
+    visited_repls_[replacement.getOffset()] = replacement;
+    return s_replacements.add(replacement);
   }
 };
 

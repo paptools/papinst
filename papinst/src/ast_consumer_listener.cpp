@@ -45,9 +45,10 @@ public:
     // visitor_->TraverseDecl(context.getTranslationUnitDecl());
 
     auto replacements = GetReplacements();
-    for (auto &replacement : replacements) {
-      logger_->Debug(fmt::format("Replacement: '{}'", replacement.toString()));
-    }
+    // for (auto &replacement : replacements) {
+    //   logger_->Debug(fmt::format("Replacement: '{}'",
+    //   replacement.toString()));
+    // }
     clang::tooling::applyAllReplacements(replacements, rewriter);
 
     auto &&source_manager = context.getSourceManager();

@@ -44,12 +44,14 @@ void AddStmt(const std::string &type, int id);
 
 // Instrumentation macros.
 #define PAPTRACE_CALLEE_NODE(id, sig)                                          \
-  auto NODE_NAME(id) = paptrace::Node::Create(sig);
+  auto NODE_NAME(id) = paptrace::Node::Create(sig)
 #define PAPTRACE_TRACE_PARAM(id, x)                                            \
   NODE_NAME(id)->AddParam(                                                     \
-      paptrace::Param(#x, paptrace::utils::PrintToString(x)));
-#define PAPTRACE_IF_THEN_STMT(x) paptrace::AddStmt("IfThenStmt", x);
-#define PAPTRACE_IF_ELSE_STMT(x) paptrace::AddStmt("IfElseStmt", x);
+      paptrace::Param(#x, paptrace::utils::PrintToString(x)))
+#define PAPTRACE_IF_THEN_STMT(x) paptrace::AddStmt("IfThenStmt", x)
+#define PAPTRACE_IF_ELSE_STMT(x) paptrace::AddStmt("IfElseStmt", x)
 #define PAPTRACE_TRACE_STMT(x, id) paptrace::AddStmt(x, id)
+#define PAPTRACE_CALLER_NODE(id, sig)                                          \
+  auto NODE_NAME(id) = paptrace::Node::Create(sig)
 
 #endif // PAPTRACE_PAPTRACE_H
