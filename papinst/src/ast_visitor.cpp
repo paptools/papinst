@@ -252,10 +252,11 @@ public:
     assert(context_);
 
     auto id = stmt->getID(*context_);
-    std::ostringstream oss;
-    oss << GetTraceStmtInst(id, "ReturnStmt")
-        << rewriter_->getRewrittenText(stmt->getSourceRange());
-    rewriter_->ReplaceText(stmt->getSourceRange(), oss.str());
+    auto inst_text = GetTraceStmtInst(id, "ReturnStmt");
+    if (auto err = s_replacements.add(
+            PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err;
+    }
   }
 
   void ProcessCallExpr(clang::CallExpr *expr) override {
@@ -353,7 +354,7 @@ public:
       } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
         listener_->ProcessDoStmt(do_stmt);
       } else if (auto return_stmt = clang::dyn_cast<clang::ReturnStmt>(stmt)) {
-        // listener_->ProcessReturnStmt(return_stmt);
+        listener_->ProcessReturnStmt(return_stmt);
       } else if (auto call_expr = clang::dyn_cast<clang::CallExpr>(stmt)) {
         listener_->ProcessCallExpr(call_expr);
       }
