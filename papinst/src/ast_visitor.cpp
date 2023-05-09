@@ -264,6 +264,12 @@ public:
     assert(callee); // TODO: When does this fail?
     auto sig = GetFunctionSignature(callee);
 
+    // Skip caller instrumentation for functions with callee instrumentation.
+    if (callee->isDefined() &&
+        context_->getSourceManager().isInMainFile(callee->getBeginLoc())) {
+      return;
+    }
+
     std::ostringstream oss;
     oss << "(" << GetTraceCallExprInst(id, sig) << ",";
     auto inst_text = oss.str();
