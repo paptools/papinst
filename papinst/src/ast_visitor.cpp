@@ -301,7 +301,6 @@ public:
       }
       return;
     } else {
-      llvm::errs() << "PASS\n";
       if (auto err = Add(replacement)) {
         llvm::errs() << "Error: " << err << "\n";
       }
