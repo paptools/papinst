@@ -35,7 +35,7 @@ public:
   virtual void AddChild(Node *child) = 0;
 };
 
-void AddStmt(const std::string &type, int id);
+std::unique_ptr<Node> AddStmt(const std::string &type, int id);
 } // namespace paptrace
 
 // Utility macros.
@@ -52,8 +52,10 @@ void AddStmt(const std::string &type, int id);
 #define PAPTRACE_CALLER_NODE(id, sig) paptrace::Node::Create("CallerExpr", sig)
 #define PAPTRACE_CALLER_PARAM(x)                                               \
   ->AddParam(paptrace::Param(#x, paptrace::utils::PrintToString(x)))
-#define PAPTRACE_IF_THEN_STMT(x) paptrace::AddStmt("IfThenStmt", x)
-#define PAPTRACE_IF_ELSE_STMT(x) paptrace::AddStmt("IfElseStmt", x)
+#define PAPTRACE_IF_THEN_STMT(x)                                               \
+  auto NODE_NAME(__LINE__) = paptrace::AddStmt("IfThenStmt", x)
+#define PAPTRACE_IF_ELSE_STMT(x)                                               \
+  auto NODE_NAME(__LINE__) = paptrace::AddStmt("IfElseStmt", x)
 #define PAPTRACE_TRACE_STMT(x, id) paptrace::AddStmt(x, id)
 
 #endif // PAPTRACE_PAPTRACE_H

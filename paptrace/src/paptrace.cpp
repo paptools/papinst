@@ -114,22 +114,47 @@ private:
 
 class StmtNode : public Node {
 public:
-  StmtNode(const std::string &type, int id) : type_(type), id_(id) {}
+  StmtNode(Node *parent, const std::string &type, int id)
+      : parent_(parent), type_(type), id_(id), children_() {
+    Register();
+  }
 
-  ~StmtNode() = default;
+  ~StmtNode() { Deregister(); }
 
   nlohmann::json Serialize() const override {
-    nlohmann::json obj = {{"type", type_}, {"id", id_}};
+    auto j_children = nlohmann::json::array();
+    for (const auto &child : children_) {
+      j_children.push_back(child);
+    }
+    nlohmann::json obj = {
+        {"type", type_},
+        {"id", id_},
+        {"children", j_children},
+    };
     return obj;
   }
 
   Node *AddParam(const Param &param) override { return this; }
 
-  void AddChild(Node *child) override {}
+  void AddChild(Node *child) override {
+    assert(child);
+    children_.push_back(child->Serialize());
+  }
 
 private:
+  Node *parent_;
   const std::string type_;
   int id_;
+  std::list<nlohmann::json> children_;
+
+  void Register() { s_node_stack.push(this); }
+
+  void Deregister() {
+    assert(s_node_stack.top() == this);
+    s_node_stack.pop();
+    assert(s_node_stack.top());
+    s_node_stack.top()->AddChild(this);
+  }
 };
 } // namespace
 
@@ -150,9 +175,8 @@ std::unique_ptr<Node> Node::Create(const std::string &type,
 }
 // } class Node
 
-void AddStmt(const std::string &type, int id) {
+std::unique_ptr<Node> AddStmt(const std::string &type, int id) {
   assert(s_node_stack.top());
-  auto stmt_node = StmtNode(type, id);
-  s_node_stack.top()->AddChild(&stmt_node);
+  return std::make_unique<StmtNode>(s_node_stack.top(), type, id);
 }
 } // namespace paptrace
