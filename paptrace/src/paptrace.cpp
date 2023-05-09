@@ -59,13 +59,14 @@ private:
 };
 SessionNode s_session_node;
 
-class CalleeNode : public Node {
+class CallNode : public Node {
 public:
-  CalleeNode(const std::string &sig) : sig_(sig), params_(), children_() {
+  CallNode(const std::string &type, const std::string &sig)
+      : type_(type), sig_(sig), params_(), children_() {
     Register();
   }
 
-  ~CalleeNode() { Deregister(); }
+  ~CallNode() { Deregister(); }
 
   nlohmann::json Serialize() const override {
     auto j_params = nlohmann::json::array();
@@ -77,7 +78,7 @@ public:
       j_children.push_back(child);
     }
     nlohmann::json obj = {
-        {"type", "CallExpr"},
+        {"type", type_},
         {"sig", sig_},
         {"params", j_params},
         {"children", j_children},
@@ -93,6 +94,7 @@ public:
   }
 
 private:
+  const std::string type_;
   const std::string sig_;
   std::list<Param> params_;
   std::list<nlohmann::json> children_;
@@ -139,8 +141,9 @@ nlohmann::json Param::Serialize() const {
 // } struct Param
 
 // class Node {
-std::unique_ptr<Node> Node::Create(const std::string &sig) {
-  return std::make_unique<CalleeNode>(sig);
+std::unique_ptr<Node> Node::Create(const std::string &type,
+                                   const std::string &sig) {
+  return std::make_unique<CallNode>(type, sig);
 }
 // } class Node
 

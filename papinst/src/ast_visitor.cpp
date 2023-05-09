@@ -53,11 +53,9 @@ std::string GetTraceStmtInst(int id, const std::string &type) {
   return fmt::format(template_str, type, id);
 }
 
-std::string GetTraceCallExprInst(int id, const std::string &type,
-                                 const std::string &repr) {
-  static const std::string template_str =
-      "PAPTRACE_TRACE_STMT(\"{} -> {}\", {})";
-  return fmt::format(template_str, type, repr, id);
+std::string GetTraceCallExprInst(int id, const std::string &sig) {
+  static const std::string template_str = "PAPTRACE_CALLER_NODE({}, \"{}\")";
+  return fmt::format(template_str, id, sig);
 }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
@@ -267,7 +265,7 @@ public:
     auto sig = GetFunctionSignature(callee);
 
     std::ostringstream oss;
-    oss << "(" << GetTraceCallExprInst(id, "CallExpr", sig) << ",";
+    oss << "(" << GetTraceCallExprInst(id, sig) << ",";
     auto inst_text = oss.str();
 
     auto replacement =
