@@ -48,7 +48,7 @@ std::string GetTraceParamInst(int id, const std::string &param) {
 }
 
 std::string GetTraceStmtInst(int id, const std::string &type) {
-  static const std::string template_str = "PAPTRACE_TRACE_STMT({}, \"{}\");";
+  static const std::string template_str = "PAPTRACE_STMT_NODE({}, \"{}\");";
   return fmt::format(template_str, id, type);
 }
 

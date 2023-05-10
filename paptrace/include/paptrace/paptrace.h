@@ -39,26 +39,23 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type);
 } // namespace paptrace
 
 // Utility macros.
-#define TOKENPASTE(x, y) x##y
-#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
-#define NODE_NAME(id) TOKENPASTE2(paptrace_node_, id)
+#define TOKEN_PASTE(x, y) x##y
+#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
+#define NODE_NAME(id) TOKEN_PASTE2(paptrace_node_, id)
+#define NODE_DECL(id) auto NODE_NAME(id)
+#define TO_STRING(x) paptrace::utils::PrintToString(x)
 
 // Instrumentation macros.
 #define PAPTRACE_CALLEE_NODE(id, sig)                                          \
-  auto NODE_NAME(id) =                                                         \
-      paptrace::NodeFactory::CreateCallNode(id, "CalleeExpr", sig)
+  NODE_DECL(id) = paptrace::NodeFactory::CreateCallNode(id, "CalleeExpr", sig)
 #define PAPTRACE_TRACE_PARAM(id, x)                                            \
-  NODE_NAME(id)->AddParam(                                                     \
-      paptrace::Param(#x, paptrace::utils::PrintToString(x)))
+  NODE_NAME(id)->AddParam(paptrace::Param(#x, TO_STRING(x)))
 #define PAPTRACE_CALLER_NODE(id, sig)                                          \
   paptrace::NodeFactory::CreateCallNode(id, "CallerExpr", sig)
-#define PAPTRACE_CALLER_PARAM(x)                                               \
-  ->AddParam(paptrace::Param(#x, paptrace::utils::PrintToString(x)))
-#define PAPTRACE_IF_THEN_STMT(id)                                              \
-  auto NODE_NAME(id) = paptrace::NodeFactory::CreateStmtNode(id, "IfThenStmt")
-#define PAPTRACE_IF_ELSE_STMT(id)                                              \
-  auto NODE_NAME(id) = paptrace::NodeFactory::CreateStmtNode(id, "IfElseStmt")
-#define PAPTRACE_TRACE_STMT(id, x)                                             \
-  auto NODE_NAME(id) = paptrace::NodeFactory::CreateStmtNode(id, x)
+#define PAPTRACE_CALLER_PARAM(x) ->AddParam(paptrace::Param(#x, TO_STRING(x)))
+#define PAPTRACE_STMT_NODE(id, x)                                              \
+  NODE_DECL(id) = paptrace::NodeFactory::CreateStmtNode(id, x)
+#define PAPTRACE_IF_THEN_NODE(id) PAPTRACE_STMT_NODE(id, "IfThenStmt")
+#define PAPTRACE_IF_ELSE_NODE(id) PAPTRACE_STMT_NODE(id, "IfElseStmt")
 
 #endif // PAPTRACE_PAPTRACE_H
