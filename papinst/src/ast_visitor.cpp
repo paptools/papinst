@@ -116,7 +116,6 @@ public:
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
     if (auto err = Add(AppendSourceLoc(*context_, compound_stmt->getLBracLoc(),
                                        oss.str()))) {
-      llvm::errs() << "Error: " << err;
       llvm::errs() << "Error: " << err << "\n";
     }
   }
