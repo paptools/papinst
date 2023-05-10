@@ -40,7 +40,6 @@ public:
 
     logger_->Debug("Processing translation unit.");
     clang::Rewriter rewriter(context.getSourceManager(), context.getLangOpts());
-    visitor_->SetRewriter(rewriter);
     visitor_->TraverseAST(context);
     // visitor_->TraverseDecl(context.getTranslationUnitDecl());
 

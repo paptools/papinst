@@ -7,7 +7,6 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 #include <fmt/format.h>
 #ifdef PAPINST_OUTPUT_CFG
 #include <clang/Analysis/CFG.h>
@@ -81,12 +80,8 @@ clang::tooling::Replacement PrependSourceLoc(clang::ASTContext &context,
 class DefaultASTVisitorListener : public ASTVisitorListener {
 public:
   DefaultASTVisitorListener(std::shared_ptr<Instrumenter> instrumenter)
-      : instrumenter_(instrumenter), context_(nullptr), rewriter_(nullptr) {}
+      : instrumenter_(instrumenter), context_(nullptr) {}
   ~DefaultASTVisitorListener() = default;
-
-  void SetRewriter(clang::Rewriter &rewriter) override {
-    rewriter_ = &rewriter;
-  }
 
   void Initialize(clang::ASTContext &context) override { context_ = &context; }
 
@@ -314,7 +309,6 @@ public:
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
-  clang::Rewriter *rewriter_;
   std::map<unsigned int, clang::tooling::Replacement> visited_repls_;
 
   void ProcessLoopBody(clang::Stmt *body,
@@ -357,10 +351,6 @@ public:
       : listener_(listener) {}
 
   virtual ~DefaultASTVisitor() = default;
-
-  void SetRewriter(clang::Rewriter &rewriter) override {
-    listener_->SetRewriter(rewriter);
-  }
 
   bool TraverseAST(clang::ASTContext &context) override {
     context_ = &context;

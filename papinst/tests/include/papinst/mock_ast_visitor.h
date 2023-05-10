@@ -10,7 +10,6 @@
 namespace papinst {
 class MockASTVisitorListener : public ASTVisitorListener {
 public:
-  MOCK_METHOD(void, SetRewriter, (clang::Rewriter & rewriter), (override));
   MOCK_METHOD(void, Initialize, (clang::ASTContext & context), (override));
   MOCK_METHOD(void, ProcessFnDef, (clang::FunctionDecl * decl), (override));
   MOCK_METHOD(void, ProcessIfStmt, (clang::IfStmt * stmt), (override));
