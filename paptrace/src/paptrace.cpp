@@ -168,11 +168,6 @@ nlohmann::json Param::Serialize() const {
 // } struct Param
 
 namespace NodeFactory {
-std::unique_ptr<Node> CreateCallNode(int id, const std::string &type,
-                                     const std::string &sig) {
-  return CreateCallNode(id, type, sig, {});
-}
-
 std::unique_ptr<Node>
 CreateCallNode(int id, const std::string &type, const std::string &sig,
                const std::initializer_list<Param> &params) {

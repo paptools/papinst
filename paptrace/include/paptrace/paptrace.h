@@ -33,8 +33,6 @@ public:
 };
 
 namespace NodeFactory {
-std::unique_ptr<Node> CreateCallNode(int id, const std::string &type,
-                                     const std::string &sig);
 std::unique_ptr<Node>
 CreateCallNode(int id, const std::string &type, const std::string &sig,
                const std::initializer_list<Param> &params);
