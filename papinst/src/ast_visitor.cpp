@@ -292,7 +292,7 @@ public:
     auto it = visited_repls_.find(replacement.getOffset());
     if (it != visited_repls_.end()) {
       auto prev_repl = it->second;
-      if (prev_repl != replacement) {
+      if (prev_repl.getReplacementText() != replacement.getReplacementText()) {
         llvm::errs() << "Warning: different replacements for same offset\n"
                      << "  prev (retained): " << prev_repl.getReplacementText()
                      << "\n"
