@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+
+import json
+import argparse
+from sympy.parsing.sympy_parser import parse_expr
+import pprint
+
+
+def load_traces(trace_file):
+    with open(trace_file, "r") as f:
+        data = json.load(f)
+    traces = {}
+    for trace in data["traces"]:
+        sig = trace["sig"]
+        if sig not in traces:
+            traces[sig] = [trace]
+        else:
+            traces[sig].append(trace)
+    return traces
+
+
+def walk_trace(trace, depth=0):
+    exec_path = []
+    for k, v in trace.items():
+        if k == "children":
+            continue
+        if k == "id":
+            exec_path.append(v)
+        print(f"{'  ' * depth}k: {k}, v: {v}")
+    for child in trace["children"]:
+        exec_path.extend(walk_trace(child, depth + 1))
+    return exec_path
+
+
+def unique(sequence):
+    seen = set()
+    return [x for x in sequence if not (tuple(x) in seen or seen.add(tuple(x)))]
+
+
+def condense_paths(paths):
+    condensed_paths = []
+    for path in paths:
+        condensed_path = []
+        prev_id = None
+        cnt = 1
+        for id in path:
+            if prev_id is None:
+                prev_id = id
+            else:
+                if id == prev_id:
+                    cnt += 1
+                else:
+                    condensed_path.append(tuple([prev_id, cnt]))
+                    prev_id = id
+                    cnt = 1
+        condensed_path.append(tuple([prev_id, cnt]))
+        condensed_paths.append(condensed_path)
+    return condensed_paths
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Command line analysis utility for paptrace."
+    )
+    parser.add_argument(
+        "trace_file", help="Path to paptrace generate JSON file."
+    )
+    args = parser.parse_args()
+
+    trace_dict = load_traces(args.trace_file)
+    paths_dict = {}
+    for sig, trace_list in trace_dict.items():
+        print("========================================")
+        print(f"Signature: {sig}")
+        print("----------------------------------------")
+        exec_paths = []
+        for trace in trace_list:
+            exec_paths.append(walk_trace(trace))
+            print()
+        unique_exec_paths = condense_paths(unique(exec_paths))
+        print("\nUnique execution paths:")
+        for i, path in enumerate(unique_exec_paths):
+            print(f"{i}: {path}")
+        print("----------------------------------------\n")
+        paths_dict[sig] = unique_exec_paths
+
+    print("========================================")
+    print(f"Path Summaries:")
+    print("----------------------------------------")
+    print("main")
+    for sig, paths in paths_dict.items():
+        print(f"+ {sig}")
+        for i, path in enumerate(paths):
+            print(f"  + {path}")
+    print("----------------------------------------\n")
+
+
+if __name__ == "__main__":
+    main()
