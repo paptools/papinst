@@ -86,7 +86,7 @@ def to_expr_list(obj):
         obj_type = obj["type"]
         if "Stmt" in obj_type:
             expr.append(to_s_id(obj["id"]))
-        elif obj_type == "CallExpr":
+        elif "Call" in obj_type:
             expr.append(to_f_id(obj["sig"]))
     return expr
 
@@ -105,12 +105,13 @@ def handle_request(traces, request):
     summary = to_summary(trace)
     print(f"Trace summary:\n{summary}")
 
+    print(f"\nTrace expr:")
     expr_str = to_expr(trace)
-    print(f"\nTrace expr:\n{expr_str}")
+    print(f"(orig.) {expr_str}")
 
     rhs = " + ".join(to_expr_list(trace))
     expr = parse_expr(rhs)
-    print(f"{to_f_id(trace['sig'])} = {expr}")
+    print(f"(simp.) {to_f_id(trace['sig'])} = {expr}")
 
     global g_exprs
     f_id = to_f_id(trace["sig"])
