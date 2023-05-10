@@ -136,29 +136,6 @@ def main():
     for request in requests:
         handle_request(traces, request)
 
-    # TODO: Remove the code in this function below this line; it was added for
-    # experimentation purposes.
-    print(f"\nSymbolic exprs:\n{g_exprs}")
-
-    # Define the function f2(n)
-    n = sympy.symbols("n")
-    f1, s2105888 = sympy.symbols("f1 s2105888")
-    f2 = sympy.Function("f2")(n)
-
-    # Define the known values of f2(n)
-    f2_0 = f1
-    f2_2 = 2 * f1 + s2105888
-    f2_4 = 4 * f1 + 3 * s2105888
-
-    # Create a system of equations for f2(n)
-    eq1 = sympy.Eq(f2.subs(n, 0), f2_0)
-    eq2 = sympy.Eq(f2.subs(n, 2), f2_2)
-    eq3 = sympy.Eq(f2.subs(n, 4), f2_4)
-
-    # Solve the system of equations for f2(n)
-    sol = sympy.solve([eq1, eq2, eq3], (f2))
-    print(sol)
-
 
 if __name__ == "__main__":
     main()
