@@ -41,25 +41,39 @@ std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
   return ss.str();
 }
 
-// IRD TODO: Move to inst impl.
-std::string GetTraceParamInst(int id, const std::string &param) {
-  static const std::string template_str = "\nPAPTRACE_TRACE_PARAM({}, {});";
-  return fmt::format(template_str, id, param);
-}
-
+// TODO: Move to the instrumenter.
 std::string GetTraceStmtInst(int id, const std::string &type) {
   static const std::string template_str = "PAPTRACE_STMT_NODE({}, \"{}\");";
   return fmt::format(template_str, id, type);
 }
 
+// TODO: Move to the instrumenter.
 std::string GetTraceCallerInst(int id, const std::string &sig) {
   static const std::string template_str = "PAPTRACE_CALLER_NODE({}, \"{}\")";
   return fmt::format(template_str, id, sig);
 }
 
+// TODO: Move to the instrumenter.
 std::string GetTraceCallerParamInst(const std::string &param) {
   static const std::string template_str = "PAPTRACE_CALLER_PARAM({})";
   return fmt::format(template_str, param);
+}
+
+// TODO: Move to the instrumenter.
+std::string GetTraceCalleeInst(int id, const std::string &sig,
+                               const std::vector<std::string> &params) {
+  static const std::string template_str =
+      "\nPAPTRACE_CALLEE_NODE({}, \"{}\", {});";
+  std::ostringstream oss;
+  bool first_param = true;
+  for (const auto &param : params) {
+    if (!first_param) {
+      oss << ", ";
+    }
+    oss << param;
+    first_param = false;
+  }
+  return fmt::format(template_str, id, sig, oss.str());
 }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
@@ -107,11 +121,12 @@ public:
 #endif // PAPINST_OUTPUT_CFG
 
     auto id = body->getID(*context_);
-    std::ostringstream oss;
-    oss << instrumenter_->GetTraceCalleeInst(id, sig);
+    std::vector<std::string> params;
     for (auto param : decl->parameters()) {
-      oss << GetTraceParamInst(id, param->getNameAsString());
+      params.push_back(param->getNameAsString());
     }
+    std::ostringstream oss;
+    oss << GetTraceCalleeInst(id, sig, params);
 
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
     if (auto err = Add(AppendSourceLoc(*context_, compound_stmt->getLBracLoc(),

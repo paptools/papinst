@@ -8,7 +8,8 @@
 #include <nlohmann/json.hpp>
 
 // C++ standard library headers.
-#include <iostream>
+#include <initializer_list>
+#include <iostream> // IRD TODO: Remove this when no longer needed for debugging.
 #include <memory>
 #include <string>
 
@@ -34,22 +35,23 @@ public:
 namespace NodeFactory {
 std::unique_ptr<Node> CreateCallNode(int id, const std::string &type,
                                      const std::string &sig);
+std::unique_ptr<Node>
+CreateCallNode(int id, const std::string &type, const std::string &sig,
+               const std::initializer_list<Param> &params);
 std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type);
 } // namespace NodeFactory
 } // namespace paptrace
 
 // Utility macros.
-#define TOKEN_PASTE(x, y) x##y
-#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
 #define NODE_NAME(id) TOKEN_PASTE2(paptrace_node_, id)
 #define NODE_DECL(id) auto NODE_NAME(id)
-#define TO_STRING(x) paptrace::utils::PrintToString(x)
+#define TO_PARAM(x) paptrace::Param(#x, TO_STRING(x)),
+#define TO_PARAMS(...) FOR_EACH(TO_PARAM, __VA_ARGS__)
 
 // Instrumentation macros.
-#define PAPTRACE_CALLEE_NODE(id, sig)                                          \
-  NODE_DECL(id) = paptrace::NodeFactory::CreateCallNode(id, "CalleeExpr", sig)
-#define PAPTRACE_TRACE_PARAM(id, x)                                            \
-  NODE_NAME(id)->AddParam(paptrace::Param(#x, TO_STRING(x)))
+#define PAPTRACE_CALLEE_NODE(id, sig, ...)                                     \
+  NODE_DECL(id) = paptrace::NodeFactory::CreateCallNode(                       \
+      id, "CalleeExpr", sig, {TO_PARAMS(__VA_ARGS__)})
 #define PAPTRACE_CALLER_NODE(id, sig)                                          \
   paptrace::NodeFactory::CreateCallNode(id, "CallerExpr", sig)
 #define PAPTRACE_CALLER_PARAM(x) ->AddParam(paptrace::Param(#x, TO_STRING(x)))
