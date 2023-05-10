@@ -49,12 +49,12 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type);
 #define TO_PARAMS(...) FOR_EACH(TO_PARAM, __VA_ARGS__)
 
 // Instrumentation macros.
+#define PAPTRACE_CALL_NODE(id, type, sig, ...)                                 \
+  paptrace::NodeFactory::CreateCallNode(id, type, sig, {TO_PARAMS(__VA_ARGS__)})
 #define PAPTRACE_CALLEE_NODE(id, sig, ...)                                     \
-  NODE_DECL(id) = paptrace::NodeFactory::CreateCallNode(                       \
-      id, "CalleeExpr", sig, {TO_PARAMS(__VA_ARGS__)})
-#define PAPTRACE_CALLER_NODE(id, sig)                                          \
-  paptrace::NodeFactory::CreateCallNode(id, "CallerExpr", sig)
-#define PAPTRACE_CALLER_PARAM(x) ->AddParam(paptrace::Param(#x, TO_STRING(x)))
+  NODE_DECL(id) = PAPTRACE_CALL_NODE(id, "CalleeExpr", sig, __VA_ARGS__)
+#define PAPTRACE_CALLER_NODE(id, sig, ...)                                     \
+  PAPTRACE_CALL_NODE(id, "CallerExpr", sig, __VA_ARGS__)
 #define PAPTRACE_STMT_NODE(id, x)                                              \
   NODE_DECL(id) = paptrace::NodeFactory::CreateStmtNode(id, x)
 #define PAPTRACE_IF_THEN_NODE(id) PAPTRACE_STMT_NODE(id, "IfThenStmt")

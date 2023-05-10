@@ -47,23 +47,7 @@ std::string GetTraceStmtInst(int id, const std::string &type) {
   return fmt::format(template_str, id, type);
 }
 
-// TODO: Move to the instrumenter.
-std::string GetTraceCallerInst(int id, const std::string &sig) {
-  static const std::string template_str = "PAPTRACE_CALLER_NODE({}, \"{}\")";
-  return fmt::format(template_str, id, sig);
-}
-
-// TODO: Move to the instrumenter.
-std::string GetTraceCallerParamInst(const std::string &param) {
-  static const std::string template_str = "PAPTRACE_CALLER_PARAM({})";
-  return fmt::format(template_str, param);
-}
-
-// TODO: Move to the instrumenter.
-std::string GetTraceCalleeInst(int id, const std::string &sig,
-                               const std::vector<std::string> &params) {
-  static const std::string template_str =
-      "\nPAPTRACE_CALLEE_NODE({}, \"{}\", {});";
+std::string ParamsToString(const std::vector<std::string> &params) {
   std::ostringstream oss;
   bool first_param = true;
   for (const auto &param : params) {
@@ -73,7 +57,23 @@ std::string GetTraceCalleeInst(int id, const std::string &sig,
     oss << param;
     first_param = false;
   }
-  return fmt::format(template_str, id, sig, oss.str());
+  return oss.str();
+}
+
+// TODO: Move to the instrumenter.
+std::string GetTraceCalleeInst(int id, const std::string &sig,
+                               const std::vector<std::string> &params) {
+  static const std::string template_str =
+      "\nPAPTRACE_CALLEE_NODE({}, \"{}\", {});";
+  return fmt::format(template_str, id, sig, ParamsToString(params));
+}
+
+// TODO: Move to the instrumenter.
+std::string GetTraceCallerInst(int id, const std::string &sig,
+                               const std::vector<std::string> &params) {
+  static const std::string template_str =
+      "\nPAPTRACE_CALLER_NODE({}, \"{}\", {}), ";
+  return fmt::format(template_str, id, sig, ParamsToString(params));
 }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
@@ -125,12 +125,11 @@ public:
     for (auto param : decl->parameters()) {
       params.push_back(param->getNameAsString());
     }
-    std::ostringstream oss;
-    oss << GetTraceCalleeInst(id, sig, params);
+    auto inst_text = GetTraceCalleeInst(id, sig, params);
 
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
     if (auto err = Add(AppendSourceLoc(*context_, compound_stmt->getLBracLoc(),
-                                       oss.str()))) {
+                                       inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
     }
   }
@@ -282,18 +281,19 @@ public:
 
     auto id = expr->getID(*context_);
     auto sig = GetFunctionSignature(callee);
-    std::ostringstream oss;
-    oss << "(" << GetTraceCallerInst(id, sig);
+    std::vector<std::string> params;
     for (auto arg : expr->arguments()) {
       if (!arg->IgnoreUnlessSpelledInSource()) {
         continue;
       }
+
       auto arg_str = clang::Lexer::getSourceText(
           clang::CharSourceRange::getTokenRange(arg->getSourceRange()),
           context_->getSourceManager(), context_->getLangOpts());
-      oss << "\n" << GetTraceCallerParamInst(std::string(arg_str));
+      params.push_back(std::string(arg_str));
     }
-    oss << ",";
+    std::ostringstream oss;
+    oss << "(" << GetTraceCallerInst(id, sig, params);
     auto inst_text = oss.str();
 
     auto replacement =
