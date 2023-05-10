@@ -61,8 +61,8 @@ SessionNode s_session_node;
 
 class CallNode : public Node {
 public:
-  CallNode(const std::string &type, const std::string &sig)
-      : type_(type), sig_(sig), params_(), children_() {
+  CallNode(int id, const std::string &type, const std::string &sig)
+      : id_(id), type_(type), sig_(sig), params_(), children_() {
     Register();
   }
 
@@ -78,10 +78,8 @@ public:
       j_children.push_back(child);
     }
     nlohmann::json obj = {
-        {"type", type_},
-        {"sig", sig_},
-        {"params", j_params},
-        {"children", j_children},
+        {"id", id_},          {"type", type_},          {"sig", sig_},
+        {"params", j_params}, {"children", j_children},
     };
     return obj;
   }
@@ -97,6 +95,7 @@ public:
   }
 
 private:
+  int id_;
   const std::string type_;
   const std::string sig_;
   std::list<Param> params_;
@@ -114,8 +113,8 @@ private:
 
 class StmtNode : public Node {
 public:
-  StmtNode(Node *parent, const std::string &type, int id)
-      : parent_(parent), type_(type), id_(id), children_() {
+  StmtNode(int id, const std::string &type)
+      : id_(id), type_(type), children_() {
     Register();
   }
 
@@ -127,8 +126,8 @@ public:
       j_children.push_back(child);
     }
     nlohmann::json obj = {
-        {"type", type_},
         {"id", id_},
+        {"type", type_},
         {"children", j_children},
     };
     return obj;
@@ -142,9 +141,8 @@ public:
   }
 
 private:
-  Node *parent_;
-  const std::string type_;
   int id_;
+  const std::string type_;
   std::list<nlohmann::json> children_;
 
   void Register() { s_node_stack.push(this); }
@@ -168,15 +166,14 @@ nlohmann::json Param::Serialize() const {
 }
 // } struct Param
 
-// class Node {
-std::unique_ptr<Node> Node::Create(const std::string &type,
-                                   const std::string &sig) {
-  return std::make_unique<CallNode>(type, sig);
+namespace NodeFactory {
+std::unique_ptr<Node> CreateCallNode(int id, const std::string &type,
+                                     const std::string &sig) {
+  return std::make_unique<CallNode>(id, type, sig);
 }
-// } class Node
 
-std::unique_ptr<Node> AddStmt(const std::string &type, int id) {
-  assert(s_node_stack.top());
-  return std::make_unique<StmtNode>(s_node_stack.top(), type, id);
+std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type) {
+  return std::make_unique<StmtNode>(id, type);
 }
+} // namespace NodeFactory
 } // namespace paptrace

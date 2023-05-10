@@ -48,8 +48,8 @@ std::string GetTraceParamInst(int id, const std::string &param) {
 }
 
 std::string GetTraceStmtInst(int id, const std::string &type) {
-  static const std::string template_str = "PAPTRACE_TRACE_STMT(\"{}\", {});";
-  return fmt::format(template_str, type, id);
+  static const std::string template_str = "PAPTRACE_TRACE_STMT({}, \"{}\");";
+  return fmt::format(template_str, id, type);
 }
 
 std::string GetTraceCallerInst(int id, const std::string &sig) {
