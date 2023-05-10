@@ -2,8 +2,6 @@
 
 import json
 import argparse
-import sympy
-from sympy import O, oo
 from sympy.parsing.sympy_parser import parse_expr
 
 
