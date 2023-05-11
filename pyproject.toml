@@ -7,4 +7,3 @@ include = '''
   | paptrace/tools
 )
 '''
-verbose = true
