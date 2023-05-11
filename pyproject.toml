@@ -1,4 +1,10 @@
 [tool.black]
 line-length = 80
 preview = true
-include = 'paptrace/tools'
+include = '''
+(
+  \.pyi?$
+  | paptrace/tools
+)
+'''
+verbose = true
