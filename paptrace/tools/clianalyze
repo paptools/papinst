@@ -186,18 +186,50 @@ def extract_call_nodes(trace, id_map, call_nodes):
         trace["ctx"] = ctx_id
 
 
+def rebuild_trace(call_nodes, trace):
+    id = trace["id"]
+    children = []
+    if "ctx" in trace:
+        ctx = call_nodes[id]["ctxs"][trace["ctx"]]
+        children = call_nodes[id]["paths"][ctx["paths"]]
+    else:
+        children = trace["children"]
+    rebuilt_children = [rebuild_trace(call_nodes, child) for child in children]
+    rebuilt_node = {"id": trace["id"], "children": rebuilt_children}
+    return rebuilt_node
+
+
+def to_rebuilt_style(id_map, trace):
+    children = []
+    if "children" in trace:
+        children = [
+            to_rebuilt_style(id_map, child) for child in trace["children"]
+        ]
+    old_id = trace["id"]
+    new_id = id_map[old_id] if old_id in id_map else old_id
+    return {"id": new_id, "children": children}
+
+
 def path_analysis(traces):
     id_map = {}
     call_nodes = {}
-    for trace in traces:
-        extract_call_nodes(trace, id_map, call_nodes)
+    orig_traces = copy.deepcopy(traces)
+    [extract_call_nodes(trace, id_map, call_nodes) for trace in traces]
+
     print("\n====================")
     print("Call nodes:")
+    print("--------------------")
     pprint.pprint(call_nodes)
 
     print("\n====================")
-    print("Traces:")
+    print("Minimized traces:")
+    print("--------------------")
     pprint.pprint(traces)
+
+    rebuilt_traces = [rebuild_trace(call_nodes, trace) for trace in traces]
+    expected_traces = [to_rebuilt_style(id_map, trace) for trace in orig_traces]
+    print("\n====================")
+    print(f"Rebuilt traces match expected: {rebuilt_traces == expected_traces}")
 
 
 def main():
