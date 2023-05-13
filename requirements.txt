@@ -1,3 +1,4 @@
 black>=23.1.0
 pre-commit>=3.2.0
 pytest>=7.2.1
+sympy>=1.11.1
