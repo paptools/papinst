@@ -7,12 +7,6 @@ import pprint
 from sympy.parsing.sympy_parser import parse_expr
 
 
-# Globals used by trace analysis.
-g_f_ids = {}
-g_s_ids = {}
-g_exprs = {}
-
-
 def load_traces(trace_file):
     with open(trace_file, "r") as f:
         data = json.load(f)
@@ -20,6 +14,8 @@ def load_traces(trace_file):
 
 
 def context_analysis(traces):
+    """Summarize the contexts encountered for each call node."""
+
     def populate_sig_map(tree, sig_map):
         if isinstance(tree, list):
             for item in tree:
@@ -79,12 +75,16 @@ def context_analysis(traces):
 
 
 def trace_analysis(traces):
+    """Print a visual description and expression for each trace."""
+    g_f_ids = {}
+    g_s_ids = {}
+    g_exprs = {}
+
     def analyze_trace(trace):
         console_sep = "-" * 80
         print(f"\n{console_sep}")
 
         def to_s_id(id):
-            global g_s_ids
             if id not in g_s_ids:
                 g_s_ids[id] = f"s{id}"
             return g_s_ids[id]
@@ -109,7 +109,6 @@ def trace_analysis(traces):
         print(f"Trace summary:\n{summary}")
 
         def to_f_id(sig):
-            global g_f_ids
             if sig not in g_f_ids:
                 g_f_ids[sig] = f"f{len(g_f_ids)}"
             return g_f_ids[sig]
@@ -139,7 +138,6 @@ def trace_analysis(traces):
         expr = parse_expr(rhs)
         print(f"(simp.) {to_f_id(trace['sig'])} = {expr}")
 
-        global g_exprs
         f_id = to_f_id(trace["sig"])
         if f_id not in g_exprs:
             g_exprs[f_id] = {}
@@ -150,13 +148,65 @@ def trace_analysis(traces):
         analyze_trace(trace)
 
 
+def extract_call_nodes(trace, id_map, call_nodes):
+    # DFS for call nodes.
+    if has_children := "children" in trace:
+        for child in trace["children"]:
+            extract_call_nodes(child, id_map, call_nodes)
+    if "Call" in trace["type"]:
+
+        def get_key_for_value(dict_, value):
+            for k, v in dict_.items():
+                if v == value:
+                    return k
+            return None
+
+        id = id_map.setdefault(trace["id"], f"f_{len(id_map)}")
+        trace["id"] = id
+        call_node = call_nodes.setdefault(
+            id, {"sig": trace["sig"], "params": {}, "paths": {}, "ctxs": {}}
+        )
+        param_id = get_key_for_value(call_node["params"], trace["params"])
+        if param_id is None:
+            param_id = len(call_node["params"])
+            call_node["params"][param_id] = trace["params"]
+        path_id = get_key_for_value(call_node["paths"], trace["children"])
+        if path_id is None:
+            path_id = len(call_node["paths"])
+            call_node["paths"][path_id] = trace["children"]
+        ctx = {"params": param_id, "paths": path_id}
+        ctx_id = get_key_for_value(call_node["ctxs"], ctx)
+        if ctx_id is None:
+            ctx_id = len(call_node["ctxs"])
+            call_node["ctxs"][ctx_id] = ctx
+
+        del trace["sig"]
+        del trace["params"]
+        del trace["children"]
+        trace["ctx"] = ctx_id
+
+
+def path_analysis(traces):
+    id_map = {}
+    call_nodes = {}
+    for trace in traces:
+        extract_call_nodes(trace, id_map, call_nodes)
+    print("\n====================")
+    print("Call nodes:")
+    pprint.pprint(call_nodes)
+
+    print("\n====================")
+    print("Traces:")
+    pprint.pprint(traces)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Command line analysis utility for paptrace."
     )
     parser.add_argument(
         "analysis",
-        choices=["context", "trace"],
+        choices=["context", "trace", "path"],
         help="Type of analysis to perform",
     )
     parser.add_argument(
@@ -169,6 +219,8 @@ def main():
         context_analysis(traces)
     elif args.analysis == "trace":
         trace_analysis(traces)
+    elif args.analysis == "path":
+        path_analysis(traces)
 
 
 if __name__ == "__main__":
