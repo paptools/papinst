@@ -78,75 +78,74 @@ def context_analysis(traces):
     print(f"Number of top-level call map entries: {len(call_map)}")
 
 
-def analyze_trace(trace):
-    console_sep = "-" * 80
-    print(f"\n{console_sep}")
-
-    def to_s_id(id):
-        global g_s_ids
-        if id not in g_s_ids:
-            g_s_ids[id] = f"s{id}"
-        return g_s_ids[id]
-
-    def to_summary(obj, symb="", indent=""):
-        def to_params_str(params):
-            return ", ".join([f"{x['name']}={x['value']}" for x in params])
-
-        summary = ""
-        obj_type = obj["type"]
-        if obj_type == "CalleeExpr" or obj_type == "CallerExpr":
-            params = f"{{{to_params_str(obj['params'])}}}"
-            summary += f"{indent}{symb}{obj['sig']} @ {params}"
-        elif "Stmt" in obj_type:
-            summary += f"{indent}{symb}{obj_type} ({to_s_id(obj['id'])})"
-        if "children" in obj:
-            for child in obj["children"]:
-                summary += f"\n{to_summary(child, '+ ', indent + '  ')}"
-        return summary
-
-    summary = to_summary(trace)
-    print(f"Trace summary:\n{summary}")
-
-    def to_f_id(sig):
-        global g_f_ids
-        if sig not in g_f_ids:
-            g_f_ids[sig] = f"f{len(g_f_ids)}"
-        return g_f_ids[sig]
-
-    def to_expr_list(obj):
-        expr = []
-        if "children" in obj and len(obj["children"]) > 0:
-            for child in obj["children"]:
-                expr.extend(to_expr_list(child))
-        else:
-            obj_type = obj["type"]
-            if "Stmt" in obj_type:
-                expr.append(to_s_id(obj["id"]))
-            elif "Call" in obj_type:
-                expr.append(to_f_id(obj["sig"]))
-        return expr
-
-    def to_expr(trace):
-        rhs = " + ".join(to_expr_list(trace))
-        return f"{to_f_id(trace['sig'])} = {rhs}"
-
-    print(f"\nTrace expr:")
-    expr_str = to_expr(trace)
-    print(f"(orig.) {expr_str}")
-
-    rhs = " + ".join(to_expr_list(trace))
-    expr = parse_expr(rhs)
-    print(f"(simp.) {to_f_id(trace['sig'])} = {expr}")
-
-    global g_exprs
-    f_id = to_f_id(trace["sig"])
-    if f_id not in g_exprs:
-        g_exprs[f_id] = {}
-    n = int(trace["params"][0]["value"])
-    g_exprs[f_id][n] = expr
-
-
 def trace_analysis(traces):
+    def analyze_trace(trace):
+        console_sep = "-" * 80
+        print(f"\n{console_sep}")
+
+        def to_s_id(id):
+            global g_s_ids
+            if id not in g_s_ids:
+                g_s_ids[id] = f"s{id}"
+            return g_s_ids[id]
+
+        def to_summary(obj, symb="", indent=""):
+            def to_params_str(params):
+                return ", ".join([f"{x['name']}={x['value']}" for x in params])
+
+            summary = ""
+            obj_type = obj["type"]
+            if obj_type == "CalleeExpr" or obj_type == "CallerExpr":
+                params = f"{{{to_params_str(obj['params'])}}}"
+                summary += f"{indent}{symb}{obj['sig']} @ {params}"
+            elif "Stmt" in obj_type:
+                summary += f"{indent}{symb}{obj_type} ({to_s_id(obj['id'])})"
+            if "children" in obj:
+                for child in obj["children"]:
+                    summary += f"\n{to_summary(child, '+ ', indent + '  ')}"
+            return summary
+
+        summary = to_summary(trace)
+        print(f"Trace summary:\n{summary}")
+
+        def to_f_id(sig):
+            global g_f_ids
+            if sig not in g_f_ids:
+                g_f_ids[sig] = f"f{len(g_f_ids)}"
+            return g_f_ids[sig]
+
+        def to_expr_list(obj):
+            expr = []
+            if "children" in obj and len(obj["children"]) > 0:
+                for child in obj["children"]:
+                    expr.extend(to_expr_list(child))
+            else:
+                obj_type = obj["type"]
+                if "Stmt" in obj_type:
+                    expr.append(to_s_id(obj["id"]))
+                elif "Call" in obj_type:
+                    expr.append(to_f_id(obj["sig"]))
+            return expr
+
+        def to_expr(trace):
+            rhs = " + ".join(to_expr_list(trace))
+            return f"{to_f_id(trace['sig'])} = {rhs}"
+
+        print(f"\nTrace expr:")
+        expr_str = to_expr(trace)
+        print(f"(orig.) {expr_str}")
+
+        rhs = " + ".join(to_expr_list(trace))
+        expr = parse_expr(rhs)
+        print(f"(simp.) {to_f_id(trace['sig'])} = {expr}")
+
+        global g_exprs
+        f_id = to_f_id(trace["sig"])
+        if f_id not in g_exprs:
+            g_exprs[f_id] = {}
+        n = int(trace["params"][0]["value"])
+        g_exprs[f_id][n] = expr
+
     for trace in traces:
         analyze_trace(trace)
 
