@@ -38,16 +38,7 @@ def extract_call_nodes(tree, sig_map, call_nodes):
             tree.pop("children")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Command line analysis utility for paptrace."
-    )
-    parser.add_argument(
-        "trace_file", help="Path to paptrace generate JSON file."
-    )
-    args = parser.parse_args()
-    traces = load_traces(args.trace_file)
-
+def context_analysis(traces):
     sig_map = {}
     populate_sig_map(traces, sig_map)
     # pprint.pprint(sig_map)
@@ -80,6 +71,23 @@ def main():
             raise Exception(f"Duplicate call node ctx: {ctx}!")
     pprint.pprint(call_map)
     print(f"Number of top-level call map entries: {len(call_map)}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Command line analysis utility for paptrace."
+    )
+    parser.add_argument(
+        "analysis", choices=["context"], help="Type of analysis to perform"
+    )
+    parser.add_argument(
+        "trace_file", help="Path to paptrace generate JSON file."
+    )
+    args = parser.parse_args()
+
+    traces = load_traces(args.trace_file)
+    if args.analysis == "context":
+        context_analysis(traces)
 
 
 if __name__ == "__main__":
