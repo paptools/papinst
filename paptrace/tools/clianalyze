@@ -148,72 +148,48 @@ def trace_analysis(traces):
         analyze_trace(trace)
 
 
-def extract_call_nodes(trace, id_map, call_nodes):
-    # DFS for call nodes.
-    if has_children := "children" in trace:
-        for child in trace["children"]:
-            extract_call_nodes(child, id_map, call_nodes)
-    if "Call" in trace["type"]:
-
-        def get_key_for_value(dict_, value):
-            for k, v in dict_.items():
-                if v == value:
-                    return k
-            return None
-
-        id = id_map.setdefault(trace["id"], f"f_{len(id_map)}")
-        trace["id"] = id
-        call_node = call_nodes.setdefault(
-            id, {"sig": trace["sig"], "params": {}, "paths": {}, "ctxs": {}}
-        )
-        param_id = get_key_for_value(call_node["params"], trace["params"])
-        if param_id is None:
-            param_id = len(call_node["params"])
-            call_node["params"][param_id] = trace["params"]
-        path_id = get_key_for_value(call_node["paths"], trace["children"])
-        if path_id is None:
-            path_id = len(call_node["paths"])
-            call_node["paths"][path_id] = trace["children"]
-        ctx = {"params": param_id, "paths": path_id}
-        ctx_id = get_key_for_value(call_node["ctxs"], ctx)
-        if ctx_id is None:
-            ctx_id = len(call_node["ctxs"])
-            call_node["ctxs"][ctx_id] = ctx
-
-        del trace["sig"]
-        del trace["params"]
-        del trace["children"]
-        trace["ctx"] = ctx_id
-
-
-def rebuild_trace(call_nodes, trace):
-    id = trace["id"]
-    children = []
-    if "ctx" in trace:
-        ctx = call_nodes[id]["ctxs"][trace["ctx"]]
-        children = call_nodes[id]["paths"][ctx["paths"]]
-    else:
-        children = trace["children"]
-    rebuilt_children = [rebuild_trace(call_nodes, child) for child in children]
-    rebuilt_node = {"id": trace["id"], "children": rebuilt_children}
-    return rebuilt_node
-
-
-def to_rebuilt_style(id_map, trace):
-    children = []
-    if "children" in trace:
-        children = [
-            to_rebuilt_style(id_map, child) for child in trace["children"]
-        ]
-    old_id = trace["id"]
-    new_id = id_map[old_id] if old_id in id_map else old_id
-    return {"id": new_id, "children": children}
-
-
 def path_analysis(traces):
     id_map = {}
     call_nodes = {}
     orig_traces = copy.deepcopy(traces)
+
+    def extract_call_nodes(trace, id_map, call_nodes):
+        # DFS for call nodes.
+        if has_children := "children" in trace:
+            for child in trace["children"]:
+                extract_call_nodes(child, id_map, call_nodes)
+        if "Call" in trace["type"]:
+
+            def get_key_for_value(dict_, value):
+                for k, v in dict_.items():
+                    if v == value:
+                        return k
+                return None
+
+            id = id_map.setdefault(trace["id"], f"f_{len(id_map)}")
+            trace["id"] = id
+            call_node = call_nodes.setdefault(
+                id, {"sig": trace["sig"], "params": {}, "paths": {}, "ctxs": {}}
+            )
+            param_id = get_key_for_value(call_node["params"], trace["params"])
+            if param_id is None:
+                param_id = len(call_node["params"])
+                call_node["params"][param_id] = trace["params"]
+            path_id = get_key_for_value(call_node["paths"], trace["children"])
+            if path_id is None:
+                path_id = len(call_node["paths"])
+                call_node["paths"][path_id] = trace["children"]
+            ctx = {"params": param_id, "paths": path_id}
+            ctx_id = get_key_for_value(call_node["ctxs"], ctx)
+            if ctx_id is None:
+                ctx_id = len(call_node["ctxs"])
+                call_node["ctxs"][ctx_id] = ctx
+
+            del trace["sig"]
+            del trace["params"]
+            del trace["children"]
+            trace["ctx"] = ctx_id
+
     [extract_call_nodes(trace, id_map, call_nodes) for trace in traces]
 
     print("\n====================")
@@ -226,8 +202,34 @@ def path_analysis(traces):
     print("--------------------")
     pprint.pprint(traces)
 
+    def rebuild_trace(call_nodes, trace):
+        id = trace["id"]
+        children = []
+        if "ctx" in trace:
+            ctx = call_nodes[id]["ctxs"][trace["ctx"]]
+            children = call_nodes[id]["paths"][ctx["paths"]]
+        else:
+            children = trace["children"]
+        rebuilt_children = [
+            rebuild_trace(call_nodes, child) for child in children
+        ]
+        rebuilt_node = {"id": trace["id"], "children": rebuilt_children}
+        return rebuilt_node
+
     rebuilt_traces = [rebuild_trace(call_nodes, trace) for trace in traces]
+
+    def to_rebuilt_style(id_map, trace):
+        children = []
+        if "children" in trace:
+            children = [
+                to_rebuilt_style(id_map, child) for child in trace["children"]
+            ]
+        old_id = trace["id"]
+        new_id = id_map[old_id] if old_id in id_map else old_id
+        return {"id": new_id, "children": children}
+
     expected_traces = [to_rebuilt_style(id_map, trace) for trace in orig_traces]
+
     print("\n====================")
     print(f"Rebuilt traces match expected: {rebuilt_traces == expected_traces}")
 
