@@ -253,15 +253,18 @@ def dot_analysis(traces):
                 edges.add((prev_child, child_id))
                 prev_child = child_id
 
-    nodes = set()
-    edges = set()
-    for trace in traces:
-        to_graph_features(trace, nodes, edges)
     graph = graphviz.Digraph(comment="DOT Analysis")
-    for node in nodes:
-        graph.node(str(node[0]), str(node[1]))
-    for edge in edges:
-        graph.edge(str(edge[0]), str(edge[1]))
+    cnt = 0
+    for trace in traces:
+        nodes = set()
+        edges = set()
+        to_graph_features(trace, nodes, edges)
+        with graph.subgraph(name=f"cluster_{cnt}") as subg:
+            for node in nodes:
+                subg.node(str(node[0]), str(node[1]))
+            for edge in edges:
+                subg.edge(str(edge[0]), str(edge[1]))
+        cnt += 1
     with tempfile.TemporaryDirectory() as tmpdirname:
         graph_path = pathlib.Path(tmpdirname) / "graph.gv"
         print(f"Writing graph to: {graph_path}")
