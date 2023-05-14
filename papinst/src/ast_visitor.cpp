@@ -394,8 +394,6 @@ public:
   bool VisitStmt(clang::Stmt *stmt) override {
     assert(context_);
 
-    // std::cout << "VisitStmt:" << std::endl;
-    // stmt->dumpColor();
     if (context_->getSourceManager().isInMainFile(stmt->getBeginLoc())) {
       if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
         listener_->ProcessIfStmt(if_stmt);
@@ -413,6 +411,9 @@ public:
         listener_->ProcessCallExpr(call_expr);
       } else if (auto throw_expr = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
         listener_->ProcessCXXThrowExpr(throw_expr);
+      } else {
+        std::cout << "Unhandled stmt:" << std::endl;
+        stmt->dumpColor();
       }
     }
     return true;
