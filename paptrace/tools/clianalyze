@@ -238,22 +238,21 @@ def path_analysis(traces):
     print(f"Rebuilt traces match expected: {rebuilt_traces == expected_traces}")
 
 
-def to_graph_features(trace, nodes, edges):
-    id_ = trace["id"]
-    if "sig" in trace:
-        nodes.add((id_, trace["sig"]))
-    else:
-        nodes.add((id_, trace["type"]))
-    if "children" in trace:
-        prev_child = id_
-        for child in trace["children"]:
-            to_graph_features(child, nodes, edges)
-            child_id = child["id"]
-            edges.add((prev_child, child_id))
-            prev_child = child_id
-
-
 def dot_analysis(traces):
+    def to_graph_features(trace, nodes, edges):
+        id_ = trace["id"]
+        if "sig" in trace:
+            nodes.add((id_, trace["sig"]))
+        else:
+            nodes.add((id_, trace["type"]))
+        if "children" in trace:
+            prev_child = id_
+            for child in trace["children"]:
+                to_graph_features(child, nodes, edges)
+                child_id = child["id"]
+                edges.add((prev_child, child_id))
+                prev_child = child_id
+
     nodes = set()
     edges = set()
     for trace in traces:
