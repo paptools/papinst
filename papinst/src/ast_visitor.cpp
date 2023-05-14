@@ -320,6 +320,17 @@ public:
     }
   }
 
+  void ProcessCXXThrowExpr(clang::CXXThrowExpr *expr) override {
+    assert(context_);
+
+    auto id = expr->getID(*context_);
+    auto inst_text = GetTraceStmtInst(id, "CXXThrowExpr");
+    if (auto err =
+            Add(PrependSourceLoc(*context_, expr->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err << "\n";
+    }
+  }
+
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
@@ -400,6 +411,8 @@ public:
         listener_->ProcessReturnStmt(return_stmt);
       } else if (auto call_expr = clang::dyn_cast<clang::CallExpr>(stmt)) {
         listener_->ProcessCallExpr(call_expr);
+      } else if (auto throw_expr = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
+        listener_->ProcessCXXThrowExpr(throw_expr);
       }
     }
     return true;

@@ -2173,7 +2173,13 @@
     {
       "children": [
         {
-          "children": [],
+          "children": [
+            {
+              "children": [],
+              "id": 2106075,
+              "type": "CXXThrowExpr"
+            }
+          ],
           "id": 2106081,
           "type": "IfThenStmt"
         }
@@ -5379,7 +5385,13 @@
     {
       "children": [
         {
-          "children": [],
+          "children": [
+            {
+              "children": [],
+              "id": 2106290,
+              "type": "CXXThrowExpr"
+            }
+          ],
           "id": 2106296,
           "type": "IfThenStmt"
         }
@@ -5658,7 +5670,13 @@
     {
       "children": [
         {
-          "children": [],
+          "children": [
+            {
+              "children": [],
+              "id": 2109821,
+              "type": "CXXThrowExpr"
+            }
+          ],
           "id": 2109827,
           "type": "IfThenStmt"
         }
@@ -5820,7 +5838,13 @@
     {
       "children": [
         {
-          "children": [],
+          "children": [
+            {
+              "children": [],
+              "id": 2110149,
+              "type": "CXXThrowExpr"
+            }
+          ],
           "id": 2110155,
           "type": "IfThenStmt"
         }

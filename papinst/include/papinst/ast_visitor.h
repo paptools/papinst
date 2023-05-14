@@ -35,6 +35,7 @@ public:
   // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
   virtual void ProcessReturnStmt(clang::ReturnStmt *stmt) = 0;
   virtual void ProcessCallExpr(clang::CallExpr *expr) = 0;
+  virtual void ProcessCXXThrowExpr(clang::CXXThrowExpr *expr) = 0;
 };
 
 clang::tooling::Replacements &GetReplacements();
