@@ -285,7 +285,7 @@ def main():
         ),
     )
     parser.add_argument(
-        "trace_file", help="Path to paptrace generate JSON file."
+        "trace_file", help="Path to paptrace generated JSON file."
     )
     args = parser.parse_args()
 
