@@ -29,13 +29,17 @@ public:
   virtual void ProcessWhileStmt(clang::WhileStmt *stmt) = 0;
   virtual void ProcessForStmt(clang::ForStmt *stmt) = 0;
   virtual void ProcessDoStmt(clang::DoStmt *stmt) = 0;
-  // virtual void ProcessGotoStmt(clang::SwitchStmt *stmt) = 0;
-  // virtual void ProcessCXXTryStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessCXXForRangeStmt(clang::SwitchStmt *stmt) = 0;
-  // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
+  // virtual void ProcessBreakStmt(clang::BreakStmt *stmt) = 0;
+  // virtual void ProcessContinueStmt(clang::ContinueStmt *stmt) = 0;
   virtual void ProcessReturnStmt(clang::ReturnStmt *stmt) = 0;
   virtual void ProcessCallExpr(clang::CallExpr *expr) = 0;
   virtual void ProcessCXXThrowExpr(clang::CXXThrowExpr *expr) = 0;
+  // virtual void ProcessCXXTryStmt(clang::SwitchStmt *stmt) = 0;
+  // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
+  // virtual void ProcessGotoStmt(clang::SwitchStmt *stmt) = 0;
+  // virtual void ProcessLabelDecl(clang::LabelDecl *decl) = 0;
+  // virtual void ProcessBinaryOperator(clang::BinaryOperator *op) = 0;
 };
 
 clang::tooling::Replacements &GetReplacements();
