@@ -36,7 +36,8 @@ namespace NodeFactory {
 std::unique_ptr<Node>
 CreateCallNode(int id, const std::string &type, const std::string &sig,
                const std::initializer_list<Param> &params);
-std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type);
+std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
+                                     const std::string &desc);
 } // namespace NodeFactory
 } // namespace paptrace
 
@@ -53,9 +54,11 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type);
   NODE_DECL(id) = PAPTRACE_CALL_NODE(id, "CalleeExpr", sig, __VA_ARGS__)
 #define PAPTRACE_CALLER_NODE(id, sig, ...)                                     \
   PAPTRACE_CALL_NODE(id, "CallerExpr", sig, __VA_ARGS__)
-#define PAPTRACE_STMT_NODE(id, x)                                              \
-  NODE_DECL(id) = paptrace::NodeFactory::CreateStmtNode(id, x)
-#define PAPTRACE_IF_THEN_NODE(id) PAPTRACE_STMT_NODE(id, "IfThenStmt")
-#define PAPTRACE_IF_ELSE_NODE(id) PAPTRACE_STMT_NODE(id, "IfElseStmt")
+#define PAPTRACE_STMT_NODE(id, type, desc)                                     \
+  NODE_DECL(id) = paptrace::NodeFactory::CreateStmtNode(id, type, desc)
+#define PAPTRACE_IF_THEN_NODE(id, desc)                                        \
+  PAPTRACE_STMT_NODE(id, "IfThenStmt", desc)
+#define PAPTRACE_IF_ELSE_NODE(id, desc)                                        \
+  PAPTRACE_STMT_NODE(id, "IfElseStmt", desc)
 
 #endif // PAPTRACE_PAPTRACE_H

@@ -19,14 +19,18 @@ public:
     return fmt::format(template_str, id, sig);
   }
 
-  std::string GetTraceIfThenStmtInst(int stmt_id) override {
-    static const std::string template_str = "PAPTRACE_IF_THEN_NODE({});";
-    return fmt::format(template_str, stmt_id);
+  std::string GetTraceIfThenStmtInst(int stmt_id,
+                                     const std::string &desc) override {
+    static const std::string template_str =
+        "PAPTRACE_IF_THEN_NODE({}, \"{}\");";
+    return fmt::format(template_str, stmt_id, desc);
   }
 
-  std::string GetTraceIfElseStmtInst(int stmt_id) override {
-    static const std::string template_str = "PAPTRACE_IF_ELSE_NODE({});";
-    return fmt::format(template_str, stmt_id);
+  std::string GetTraceIfElseStmtInst(int stmt_id,
+                                     const std::string &desc) override {
+    static const std::string template_str =
+        "PAPTRACE_IF_ELSE_NODE({}, \"{}\");";
+    return fmt::format(template_str, stmt_id, desc);
   }
 
   std::string GetTraceIncludeInst(void) override {

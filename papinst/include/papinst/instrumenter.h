@@ -11,8 +11,10 @@ class Instrumenter {
 public:
   virtual ~Instrumenter(void) = default;
   virtual std::string GetTraceCalleeInst(int id, const std::string &sig) = 0;
-  virtual std::string GetTraceIfThenStmtInst(int stmt_id) = 0;
-  virtual std::string GetTraceIfElseStmtInst(int stmt_id) = 0;
+  virtual std::string GetTraceIfThenStmtInst(int stmt_id,
+                                             const std::string &desc) = 0;
+  virtual std::string GetTraceIfElseStmtInst(int stmt_id,
+                                             const std::string &desc) = 0;
   virtual std::string GetTraceIncludeInst(void) = 0;
 };
 

@@ -41,10 +41,54 @@ std::string GetFunctionSignature(const clang::FunctionDecl *fn) {
   return ss.str();
 }
 
+std::string ToEscapedString(const std::string &s) {
+  std::string escaped;
+  for (auto c : s) {
+    switch (c) {
+    case '\n':
+      escaped += "\\n";
+      break;
+    case '\r':
+      escaped += "\\r";
+      break;
+    case '\t':
+      escaped += "\\t";
+      break;
+    case '\v':
+      escaped += "\\v";
+      break;
+    case '\b':
+      escaped += "\\b";
+      break;
+    case '\f':
+      escaped += "\\f";
+      break;
+    case '\a':
+      escaped += "\\a";
+      break;
+    case '\\':
+      escaped += "\\\\";
+      break;
+    case '\"':
+      escaped += "\\\"";
+      break;
+    case '\'':
+      escaped += "\\\'";
+      break;
+    default:
+      escaped += c;
+      break;
+    }
+  }
+  return escaped;
+}
+
 // TODO: Move to the instrumenter.
-std::string GetTraceStmtInst(int id, const std::string &type) {
-  static const std::string template_str = "PAPTRACE_STMT_NODE({}, \"{}\");";
-  return fmt::format(template_str, id, type);
+std::string GetTraceStmtInst(int id, const std::string &type,
+                             const std::string &desc) {
+  static const std::string template_str =
+      "PAPTRACE_STMT_NODE({}, \"{}\", \"{}\");";
+  return fmt::format(template_str, id, type, desc);
 }
 
 std::string ParamsToString(const std::vector<std::string> &params) {
@@ -139,7 +183,13 @@ public:
 
     if (auto then_stmt = stmt->getThen()) {
       auto then_id = then_stmt->getID(*context_);
-      auto inst_text = instrumenter_->GetTraceIfThenStmtInst(then_id);
+      auto desc = ToEscapedString(
+          clang::Lexer::getSourceText(clang::CharSourceRange::getTokenRange(
+                                          stmt->getCond()->getSourceRange()),
+                                      context_->getSourceManager(),
+                                      context_->getLangOpts())
+              .str());
+      auto inst_text = instrumenter_->GetTraceIfThenStmtInst(then_id, desc);
       if (clang::isa<clang::CompoundStmt>(then_stmt)) {
         if (auto err = Add(AppendSourceLoc(*context_, then_stmt->getBeginLoc(),
                                            inst_text))) {
@@ -172,7 +222,13 @@ public:
     auto else_stmt = stmt->getElse();
     if (else_stmt && !clang::isa<clang::IfStmt>(else_stmt)) {
       auto else_id = else_stmt->getID(*context_);
-      auto inst_text = instrumenter_->GetTraceIfElseStmtInst(else_id);
+      auto desc = ToEscapedString(
+          clang::Lexer::getSourceText(clang::CharSourceRange::getTokenRange(
+                                          stmt->getCond()->getSourceRange()),
+                                      context_->getSourceManager(),
+                                      context_->getLangOpts())
+              .str());
+      auto inst_text = instrumenter_->GetTraceIfElseStmtInst(else_id, desc);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
         if (auto err = Add(AppendSourceLoc(*context_, else_stmt->getBeginLoc(),
                                            inst_text))) {
@@ -206,7 +262,15 @@ public:
       do {
         auto sub_stmt = case_stmt->getSubStmt();
         auto id = sub_stmt->getID(*context_);
-        auto inst_text = GetTraceStmtInst(id, "CaseStmt");
+
+        auto desc = ToEscapedString(
+            clang::Lexer::getSourceText(clang::CharSourceRange::getTokenRange(
+                                            sub_stmt->getSourceRange()),
+                                        context_->getSourceManager(),
+                                        context_->getLangOpts())
+                .str());
+
+        auto inst_text = GetTraceStmtInst(id, "CaseStmt", desc);
         if (auto compound_stmt =
                 clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
           if (auto err = Add(AppendSourceLoc(
@@ -261,7 +325,12 @@ public:
     assert(context_);
 
     auto id = stmt->getID(*context_);
-    auto inst_text = GetTraceStmtInst(id, "ReturnStmt");
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(stmt->getSourceRange()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    auto inst_text = GetTraceStmtInst(id, "ReturnStmt", desc);
     if (auto err =
             Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
@@ -324,7 +393,12 @@ public:
     assert(context_);
 
     auto id = expr->getID(*context_);
-    auto inst_text = GetTraceStmtInst(id, "CXXThrowExpr");
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(expr->getSourceRange()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    auto inst_text = GetTraceStmtInst(id, "CXXThrowExpr", desc);
     if (auto err =
             Add(PrependSourceLoc(*context_, expr->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
@@ -341,7 +415,12 @@ private:
                        const clang::SourceLocation &end_loc,
                        const std::string &type) {
     auto id = body->getID(*context_);
-    auto inst_text = GetTraceStmtInst(id, type);
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(body->getSourceRange()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    auto inst_text = GetTraceStmtInst(id, type, desc);
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {

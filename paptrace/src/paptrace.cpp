@@ -114,8 +114,8 @@ private:
 
 class StmtNode : public Node {
 public:
-  StmtNode(int id, const std::string &type)
-      : id_(id), type_(type), children_() {
+  StmtNode(int id, const std::string &type, const std::string &desc)
+      : id_(id), type_(type), desc_(desc), children_() {
     Register();
   }
 
@@ -129,6 +129,7 @@ public:
     nlohmann::json obj = {
         {"id", id_},
         {"type", type_},
+        {"desc", desc_},
         {"children", j_children},
     };
     return obj;
@@ -144,6 +145,7 @@ public:
 private:
   int id_;
   const std::string type_;
+  const std::string desc_;
   std::list<nlohmann::json> children_;
 
   void Register() { s_node_stack.push(this); }
@@ -174,8 +176,9 @@ CreateCallNode(int id, const std::string &type, const std::string &sig,
   return std::make_unique<CallNode>(id, type, sig, params);
 }
 
-std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type) {
-  return std::make_unique<StmtNode>(id, type);
+std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
+                                     const std::string &desc) {
+  return std::make_unique<StmtNode>(id, type, desc);
 }
 } // namespace NodeFactory
 } // namespace paptrace

@@ -15,8 +15,10 @@ class MockInstrumenter : public Instrumenter {
 public:
   MOCK_METHOD(std::string, GetTraceCalleeInst, (int id, const std::string &sig),
               (override));
-  MOCK_METHOD(std::string, GetTraceIfThenStmtInst, (int stmt_id), (override));
-  MOCK_METHOD(std::string, GetTraceIfElseStmtInst, (int stmt_id), (override));
+  MOCK_METHOD(std::string, GetTraceIfThenStmtInst,
+              (int stmt_id, const std::string &desc), (override));
+  MOCK_METHOD(std::string, GetTraceIfElseStmtInst,
+              (int stmt_id, const std::string &desc), (override));
   MOCK_METHOD(std::string, GetTraceIncludeInst, (), (override));
 };
 } // namespace papinst
