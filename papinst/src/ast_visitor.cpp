@@ -299,8 +299,14 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
+      auto desc = ToEscapedString(
+          clang::Lexer::getSourceText(
+              clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
+                                                    stmt->getRParenLoc()),
+              context_->getSourceManager(), context_->getLangOpts())
+              .str());
       ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(),
-                      "WhileStmt");
+                      "WhileStmt", desc);
     }
   }
 
@@ -308,7 +314,14 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
-      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(), "ForStmt");
+      auto desc = ToEscapedString(
+          clang::Lexer::getSourceText(
+              clang::CharSourceRange::getTokenRange(stmt->getForLoc(),
+                                                    stmt->getRParenLoc()),
+              context_->getSourceManager(), context_->getLangOpts())
+              .str());
+      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(), "ForStmt",
+                      desc);
     }
   }
 
@@ -316,7 +329,14 @@ public:
     assert(context_);
 
     if (auto body = stmt->getBody()) {
-      ProcessLoopBody(body, stmt->getBeginLoc(), body->getEndLoc(), "DoStmt");
+      auto desc = ToEscapedString(
+          clang::Lexer::getSourceText(
+              clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
+                                                    stmt->getRParenLoc()),
+              context_->getSourceManager(), context_->getLangOpts())
+              .str());
+      ProcessLoopBody(body, stmt->getBeginLoc(), body->getEndLoc(), "DoStmt",
+                      desc);
     }
   }
 
@@ -413,13 +433,8 @@ private:
   void ProcessLoopBody(clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
                        const clang::SourceLocation &end_loc,
-                       const std::string &type) {
+                       const std::string &type, const std::string &desc) {
     auto id = body->getID(*context_);
-    auto desc = ToEscapedString(
-        clang::Lexer::getSourceText(
-            clang::CharSourceRange::getTokenRange(body->getSourceRange()),
-            context_->getSourceManager(), context_->getLangOpts())
-            .str());
     auto inst_text = GetTraceStmtInst(id, type, desc);
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
