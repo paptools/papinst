@@ -17,67 +17,6 @@ def load_traces(trace_file):
     return data["traces"]
 
 
-def context_analysis(traces):
-    """Summarize the contexts encountered for each call node."""
-
-    def populate_sig_map(tree, sig_map):
-        if isinstance(tree, list):
-            for item in tree:
-                populate_sig_map(item, sig_map)
-        elif isinstance(tree, dict):
-            if "sig" in tree:
-                k = tree["sig"]
-                if k not in sig_map:
-                    sig_map[k] = len(sig_map)
-            for key, value in tree.items():
-                populate_sig_map(value, sig_map)
-
-    sig_map = {}
-    populate_sig_map(traces, sig_map)
-    # pprint.pprint(sig_map)
-    print(f"Number of unique signatures: {len(sig_map)}")
-
-    def extract_call_nodes(tree, sig_map, call_nodes):
-        if isinstance(tree, list):
-            for item in tree:
-                extract_call_nodes(item, sig_map, call_nodes)
-        elif isinstance(tree, dict):
-            for key, value in tree.items():
-                extract_call_nodes(value, sig_map, call_nodes)
-            if "type" in tree and "Call" in tree["type"]:
-                tree["id"] = sig_map[tree["sig"]]
-                call_nodes.append(copy.deepcopy(tree))
-                tree.pop("children")
-
-    call_nodes = []
-    extract_call_nodes(traces, sig_map, call_nodes)
-    # pprint.pprint(call_nodes)
-    print(f"Number of call nodes: {len(call_nodes)}")
-
-    unique_call_nodes = []
-    unique_call_node_strs = {}
-    for call_node in call_nodes:
-        call_node_str = str(call_node)
-        if not call_node_str in unique_call_node_strs:
-            unique_call_node_strs[call_node_str] = 1
-            unique_call_nodes.append(call_node)
-    # pprint.pprint(unique_call_nodes)
-    print(f"Number of uniq. call nodes: {len(unique_call_nodes)}")
-
-    call_map = {}
-    for call_node in unique_call_nodes:
-        id = call_node["id"]
-        if not id in call_map:
-            call_map[id] = {"sig": call_node["sig"], "ctxs": {}}
-        ctx = str(call_node["params"])
-        if not ctx in call_map[id]["ctxs"]:
-            call_map[id]["ctxs"][ctx] = len(call_map[id]["ctxs"])
-        else:
-            raise Exception(f"Duplicate call node ctx: {ctx}!")
-    pprint.pprint(call_map)
-    print(f"Number of top-level call map entries: {len(call_map)}")
-
-
 def trace_analysis(traces):
     """Print a visual description and expression for each trace."""
     g_f_ids = {}
@@ -290,9 +229,7 @@ def main():
     args = parser.parse_args()
 
     traces = load_traces(args.trace_file)
-    if args.analysis == "context":
-        context_analysis(traces)
-    elif args.analysis == "trace":
+    if args.analysis == "trace":
         trace_analysis(traces)
     elif args.analysis == "path":
         path_analysis(traces)
