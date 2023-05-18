@@ -2,3 +2,4 @@
 __version__ = "0.1.0"
 
 from .node import Node, StmtNode, CallNode
+from .tree import Tree

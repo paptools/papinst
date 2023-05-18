@@ -1,13 +1,20 @@
 import anytree
 
 
-class Node(anytree.NodeMixin):
+class Node(anytree.Node):
     def __init__(self, name, parent=None, children=None):
-        super(Node, self).__init__()
-        self.name = name
-        self.parent = parent
-        if children:
-            self.children = children
+        super(Node, self).__init__(name, parent, children)
+
+    @staticmethod
+    def is_call_type(type_):
+        return type_ in ["CallExpr", "CalleeExpr"]
+
+    @staticmethod
+    def from_trace(trace):
+        if Node.is_call_type(trace["type"]):
+            return CallNode.from_trace(trace)
+        else:
+            return StmtNode.from_trace(trace)
 
 
 class StmtNode(Node):
@@ -23,6 +30,18 @@ class StmtNode(Node):
     @property
     def desc(self):
         return self._desc
+
+    @staticmethod
+    def from_trace(trace):
+        if Node.is_call_type(type_ := trace["type"]):
+            raise ValueError(f"Type '{type_}' is not a StmtNode type.")
+        children = [Node.from_trace(child) for child in trace["children"]]
+        return StmtNode(
+            name=trace["id"],
+            type_=type_,
+            desc=trace["desc"],
+            children=children,
+        )
 
 
 class CallNode(Node):
@@ -43,3 +62,16 @@ class CallNode(Node):
     @property
     def params(self):
         return self._params
+
+    @staticmethod
+    def from_trace(trace):
+        if not Node.is_call_type(type_ := trace["type"]):
+            raise ValueError(f"Type '{type_}' is not a CallNode type.")
+        children = [Node.from_trace(child) for child in trace["children"]]
+        return CallNode(
+            name=trace["id"],
+            type_=type_,
+            sig=trace["sig"],
+            params=trace["params"],
+            children=children,
+        )
