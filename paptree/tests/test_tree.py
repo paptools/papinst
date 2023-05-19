@@ -7,23 +7,24 @@ from paptree import Node, Tree
 
 
 class TestGroupTree:
-    def test_name(self):
+    def test_name_only(self):
         tree = Tree("foo")
         assert tree.name == "foo"
-
-    def test_no_root(self):
-        tree = Tree("foo")
         assert tree.root == None
+        assert tree.children == ()
 
     def test_root(self):
         root = Node("root")
         tree = Tree("foo", root=root)
+        assert tree.name == "foo"
         assert tree.root == root
+        assert tree.children == ()
 
-    # def test_from_json_traces_entry_missing(self):
-    #    with pytest.raises(ValueError, match="No traces found in JSON object."):
-    #        Tree.from_trace("foo", {})
-
-    # def test_from_json_traces_entry_empty(self):
-    #    with pytest.raises(ValueError, match="No traces found in JSON object."):
-    #        Tree.from_json("foo", {"traces": []})
+    def test_children(self):
+        child_a = Node("child_a")
+        child_b = Node("child_b")
+        root = Node("root", children=[child_a, child_b])
+        tree = Tree("foo", root=root)
+        assert tree.name == "foo"
+        assert tree.root == root
+        assert tree.children == (child_a, child_b)

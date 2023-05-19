@@ -23,7 +23,7 @@ class TestGroupFromFile:
             "traces": [
                 {
                     "id": 123,
-                    "type": "CallExpr",
+                    "type": "CallerExpr",
                     "sig": "int foo(int, int)",
                     "params": [
                         {"name": "a", "value": "-1"},
@@ -61,7 +61,7 @@ class TestGroupFromJson:
             "traces": [
                 {
                     "id": 123,
-                    "type": "CallExpr",
+                    "type": "CallerExpr",
                     "sig": "int foo(int, int)",
                     "params": [
                         {"name": "a", "value": "-1"},
@@ -83,7 +83,7 @@ class TestGroupFromJson:
             "traces": [
                 {
                     "id": 123,
-                    "type": "CallExpr",
+                    "type": "CallerExpr",
                     "sig": "int foo(int, int)",
                     "params": [
                         {"name": "a", "value": "-1"},
@@ -93,7 +93,7 @@ class TestGroupFromJson:
                 },
                 {
                     "id": 456,
-                    "type": "CallExpr",
+                    "type": "CallerExpr",
                     "sig": "int bar(long, char)",
                     "params": [
                         {"name": "b", "value": "-1"},

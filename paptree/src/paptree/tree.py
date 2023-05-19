@@ -1,4 +1,4 @@
-from .node import CallNode
+from paptree import CallNode
 
 
 class Tree:
@@ -7,8 +7,8 @@ class Tree:
         self.root = root
 
     @property
-    def path(self):
-        return self.root.path
+    def children(self):
+        return self.root.children if self.root else ()
 
     @staticmethod
     def from_trace(trace):
