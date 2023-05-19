@@ -43,6 +43,30 @@ class TestGroupFromFile:
         assert tree.name == "int foo(int, int)(a=-1, b=1)"
         assert tree.root.name == 123
 
+    def test_actual_data(self):
+        path = pathlib.Path(__file__).parent / "data" / "paptrace.json"
+        trees = utils.from_file(path)
+        assert isinstance(trees, list)
+        assert len(trees) == 36
+        tree = trees[0]
+        assert (
+            tree.name == "unsigned long long fibonacci::RecursiveNaive(unsigned"
+            " short)(n=0)"
+        )
+        root = tree.root
+        assert root.name == 2106190
+        assert (
+            root.sig
+            == "unsigned long long fibonacci::RecursiveNaive(unsigned short)"
+        )
+        assert root.params == [{"name": "n", "value": "0"}]
+        assert len(root.children) == 1
+        child = tree.root.children[0]
+        assert child.name == 2106009
+        assert child.type == "IfThenStmt"
+        assert child.desc == "n < 2"
+        assert len(child.children) == 1
+
 
 class TestGroupFromJson:
     def test_no_traces_entry(self):
