@@ -72,6 +72,7 @@ class TestGroupStmtNode:
         assert node.type == trace["type"]
         assert node.desc == trace["desc"]
         assert node.children == ()
+        assert node.parent == None
 
     def test_from_trace_with_children(self):
         trace = {
@@ -91,12 +92,14 @@ class TestGroupStmtNode:
         assert node.name == trace["id"]
         assert node.type == trace["type"]
         assert node.desc == trace["desc"]
+        assert node.parent == None
         assert len(node.children) == 1
         child = node.children[0]
         assert child.name == trace["children"][0]["id"]
         assert child.type == trace["children"][0]["type"]
         assert child.desc == trace["children"][0]["desc"]
         assert child.children == ()
+        assert child.parent == node
 
 
 class TestGroupCallNode:
@@ -136,6 +139,7 @@ class TestGroupCallNode:
         assert node.sig == trace["sig"]
         assert node.params == trace["params"]
         assert node.children == ()
+        assert node.parent == None
 
     def test_from_trace_with_children(self):
         trace = {
@@ -160,9 +164,11 @@ class TestGroupCallNode:
         assert node.type == trace["type"]
         assert node.sig == trace["sig"]
         assert node.params == trace["params"]
+        assert node.parent == None
         assert len(node.children) == 1
         child = node.children[0]
         assert child.name == trace["children"][0]["id"]
         assert child.type == trace["children"][0]["type"]
         assert child.desc == trace["children"][0]["desc"]
         assert child.children == ()
+        assert child.parent == node
