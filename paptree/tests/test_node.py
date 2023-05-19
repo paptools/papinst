@@ -34,12 +34,22 @@ class TestGroupNode:
 
     def test_is_call_type(self):
         # Exhaustive test of call node types.
-        assert Node.is_call_type("CallExpr") == True
+        assert Node.is_call_type("CallerExpr") == True
         assert Node.is_call_type("CalleeExpr") == True
         # Non-exhaustive test of non-call node types.
         assert Node.is_call_type("ReturnStmt") == False
         assert Node.is_call_type("IfThenStmt") == False
         assert Node.is_call_type("ForStmt") == False
+
+    def test_repr(self):
+        a = Node("A")
+        b = Node("B", parent=a)
+        c = Node("C", parent=b, foo=1)
+        d = Node("D", parent=c, foo=2, bar=3, baz=4)
+        assert repr(a) == "Node('/A')"
+        assert repr(b) == "Node('/A/B')"
+        assert repr(c) == "Node('/A/B/C', foo=1)"
+        assert repr(d) == "Node('/A/B/C/D', bar=3, baz=4, foo=2)"
 
 
 class TestGroupStmtNode:
@@ -56,9 +66,9 @@ class TestGroupStmtNode:
 
     def test_from_trace_invalid_type(self):
         with pytest.raises(
-            ValueError, match="Type 'CallExpr' is not a StmtNode type."
+            ValueError, match="Type 'CallerExpr' is not a StmtNode type."
         ):
-            StmtNode.from_trace({"type": "CallExpr"})
+            StmtNode.from_trace({"type": "CallerExpr"})
 
     def test_from_trace_without_children(self):
         trace = {
@@ -101,6 +111,14 @@ class TestGroupStmtNode:
         assert child.children == ()
         assert child.parent == node
 
+    def test_repr(self):
+        a = StmtNode("A", "ReturnStmt", "return 0")
+        b = StmtNode("B", "IfThenStmt", "n > 1", parent=a)
+        c = StmtNode("C", "IfThenStmt", "n > 2", parent=b)
+        assert repr(a) == "StmtNode('/A', desc='return 0', type='ReturnStmt')"
+        assert repr(b) == "StmtNode('/A/B', desc='n > 1', type='IfThenStmt')"
+        assert repr(c) == "StmtNode('/A/B/C', desc='n > 2', type='IfThenStmt')"
+
 
 class TestGroupCallNode:
     def test_properties(self):
@@ -125,7 +143,7 @@ class TestGroupCallNode:
     def test_from_trace_without_children(self):
         trace = {
             "id": 123,
-            "type": "CallExpr",
+            "type": "CallerExpr",
             "sig": "int foo(int, int)",
             "params": [
                 {"name": "a", "value": "-1"},
@@ -144,7 +162,7 @@ class TestGroupCallNode:
     def test_from_trace_with_children(self):
         trace = {
             "id": 123,
-            "type": "CallExpr",
+            "type": "CallerExpr",
             "sig": "int foo(int, int)",
             "params": [
                 {"name": "a", "value": "-1"},
@@ -172,3 +190,36 @@ class TestGroupCallNode:
         assert child.desc == trace["children"][0]["desc"]
         assert child.children == ()
         assert child.parent == node
+
+    def test_repr(self):
+        a = CallNode(
+            "A", "CalleeExpr", "void foo(int x)", [{"name": "x", "value": "1"}]
+        )
+        b = CallNode(
+            "B",
+            "CalleeExpr",
+            "int bar(long x)",
+            [{"name": "n", "value": "-1"}],
+            parent=a,
+        )
+        c = CallNode(
+            "C",
+            "CalleeExpr",
+            "char Baz::baz(char)",
+            [{"name": "c", "value": "a"}],
+            parent=b,
+        )
+        assert (
+            repr(a)
+            == "CallNode('/A', params=[{'name': 'x', 'value': '1'}], sig='void"
+            " foo(int x)', type='CalleeExpr')"
+        )
+        assert (
+            repr(b) == "CallNode('/A/B', params=[{'name': 'n', 'value': '-1'}],"
+            " sig='int bar(long x)', type='CalleeExpr')"
+        )
+        assert (
+            repr(c)
+            == "CallNode('/A/B/C', params=[{'name': 'c', 'value': 'a'}],"
+            " sig='char Baz::baz(char)', type='CalleeExpr')"
+        )

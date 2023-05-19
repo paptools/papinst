@@ -2,12 +2,12 @@ import anytree
 
 
 class Node(anytree.Node):
-    def __init__(self, name, parent=None, children=None):
-        super(Node, self).__init__(name, parent, children)
+    def __init__(self, name, parent=None, children=None, **kwargs):
+        super(Node, self).__init__(name, parent, children, **kwargs)
 
     @staticmethod
     def is_call_type(type_):
-        return type_ in ["CallExpr", "CalleeExpr"]
+        return type_ in ["CallerExpr", "CalleeExpr"]
 
     @staticmethod
     def from_trace(trace):
@@ -19,7 +19,9 @@ class Node(anytree.Node):
 
 class StmtNode(Node):
     def __init__(self, name, type_, desc, parent=None, children=None):
-        super(StmtNode, self).__init__(name, parent, children)
+        super(StmtNode, self).__init__(
+            name, parent, children, type=type_, desc=desc
+        )
         self._type = type_
         self._desc = desc
 
@@ -46,7 +48,9 @@ class StmtNode(Node):
 
 class CallNode(Node):
     def __init__(self, name, type_, sig, params, parent=None, children=None):
-        super(CallNode, self).__init__(name, parent, children)
+        super(CallNode, self).__init__(
+            name, parent, children, type=type_, sig=sig, params=params
+        )
         self._type = type_
         self._sig = sig
         self._params = params
