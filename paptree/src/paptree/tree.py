@@ -6,6 +6,9 @@ class Tree:
         self.name = name
         self.root = root
 
+    def __repr__(self):
+        return repr(self.root)
+
     @property
     def children(self):
         return self.root.children if self.root else ()

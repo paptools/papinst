@@ -28,3 +28,17 @@ class TestGroupTree:
         assert tree.name == "foo"
         assert tree.root == root
         assert tree.children == (child_a, child_b)
+
+    def test_repr(self):
+        root = Node("root", val=1)
+        child = Node("child", val=2)
+        tree = Tree("foo", root=root)
+        assert repr(tree) == "Node('/root', val=1)"
+
+    def test_render_tree(self):
+        root = Node("root", val=1)
+        child = Node("child", val=2, parent=root)
+        tree = Tree("foo", root=root)
+        rendered_tree = anytree.RenderTree(tree)
+        expected = "Node('/root', val=1)\n└── Node('/root/child', val=2)"
+        assert rendered_tree.__str__() == expected
