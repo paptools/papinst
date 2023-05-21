@@ -120,6 +120,16 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
   return fmt::format(template_str, id, sig, ParamsToString(params));
 }
 
+// std::string GetTraceStmtInst(int id, const std::string &type,
+//                                const std::string &desc) {
+//   //static const std::string template_str =
+//   //    "PAPTRACE_SCOPED_NODE({}, \"{}\", \"{}\");\n";
+//   //return fmt::format(template_str, id, type, desc);
+//   static const std::string template_str =
+//       "auto NODE_NAME({}) = PAPTRACE_SCOPED_NODE({}
+//   return fmt::format(template_str, id, "A", "B");
+// }
+
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
                                             const clang::SourceLocation &loc,
                                             const std::string &text) {
@@ -298,46 +308,76 @@ public:
   void ProcessWhileStmt(clang::WhileStmt *stmt) override {
     assert(context_);
 
-    if (auto body = stmt->getBody()) {
-      auto desc = ToEscapedString(
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
-                                                    stmt->getRParenLoc()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str());
-      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(),
-                      "WhileStmt", desc);
+    auto id = stmt->getID(*context_);
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
+                                                  stmt->getRParenLoc()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    std::ostringstream oss;
+    oss << "{" << GetTraceStmtInst(id, "WhileStmt", desc);
+    auto inst_text = oss.str();
+    if (auto err =
+            Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err << "\n";
     }
+    if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
+      llvm::errs() << "Error: " << err << "\n";
+    }
+
+    ProcessLoopBody(id, stmt->getBody(), stmt->getRParenLoc(),
+                    stmt->getEndLoc());
   }
 
   void ProcessForStmt(clang::ForStmt *stmt) override {
     assert(context_);
 
-    if (auto body = stmt->getBody()) {
-      auto desc = ToEscapedString(
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(stmt->getForLoc(),
-                                                    stmt->getRParenLoc()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str());
-      ProcessLoopBody(body, stmt->getRParenLoc(), stmt->getEndLoc(), "ForStmt",
-                      desc);
+    auto id = stmt->getID(*context_);
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(stmt->getForLoc(),
+                                                  stmt->getRParenLoc()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    std::ostringstream oss;
+    oss << "{" << GetTraceStmtInst(id, "ForStmt", desc);
+    auto inst_text = oss.str();
+    if (auto err =
+            Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err << "\n";
     }
+    if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
+      llvm::errs() << "Error: " << err << "\n";
+    }
+
+    ProcessLoopBody(id, stmt->getBody(), stmt->getRParenLoc(),
+                    stmt->getEndLoc());
   }
 
   void ProcessDoStmt(clang::DoStmt *stmt) override {
     assert(context_);
 
-    if (auto body = stmt->getBody()) {
-      auto desc = ToEscapedString(
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
-                                                    stmt->getRParenLoc()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str());
-      ProcessLoopBody(body, stmt->getBeginLoc(), body->getEndLoc(), "DoStmt",
-                      desc);
+    auto id = stmt->getID(*context_);
+    auto desc = ToEscapedString(
+        clang::Lexer::getSourceText(
+            clang::CharSourceRange::getTokenRange(stmt->getWhileLoc(),
+                                                  stmt->getRParenLoc()),
+            context_->getSourceManager(), context_->getLangOpts())
+            .str());
+    std::ostringstream oss;
+    oss << "{" << GetTraceStmtInst(id, "DoStmt", desc);
+    auto inst_text = oss.str();
+    if (auto err =
+            Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
+      llvm::errs() << "Error: " << err << "\n";
     }
+    if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
+      llvm::errs() << "Error: " << err << "\n";
+    }
+
+    auto body = stmt->getBody();
+    ProcessLoopBody(id, body, stmt->getBeginLoc(), body->getEndLoc());
   }
 
   // IRD TODO: account for ternary return.
@@ -430,12 +470,10 @@ private:
   clang::ASTContext *context_;
   std::map<unsigned int, clang::tooling::Replacement> visited_repls_;
 
-  void ProcessLoopBody(clang::Stmt *body,
+  void ProcessLoopBody(int id, clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
-                       const clang::SourceLocation &end_loc,
-                       const std::string &type, const std::string &desc) {
-    auto id = body->getID(*context_);
-    auto inst_text = GetTraceStmtInst(id, type, desc);
+                       const clang::SourceLocation &end_loc) {
+    auto inst_text = GetTraceStmtInst(id, "LoopIter", "LoopIter");
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {
