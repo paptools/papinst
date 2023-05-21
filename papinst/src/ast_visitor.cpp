@@ -120,16 +120,6 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
   return fmt::format(template_str, id, sig, ParamsToString(params));
 }
 
-// std::string GetTraceStmtInst(int id, const std::string &type,
-//                                const std::string &desc) {
-//   //static const std::string template_str =
-//   //    "PAPTRACE_SCOPED_NODE({}, \"{}\", \"{}\");\n";
-//   //return fmt::format(template_str, id, type, desc);
-//   static const std::string template_str =
-//       "auto NODE_NAME({}) = PAPTRACE_SCOPED_NODE({}
-//   return fmt::format(template_str, id, "A", "B");
-// }
-
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
                                             const clang::SourceLocation &loc,
                                             const std::string &text) {
