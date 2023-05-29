@@ -26,3 +26,5 @@ repository = "https://github.com/iandinwoodie/paptools"
 
 [tool.black]
 line-length = 80
+preview = true
+include = '\.pyi?$'

@@ -213,7 +213,8 @@ class TestGroupCallNode:
         )
         assert (
             repr(a)
-            == "CallNode(name='A', params=[{'name': 'x', 'value': '1'}], sig='void"
+            == "CallNode(name='A', params=[{'name': 'x', 'value': '1'}],"
+            " sig='void"
             " foo(int x)', type='CalleeExpr')"
         )
         assert (

@@ -50,7 +50,8 @@ class TestGroupFromFile:
         assert len(trees) == 36
         tree = trees[0]
         assert (
-            tree.name == "unsigned long long fibonacci::RecursiveNaive(unsigned"
+            tree.name
+            == "unsigned long long fibonacci::RecursiveNaive(unsigned"
             " short)(n=0)"
         )
         root = tree.root
