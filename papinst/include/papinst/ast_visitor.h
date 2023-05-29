@@ -39,7 +39,7 @@ public:
   // virtual void ProcessCXXCatchStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessGotoStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessLabelDecl(clang::LabelDecl *decl) = 0;
-  // virtual void ProcessBinaryOperator(clang::BinaryOperator *op) = 0;
+  virtual void ProcessBinaryOperator(clang::BinaryOperator *op) = 0;
 };
 
 clang::tooling::Replacements &GetReplacements();

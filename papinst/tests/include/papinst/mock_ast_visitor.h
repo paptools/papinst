@@ -17,9 +17,22 @@ public:
   MOCK_METHOD(void, ProcessWhileStmt, (clang::WhileStmt * stmt), (override));
   MOCK_METHOD(void, ProcessForStmt, (clang::ForStmt * stmt), (override));
   MOCK_METHOD(void, ProcessDoStmt, (clang::DoStmt * stmt), (override));
+  // MOCK_METHOD(void, ProcessCXXForRangeStmt, (clang::CXXForRangeStmt * stmt),
+  //             (override));
+  // MOCK_METHOD(void, ProcessBreakStmt, (clang::BreakStmt * stmt), (override));
+  // MOCK_METHOD(void, ProcessContinueStmt, (clang::ContinueStmt * stmt),
+  //             (override));
   MOCK_METHOD(void, ProcessReturnStmt, (clang::ReturnStmt * stmt), (override));
   MOCK_METHOD(void, ProcessCallExpr, (clang::CallExpr * expr), (override));
   MOCK_METHOD(void, ProcessCXXThrowExpr, (clang::CXXThrowExpr * expr),
+              (override));
+  // MOCK_METHOD(void, ProcessCXXTryStmt, (clang::CXXTryStmt * stmt),
+  // (override)); MOCK_METHOD(void, ProcessCXXCatchStmt, (clang::CXXCatchStmt *
+  // stmt),
+  //             (override));
+  // MOCK_METHOD(void, ProcessGotoStmt, (clang::GotoStmt * stmt), (override));
+  // MOCK_METHOD(void, ProcessLabelStmt, (clang::LabelStmt * stmt), (override));
+  MOCK_METHOD(void, ProcessBinaryOperator, (clang::BinaryOperator * expr),
               (override));
 };
 

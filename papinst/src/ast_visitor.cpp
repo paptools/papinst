@@ -455,6 +455,28 @@ public:
     }
   }
 
+  void ProcessBinaryOperator(clang::BinaryOperator *op) override {
+    assert(context_);
+
+    if (op->isComparisonOp()) {
+      return;
+    }
+
+    op->dump();
+
+    // auto id = op->getID(*context_);
+    // auto desc = ToEscapedString(
+    //     clang::Lexer::getSourceText(
+    //         clang::CharSourceRange::getTokenRange(op->getSourceRange()),
+    //         context_->getSourceManager(), context_->getLangOpts())
+    //         .str());
+    // auto inst_text = GetTraceStmtInst(id, "BinaryOperator", desc);
+    // if (auto err =
+    //         Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
+    //   llvm::errs() << "Error: " << err << "\n";
+    // }
+  }
+
 private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
@@ -533,6 +555,9 @@ public:
         listener_->ProcessCallExpr(call_expr);
       } else if (auto throw_expr = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
         listener_->ProcessCXXThrowExpr(throw_expr);
+      } else if (auto binary_op =
+                     clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+        listener_->ProcessBinaryOperator(binary_op);
       } else {
         std::cout << "Unhandled stmt:" << std::endl;
         stmt->dumpColor();
