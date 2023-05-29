@@ -46,10 +46,10 @@ class TestGroupNode:
         b = Node("B", parent=a)
         c = Node("C", parent=b, foo=1)
         d = Node("D", parent=c, foo=2, bar=3, baz=4)
-        assert repr(a) == "Node('/A')"
-        assert repr(b) == "Node('/A/B')"
-        assert repr(c) == "Node('/A/B/C', foo=1)"
-        assert repr(d) == "Node('/A/B/C/D', bar=3, baz=4, foo=2)"
+        assert repr(a) == "Node(name='A')"
+        assert repr(b) == "Node(name='B')"
+        assert repr(c) == "Node(foo=1, name='C')"
+        assert repr(d) == "Node(bar=3, baz=4, foo=2, name='D')"
 
 
 class TestGroupStmtNode:
@@ -115,9 +115,11 @@ class TestGroupStmtNode:
         a = StmtNode("A", "ReturnStmt", "return 0")
         b = StmtNode("B", "IfThenStmt", "n > 1", parent=a)
         c = StmtNode("C", "IfThenStmt", "n > 2", parent=b)
-        assert repr(a) == "StmtNode('/A', desc='return 0', type='ReturnStmt')"
-        assert repr(b) == "StmtNode('/A/B', desc='n > 1', type='IfThenStmt')"
-        assert repr(c) == "StmtNode('/A/B/C', desc='n > 2', type='IfThenStmt')"
+        assert (
+            repr(a) == "StmtNode(desc='return 0', name='A', type='ReturnStmt')"
+        )
+        assert repr(b) == "StmtNode(desc='n > 1', name='B', type='IfThenStmt')"
+        assert repr(c) == "StmtNode(desc='n > 2', name='C', type='IfThenStmt')"
 
 
 class TestGroupCallNode:
@@ -211,15 +213,16 @@ class TestGroupCallNode:
         )
         assert (
             repr(a)
-            == "CallNode('/A', params=[{'name': 'x', 'value': '1'}], sig='void"
+            == "CallNode(name='A', params=[{'name': 'x', 'value': '1'}], sig='void"
             " foo(int x)', type='CalleeExpr')"
         )
         assert (
-            repr(b) == "CallNode('/A/B', params=[{'name': 'n', 'value': '-1'}],"
+            repr(b)
+            == "CallNode(name='B', params=[{'name': 'n', 'value': '-1'}],"
             " sig='int bar(long x)', type='CalleeExpr')"
         )
         assert (
             repr(c)
-            == "CallNode('/A/B/C', params=[{'name': 'c', 'value': 'a'}],"
+            == "CallNode(name='C', params=[{'name': 'c', 'value': 'a'}],"
             " sig='char Baz::baz(char)', type='CalleeExpr')"
         )

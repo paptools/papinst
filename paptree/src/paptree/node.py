@@ -1,9 +1,17 @@
 import anytree
 
 
-class Node(anytree.Node):
+class Node(anytree.AnyNode):
     def __init__(self, name, parent=None, children=None, **kwargs):
-        super(Node, self).__init__(name, parent, children, **kwargs)
+        super(Node, self).__init__(
+            name=name, parent=parent, children=children, **kwargs
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, Node):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
+        return repr(self) == repr(other)
 
     @staticmethod
     def is_call_type(type_):

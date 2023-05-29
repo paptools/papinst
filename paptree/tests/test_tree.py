@@ -33,12 +33,12 @@ class TestGroupTree:
         root = Node("root", val=1)
         child = Node("child", val=2)
         tree = Tree("foo", root=root)
-        assert repr(tree) == "Node('/root', val=1)"
+        assert repr(tree) == "Node(name='root', val=1)"
 
     def test_render_tree(self):
         root = Node("root", val=1)
         child = Node("child", val=2, parent=root)
         tree = Tree("foo", root=root)
         rendered_tree = anytree.RenderTree(tree)
-        expected = "Node('/root', val=1)\n└── Node('/root/child', val=2)"
+        expected = "Node(name='root', val=1)\n└── Node(name='child', val=2)"
         assert rendered_tree.__str__() == expected
