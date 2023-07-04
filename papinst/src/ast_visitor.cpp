@@ -513,8 +513,6 @@ public:
 
     if (op->isAssignmentOp() || op->isAdditiveOp() ||
         op->isCompoundAssignmentOp()) {
-      // op->dumpColor();
-
       auto id = op->getID(*context_);
       const std::string desc = op->getType().getAsString();
       const std::string type = op->getOpcodeStr().str();
@@ -532,6 +530,33 @@ public:
               Add(AppendSourceLoc(*context_, rhs->getEndLoc(), inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
       }
+    } else {
+      op->dumpColor();
+    }
+  }
+
+  void ProcessUnaryOperator(clang::UnaryOperator *op) override {
+    assert(context_);
+
+    if (op->isIncrementDecrementOp()) {
+      auto id = op->getID(*context_);
+      const std::string desc = op->getType().getAsString();
+      const std::string type =
+          clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+
+      auto inst_text = GetTraceOpInstBegin(id, type, desc);
+      if (auto err =
+              Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+
+      inst_text = GetTraceOpInstEnd();
+      if (auto err =
+              Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+    } else {
+      op->dumpColor();
     }
   }
 
@@ -616,6 +641,8 @@ public:
       } else if (auto binary_op =
                      clang::dyn_cast<clang::BinaryOperator>(stmt)) {
         listener_->ProcessBinaryOperator(binary_op);
+      } else if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
+        listener_->ProcessUnaryOperator(unary_op);
       } else {
         // std::cout << "Unhandled stmt:" << std::endl;
         // stmt->dumpColor();

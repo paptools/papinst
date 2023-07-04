@@ -40,6 +40,7 @@ public:
   // virtual void ProcessGotoStmt(clang::SwitchStmt *stmt) = 0;
   // virtual void ProcessLabelDecl(clang::LabelDecl *decl) = 0;
   virtual void ProcessBinaryOperator(clang::BinaryOperator *op) = 0;
+  virtual void ProcessUnaryOperator(clang::UnaryOperator *op) = 0;
 };
 
 clang::tooling::Replacements &GetReplacements();

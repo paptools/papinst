@@ -34,6 +34,8 @@ public:
   // MOCK_METHOD(void, ProcessLabelStmt, (clang::LabelStmt * stmt), (override));
   MOCK_METHOD(void, ProcessBinaryOperator, (clang::BinaryOperator * expr),
               (override));
+  MOCK_METHOD(void, ProcessUnaryOperator, (clang::UnaryOperator * expr),
+              (override));
 };
 
 class MockASTVisitor : public ASTVisitor {
