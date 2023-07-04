@@ -511,29 +511,8 @@ public:
   void ProcessBinaryOperator(clang::BinaryOperator *op) override {
     assert(context_);
 
-    if (op->isAssignmentOp()) {
-      // op->dumpColor();
-
-      auto id = op->getID(*context_);
-      const std::string desc = op->getType().getAsString();
-      const std::string type = op->getOpcodeStr().str();
-
-      auto lhs = op->getLHS();
-      auto inst_text = GetTraceOpInstBegin(id, type, desc);
-      if (auto err =
-              Add(PrependSourceLoc(*context_, lhs->getBeginLoc(), inst_text))) {
-        llvm::errs() << "Error: " << err << "\n";
-      }
-
-      auto rhs = op->getRHS();
-      inst_text = GetTraceOpInstEnd();
-      if (auto err =
-              Add(AppendSourceLoc(*context_, rhs->getEndLoc(), inst_text))) {
-        llvm::errs() << "Error: " << err << "\n";
-      }
-    }
-
-    if (op->isAdditiveOp()) {
+    if (op->isAssignmentOp() || op->isAdditiveOp() ||
+        op->isCompoundAssignmentOp()) {
       // op->dumpColor();
 
       auto id = op->getID(*context_);
