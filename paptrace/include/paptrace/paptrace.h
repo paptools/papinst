@@ -62,5 +62,7 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
   PAPTRACE_STMT_NODE(id, "IfElseStmt", desc)
 #define PAPTRACE_SCOPED_NODE(id, type, desc)                                   \
   auto NODE_NAME(id) = PAPTRACE_STMT_NODE(id, type, desc)
+#define PAPTRACE_OP_NODE(id, type, desc, stmt)                                 \
+  (paptrace::NodeFactory::CreateStmtNode(id, type, desc), stmt)
 
 #endif // PAPTRACE_PAPTRACE_H

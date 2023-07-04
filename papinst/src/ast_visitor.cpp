@@ -12,6 +12,7 @@
 #include <clang/Analysis/CFG.h>
 #include <llvm/Support/GraphWriter.h>
 #endif // PAPINST_OUTPUT_CFG
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/Core/Replacement.h>
 
 // C++ standard library headers.
@@ -119,6 +120,15 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
       "\nPAPTRACE_CALLER_NODE({}, \"{}\", {}), ";
   return fmt::format(template_str, id, sig, ParamsToString(params));
 }
+
+// TODO: Move to the instrumenter.
+std::string GetTraceOpInstBegin(int id, const std::string &type,
+                                const std::string &desc) {
+  static const std::string template_str =
+      "\nPAPTRACE_OP_NODE({}, \"{}\", \"{}\", ";
+  return fmt::format(template_str, id, type, desc);
+}
+std::string GetTraceOpInstEnd() { return ")"; }
 
 clang::tooling::Replacement AppendSourceLoc(clang::ASTContext &context,
                                             const clang::SourceLocation &loc,
@@ -420,13 +430,56 @@ public:
     auto it = visited_repls_.find(replacement.getOffset());
     if (it != visited_repls_.end()) {
       auto prev_repl = it->second;
-      if (prev_repl.getReplacementText() != replacement.getReplacementText()) {
-        llvm::errs() << "Warning: different replacements for same offset\n"
-                     << "  prev (retained): " << prev_repl.getReplacementText()
-                     << "\n"
-                     << "  curr (discarded): "
-                     << replacement.getReplacementText() << "\n";
+      inst_text = prev_repl.getReplacementText().str() + inst_text;
+      replacement = PrependSourceLoc(*context_, expr->getBeginLoc(), inst_text);
+
+      clang::tooling::Replacements replacements;
+      auto ignored_result = replacements.add(replacement);
+      for (auto &r : s_replacements) {
+        ignored_result = replacements.add(r);
       }
+      s_replacements = replacements;
+      if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+
+      // std::cout << "CURR OFFSET: " << replacement.getOffset() << ", CURR LEN:
+      // " << replacement.getLength() << "\n"; std::cout << "CURR REPLACEMENT: "
+      // << replacement.getReplacementText().str() << "\n";
+
+      // auto adj_offset = prev_repl.getOffset() +
+      // prev_repl.getReplacementText().size(); std::cout << "ADJ OFFSET: " <<
+      // adj_offset << "\n";
+
+      // clang::SourceLocation inst_loc =
+      // expr->getBeginLoc().getLocWithOffset(inst_pos); prev_repl.getOffset() +
+      // prev_repl.getReplacementText().size());
+      // auto inst_loc = expr->getBeginLoc();
+      //// convert inst_loc to string and output to std.
+      // std::cout << "inst_loc: " <<
+      // inst_loc.printToString(context_->getSourceManager()) << "\n"; auto
+      // inst_pos =
+      // s_replacements.getShiftedCodePosition(prev_repl.getOffset()); std::cout
+      // << "inst_pos: " << inst_loc.getRawEncoding() << "\n"; std::cout <<
+      // "inst_pos: " << inst_pos << "\n"; inst_loc =
+      // inst_loc.getLocWithOffset(inst_pos); std::cout << "inst_loc: " <<
+      // inst_loc.printToString(context_->getSourceManager()) << "\n";
+
+      // auto inst_loc =
+      // expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size());
+      // replacement = PrependSourceLoc(
+      //     *context_,
+      //     //expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size()),
+      //     expr->getBeginLoc(),
+      //     inst_text);
+      // if (auto err = Add(replacement)) {
+      //   llvm::errs() << "Error: " << err << "\n";
+      // }
+
+      // if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")")))
+      // {
+      //   llvm::errs() << "Error: " << err << "\n";
+      // }
       return;
     } else {
       if (auto err = Add(replacement)) {
@@ -458,23 +511,49 @@ public:
   void ProcessBinaryOperator(clang::BinaryOperator *op) override {
     assert(context_);
 
-    if (op->isComparisonOp()) {
-      return;
+    if (op->isAssignmentOp()) {
+      // op->dumpColor();
+
+      auto id = op->getID(*context_);
+      const std::string desc = op->getType().getAsString();
+      const std::string type = op->getOpcodeStr().str();
+
+      auto lhs = op->getLHS();
+      auto inst_text = GetTraceOpInstBegin(id, type, desc);
+      if (auto err =
+              Add(PrependSourceLoc(*context_, lhs->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+
+      auto rhs = op->getRHS();
+      inst_text = GetTraceOpInstEnd();
+      if (auto err =
+              Add(AppendSourceLoc(*context_, rhs->getEndLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
     }
 
-    op->dump();
+    if (op->isAdditiveOp()) {
+      // op->dumpColor();
 
-    // auto id = op->getID(*context_);
-    // auto desc = ToEscapedString(
-    //     clang::Lexer::getSourceText(
-    //         clang::CharSourceRange::getTokenRange(op->getSourceRange()),
-    //         context_->getSourceManager(), context_->getLangOpts())
-    //         .str());
-    // auto inst_text = GetTraceStmtInst(id, "BinaryOperator", desc);
-    // if (auto err =
-    //         Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
-    //   llvm::errs() << "Error: " << err << "\n";
-    // }
+      auto id = op->getID(*context_);
+      const std::string desc = op->getType().getAsString();
+      const std::string type = op->getOpcodeStr().str();
+
+      auto lhs = op->getLHS();
+      auto inst_text = GetTraceOpInstBegin(id, type, desc);
+      if (auto err =
+              Add(PrependSourceLoc(*context_, lhs->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+
+      auto rhs = op->getRHS();
+      inst_text = GetTraceOpInstEnd();
+      if (auto err =
+              Add(AppendSourceLoc(*context_, rhs->getEndLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+    }
   }
 
 private:
@@ -559,8 +638,8 @@ public:
                      clang::dyn_cast<clang::BinaryOperator>(stmt)) {
         listener_->ProcessBinaryOperator(binary_op);
       } else {
-        std::cout << "Unhandled stmt:" << std::endl;
-        stmt->dumpColor();
+        // std::cout << "Unhandled stmt:" << std::endl;
+        // stmt->dumpColor();
       }
     }
     return true;
