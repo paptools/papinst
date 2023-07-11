@@ -5,12 +5,12 @@
       "1": "Symbol('C_F2106190_P0')"
     },
     "path_1": {
-      "2": "Add(Mul(Integer(2), Symbol('C_F2106190_P0')), Symbol('C_F2106190_P1'))",
-      "3": "Add(Mul(Integer(3), Symbol('C_F2106190_P0')), Mul(Integer(2), Symbol('C_F2106190_P1')))",
-      "4": "Add(Mul(Integer(5), Symbol('C_F2106190_P0')), Mul(Integer(4), Symbol('C_F2106190_P1')))",
-      "5": "Add(Mul(Integer(8), Symbol('C_F2106190_P0')), Mul(Integer(7), Symbol('C_F2106190_P1')))",
-      "6": "Add(Mul(Integer(13), Symbol('C_F2106190_P0')), Mul(Integer(12), Symbol('C_F2106190_P1')))",
-      "7": "Add(Mul(Integer(21), Symbol('C_F2106190_P0')), Mul(Integer(20), Symbol('C_F2106190_P1')))"
+      "2": "Add(Mul(Integer(2), Symbol('C_F2106190_P0')), Symbol('C_F2106190_P1'), Symbol('C_OP_ULL_ADD'))",
+      "3": "Add(Mul(Integer(3), Symbol('C_F2106190_P0')), Mul(Integer(2), Symbol('C_F2106190_P1')), Mul(Integer(2), Symbol('C_OP_ULL_ADD')))",
+      "4": "Add(Mul(Integer(5), Symbol('C_F2106190_P0')), Mul(Integer(4), Symbol('C_F2106190_P1')), Mul(Integer(4), Symbol('C_OP_ULL_ADD')))",
+      "5": "Add(Mul(Integer(8), Symbol('C_F2106190_P0')), Mul(Integer(7), Symbol('C_F2106190_P1')), Mul(Integer(7), Symbol('C_OP_ULL_ADD')))",
+      "6": "Add(Mul(Integer(13), Symbol('C_F2106190_P0')), Mul(Integer(12), Symbol('C_F2106190_P1')), Mul(Integer(12), Symbol('C_OP_ULL_ADD')))",
+      "7": "Add(Mul(Integer(21), Symbol('C_F2106190_P0')), Mul(Integer(20), Symbol('C_F2106190_P1')), Mul(Integer(20), Symbol('C_OP_ULL_ADD')))"
     },
     "path_2": {
       "94": "Symbol('C_F2106190_P2')"
@@ -18,26 +18,26 @@
   },
   "unsigned long long fibonacci::RecursiveMemo(unsigned short)": {
     "path_0": {
-      "0": "Symbol('C_F2109686_P0')",
-      "1": "Symbol('C_F2109686_P0')"
+      "0": "Add(Symbol('C_F2109686_P0'), Symbol('C_FIB_RECURSIVE_MEMO_IMPL'), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Symbol('C_OP_VEC_SUBSCRIPT'))",
+      "1": "Add(Symbol('C_F2109686_P0'), Symbol('C_FIB_RECURSIVE_MEMO_IMPL'), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Symbol('C_OP_VEC_SUBSCRIPT'))"
     },
     "path_1": {
-      "2": "Symbol('C_F2109686_P1')"
+      "2": "Add(Symbol('C_F2109686_P1'), Mul(Integer(3), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Symbol('C_OP_VEC_ASSIGN'), Mul(Integer(4), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_2": {
-      "3": "Symbol('C_F2109686_P2')"
+      "3": "Add(Symbol('C_F2109686_P2'), Mul(Integer(5), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Mul(Integer(2), Symbol('C_OP_VEC_ASSIGN')), Mul(Integer(7), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_3": {
-      "4": "Symbol('C_F2109686_P3')"
+      "4": "Add(Symbol('C_F2109686_P3'), Mul(Integer(7), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Mul(Integer(3), Symbol('C_OP_VEC_ASSIGN')), Mul(Integer(11), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_4": {
-      "5": "Symbol('C_F2109686_P4')"
+      "5": "Add(Symbol('C_F2109686_P4'), Mul(Integer(9), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Mul(Integer(4), Symbol('C_OP_VEC_ASSIGN')), Mul(Integer(15), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_5": {
-      "6": "Symbol('C_F2109686_P5')"
+      "6": "Add(Symbol('C_F2109686_P5'), Mul(Integer(11), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Mul(Integer(5), Symbol('C_OP_VEC_ASSIGN')), Mul(Integer(19), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_6": {
-      "7": "Symbol('C_F2109686_P6')"
+      "7": "Add(Symbol('C_F2109686_P6'), Mul(Integer(13), Symbol('C_FIB_RECURSIVE_MEMO_IMPL')), Symbol('C_OP_INT_ADD'), Symbol('C_OP_INT_ASSIGN'), Mul(Integer(6), Symbol('C_OP_VEC_ASSIGN')), Mul(Integer(23), Symbol('C_OP_VEC_SUBSCRIPT')))"
     },
     "path_7": {
       "94": "Symbol('C_F2109686_P7')"
@@ -49,22 +49,22 @@
       "1": "Symbol('C_F2110045_P0')"
     },
     "path_1": {
-      "2": "Symbol('C_F2110045_P1')"
+      "2": "Add(Symbol('C_F2110045_P1'), Mul(Integer(3), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_2": {
-      "3": "Symbol('C_F2110045_P2')"
+      "3": "Add(Symbol('C_F2110045_P2'), Mul(Integer(6), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_3": {
-      "4": "Symbol('C_F2110045_P3')"
+      "4": "Add(Symbol('C_F2110045_P3'), Mul(Integer(9), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_4": {
-      "5": "Symbol('C_F2110045_P4')"
+      "5": "Add(Symbol('C_F2110045_P4'), Mul(Integer(12), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_5": {
-      "6": "Symbol('C_F2110045_P5')"
+      "6": "Add(Symbol('C_F2110045_P5'), Mul(Integer(15), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_6": {
-      "7": "Symbol('C_F2110045_P6')"
+      "7": "Add(Symbol('C_F2110045_P6'), Mul(Integer(18), Symbol('C_OP_ULL_ASSIGN')))"
     },
     "path_7": {
       "94": "Symbol('C_F2110045_P7')"
