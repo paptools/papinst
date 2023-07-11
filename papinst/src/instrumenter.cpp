@@ -1,7 +1,9 @@
 #include "papinst/instrumenter.h"
 
+// Third-party headers.
 #include <fmt/format.h>
 
+// C++ standard library headers.
 #include <memory>
 #include <string>
 
@@ -9,17 +11,31 @@ namespace papinst {
 namespace {
 class DefaultInstrumenter : public Instrumenter {
 public:
-  virtual ~DefaultInstrumenter(void) = default;
-  virtual std::string GetFnCalleeInst(const std::string &sig) override {
-    static const std::string template_str = "PAPTRACE_CALLEE_NODE(\"{}\");";
-    return fmt::format(template_str, sig);
+  ~DefaultInstrumenter(void) = default;
+
+  std::string GetTraceCalleeInst(int id, const std::string &sig) override {
+    static const std::string template_str =
+        "\nPAPTRACE_CALLEE_NODE({}, \"{}\");";
+    return fmt::format(template_str, id, sig);
   }
 
-  virtual std::string GetTraceIncludeInst(void) override {
+  std::string GetTraceIfThenStmtInst(int stmt_id,
+                                     const std::string &desc) override {
+    static const std::string template_str =
+        "PAPTRACE_IF_THEN_NODE({}, \"{}\");";
+    return fmt::format(template_str, stmt_id, desc);
+  }
+
+  std::string GetTraceIfElseStmtInst(int stmt_id,
+                                     const std::string &desc) override {
+    static const std::string template_str =
+        "PAPTRACE_IF_ELSE_NODE({}, \"{}\");";
+    return fmt::format(template_str, stmt_id, desc);
+  }
+
+  std::string GetTraceIncludeInst(void) override {
     return "#include <paptrace/paptrace.h>\n";
   }
-
-  virtual std::string GetCfInst(void) override { return "PAPTRACE_CF_NODE();"; }
 };
 } // namespace
 

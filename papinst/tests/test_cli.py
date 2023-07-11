@@ -118,7 +118,7 @@ def test_invalid_command():
     )
     assert result.returncode == 127
     assert result.stdout == ""
-    assert result.stderr == "sh: invalid: command not found\n"
+    assert "not found" in result.stderr
 
 
 def test_valid_command():

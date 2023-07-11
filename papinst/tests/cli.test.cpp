@@ -1,6 +1,8 @@
+// Local headers.
 #include "papinst/cli.h"
 #include "papinst/exception.h"
 
+// Third-party headers.
 #include <gtest/gtest.h>
 
 TEST(CliTests, GetUsageMessage_BeforeParseArgs_ReturnsFullUsageMessage) {

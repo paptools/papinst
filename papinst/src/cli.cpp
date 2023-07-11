@@ -1,10 +1,14 @@
 #include "papinst/cli.h"
+
+// Local headers.
 #include "papinst/exception.h"
 #include "papinst/version.h"
 
+// Third-party headers.
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
 
+// C++ standard library headers.
 #include <cstring>
 #include <memory>
 #include <sstream>

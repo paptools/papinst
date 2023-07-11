@@ -1,8 +1,13 @@
 #include "papinst/utils.h"
 
-#include <boost/filesystem.hpp>
-#include <spdlog/spdlog.h>
+// Local headers.
+#include "papinst/logger.h"
 
+// Third-party headers.
+#include <boost/filesystem.hpp>
+#include <fmt/format.h>
+
+// C++ standard library headers.
 #include <fstream>
 #include <regex>
 #include <string>
@@ -28,7 +33,7 @@ std::string ToString(const std::vector<std::string> &v, const char sep) {
 
 bool IsSupportedCompiler(const std::string &compiler) {
   boost::filesystem::path compiler_path(compiler);
-  std::regex pattern(R"(^(gcc|g\+\+|clang|clang\+\+))");
+  std::regex pattern(R"(^(gcc|g\+\+|clang|clang\+\+|cc|c\+\+))");
   return std::regex_search(compiler_path.filename().string(), pattern);
 }
 
@@ -45,11 +50,12 @@ std::string GetFileContents(const std::string &filepath) {
   return contents;
 }
 
-std::string CreateInstFile(const std::string &filepath) {
+std::string CreateInstFile(std::shared_ptr<Logger> logger,
+                           const std::string &filepath) {
   boost::filesystem::path inst_filepath(filepath);
   auto extension = inst_filepath.extension();
   inst_filepath.replace_extension(".papinst" + extension.string());
-  spdlog::debug("Creating file '{}'.", inst_filepath.string());
+  logger->Debug(fmt::format("Creating file '{}'.", inst_filepath.string()));
   if (!s_dry_run) {
     boost::filesystem::copy_file(
         filepath, inst_filepath.string(),
@@ -59,8 +65,9 @@ std::string CreateInstFile(const std::string &filepath) {
   return inst_filepath.string();
 }
 
-void RemoveInstFile(const std::string &filepath) {
-  spdlog::debug("Removing file '{}'.", filepath);
+void RemoveInstFile(std::shared_ptr<Logger> logger,
+                    const std::string &filepath) {
+  logger->Debug(fmt::format("Removing file '{}'.", filepath));
   if (!s_dry_run) {
     boost::filesystem::remove(filepath);
   }

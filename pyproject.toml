@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 80
+preview = true
+include = '''
+(
+  \.pyi?$
+  | paptrace/tools
+)
+'''

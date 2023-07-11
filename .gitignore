@@ -1,5 +1,6 @@
-# Build directory.
+# Build/install directory.
 build/
+install/
 
 # Binary files.
 *.o
@@ -15,3 +16,6 @@ __pycache__/
 
 # Pytest cache files.
 .pytest_cache/
+
+# Jupyter notebook checkpoints.
+.ipynb_checkpoints/

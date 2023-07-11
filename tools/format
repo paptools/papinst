@@ -6,10 +6,14 @@ function main {
   local repo_dir="${script_dir}/.."
 
   cd "${repo_dir}" || return 1
-  find papinst/ \( -iname '*.h' -o -iname '*.cpp' \) -exec clang-format -i {} \;
-  find paptrace/ \( -iname '*.h' -o -iname '*.cpp' \) -exec clang-format -i {} \;
-  black -l 80 --preview .
-  echo "Formatted paptools code."
+  echo "Running clang-format ..."
+  find papinst \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; -exec clang-format -i {} \;
+  find paptrace \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; -exec clang-format -i {} \;
+
+  echo -e "\nRunning black ..."
+  black .
+
+  echo -e "\nFormatted paptools code."
 }
 
 main "$@"

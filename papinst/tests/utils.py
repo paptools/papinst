@@ -4,7 +4,12 @@ import pathlib
 
 def get_exe_path():
     """Return the path to the papinst binary."""
-    return pathlib.Path(__file__).parent.parent.parent / "build" / "bin" / "papinst"
+    return (
+        pathlib.Path(__file__).parent.parent.parent
+        / "build"
+        / "bin"
+        / "papinst"
+    )
 
 
 def get_timestamp_pattern():
