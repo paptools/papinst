@@ -9,7 +9,8 @@ import paptree
 
 
 def to_params_str(params):
-    return ", ".join([f"{param['name']}={param['value']}" for param in params])
+    # return ", ".join([f"{param['name']}={param['value']}" for param in params])
+    return ", ".join([f"{param['value']}" for param in params])
 
 
 def to_call_str(node):
@@ -127,24 +128,38 @@ def main():
     # It is expected that we start with some known values.
     # NOTE: This currently uses signatures to generalize (i.e., it is not accounting for context).
     known = {
-        "int operator-(unsigned short, int)": ["C_OP_INT_SUB"],
-        "int operator+(unsigned short, int)": ["C_OP_INT_ADD"],
-        "value_type operator=(value_type, int)": ["C_OP_INT_ASSIGN"],
-        "reference std::vector<unsigned long long>::operator[](size_type)": [
-            "C_OP_VEC_SUBSCRIPT"
-        ],
-        "value_type operator=(value_type, unsigned long long)": [
-            "C_OP_VEC_ASSIGN"
-        ],
-        "unsigned long long fibonacci::(anonymous namespace)::RecursiveMemoImpl(unsigned short, std::vector<unsigned long long> &)": [
-            "C_FIB_RECURSIVE_MEMO_IMPL"
-        ],
-        "unsigned long long operator+(unsigned long long, unsigned long long)": [
-            "C_OP_ULL_ADD"
-        ],
-        "unsigned long long operator=(unsigned long long, unsigned long long)": [
-            "C_OP_ULL_ASSIGN"
-        ],
+        # "int operator-(unsigned short, int)": ["C_OP_INT_SUB"],
+        # "int operator+(unsigned short, int)": ["C_OP_INT_ADD"],
+        # "value_type operator=(value_type, int)": ["C_OP_INT_ASSIGN"],
+        # "reference std::vector<unsigned long long>::operator[](size_type)": [
+        #    "C_OP_VEC_SUBSCRIPT"
+        # ],
+        # "value_type operator=(value_type, unsigned long long)": [
+        #    "C_OP_VEC_ASSIGN"
+        # ],
+        # "unsigned long long fibonacci::(anonymous namespace)::RecursiveMemoImpl(unsigned short, std::vector<unsigned long long> &)": [
+        #    "C_FIB_RECURSIVE_MEMO_IMPL"
+        # ],
+        # "unsigned long long operator+(unsigned long long, unsigned long long)": [
+        #    "C_OP_ULL_ADD"
+        # ],
+        # "unsigned long long operator=(unsigned long long, unsigned long long)": [
+        #    "C_OP_ULL_ASSIGN"
+        # ],
+        "int operator-(unsigned short, int)": [],
+        "int operator+(unsigned short, int)": [],
+        "value_type operator=(value_type, int)": [],
+        "reference std::vector<unsigned long long>::operator[](size_type)": [],
+        "value_type operator=(value_type, unsigned long long)": [],
+        "unsigned long long fibonacci::(anonymous namespace)::RecursiveMemoImpl(unsigned short, std::vector<unsigned long long> &)": (
+            []
+        ),
+        "unsigned long long operator+(unsigned long long, unsigned long long)": (
+            []
+        ),
+        "unsigned long long operator=(unsigned long long, unsigned long long)": (
+            []
+        ),
     }
     exprs = {}
     call_path_ids = {}
@@ -181,12 +196,14 @@ def main():
                 sig_data = expr_data.setdefault(tree.root.sig, {})
                 path_data = sig_data.setdefault(f"path_{path_id}", {})
                 param_str = to_params_str(tree.root.params)
-                with sympy.evaluate(False):
-                    sympy_expr = sympy.sympify(" + ".join(expr))
-                    path_data[param_str] = sympy.srepr(sympy_expr)
+                # with sympy.evaluate(False):
+                sympy_expr = sympy.sympify(" + ".join(expr))
+                path_data[param_str] = sympy.srepr(sympy_expr)
 
     print("\nProcessed Traces:")
     print(json.dumps(expr_data, indent=2))
+    with open(args.output_file, "w") as f_out:
+        f_out.write(json.dumps(expr_data, indent=2))
 
 
 if __name__ == "__main__":
