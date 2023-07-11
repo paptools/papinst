@@ -1,0 +1,34 @@
+{
+  "unsigned long long fibonacci::RecursiveNaive(unsigned short)": {
+    "path_0": {
+      "0": "Symbol('C_P0')",
+      "1": "Symbol('C_P0')"
+    },
+    "path_1": {
+      "2": "Add(Mul(Integer(2), Symbol('C_P0')), Symbol('C_P1'))",
+      "3": "Add(Mul(Integer(3), Symbol('C_P0')), Mul(Integer(2), Symbol('C_P1')))",
+      "4": "Add(Mul(Integer(5), Symbol('C_P0')), Mul(Integer(4), Symbol('C_P1')))",
+      "5": "Add(Mul(Integer(8), Symbol('C_P0')), Mul(Integer(7), Symbol('C_P1')))",
+      "6": "Add(Mul(Integer(13), Symbol('C_P0')), Mul(Integer(12), Symbol('C_P1')))",
+      "7": "Add(Mul(Integer(21), Symbol('C_P0')), Mul(Integer(20), Symbol('C_P1')))"
+    },
+    "path_2": {
+      "94": "Symbol('C_P2')"
+    }
+  },
+  "unsigned long long fibonacci::LookupTable(unsigned short)": {
+    "path_0": {
+      "0": "Symbol('C_P0')",
+      "1": "Symbol('C_P0')",
+      "2": "Symbol('C_P0')",
+      "3": "Symbol('C_P0')",
+      "4": "Symbol('C_P0')",
+      "5": "Symbol('C_P0')",
+      "6": "Symbol('C_P0')",
+      "7": "Symbol('C_P0')"
+    },
+    "path_1": {
+      "94": "Symbol('C_P1')"
+    }
+  }
+}
