@@ -100,7 +100,6 @@ def get_path_partitions(trees):
 
 
 def main():
-    # Takes 2 arguments: input file and output file
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help="input file")
     parser.add_argument("output_file", help="output file")
