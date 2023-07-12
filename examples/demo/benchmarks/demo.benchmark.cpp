@@ -3,11 +3,19 @@
 #include <benchmark/benchmark.h>
 
 namespace benchmarks {
-void IsSuccessExitCode(benchmark::State &state) {
+void IsEven(benchmark::State &state) {
   for (auto _ : state) {
-    demo::IsSuccessExitCode(state.range(0));
+    demo::IsEven(state.range(0));
   }
 }
+
+void Factorial(benchmark::State &state) {
+  for (auto _ : state) {
+    demo::Factorial(state.range(0));
+  }
+}
+
 } // namespace benchmarks
 
-BENCHMARK(benchmarks::IsSuccessExitCode)->DenseRange(0, 40, 8);
+BENCHMARK(benchmarks::IsEven)->DenseRange(0, 40, 8);
+BENCHMARK(benchmarks::Factorial)->DenseRange(0, 30, 6);
