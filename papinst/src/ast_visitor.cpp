@@ -133,12 +133,9 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceOpInstBegin(int id, const std::string &sig,
-                                const std::string &lhs,
-                                const std::string &rhs) {
-  static const std::string template_str =
-      "(PAPTRACE_OP_NODE({}, \"{}\", {}, {}), ";
-  return fmt::format(template_str, id, sig, lhs, rhs);
+std::string GetTraceOpInstBegin(int id, const std::string &sig) {
+  static const std::string template_str = "(PAPTRACE_OP_NODE({}, \"{}\"), ";
+  return fmt::format(template_str, id, sig);
 }
 std::string GetTraceOpInstEnd() { return ")"; }
 
@@ -529,18 +526,18 @@ public:
       auto id = op->getID(*context_);
       const std::string sig = GetBinaryOperatorSignature(op);
       auto lhs = op->getLHS()->IgnoreUnlessSpelledInSource();
-      const std::string lhs_str =
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str();
+      // const std::string lhs_str =
+      //     clang::Lexer::getSourceText(
+      //         clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
+      //         context_->getSourceManager(), context_->getLangOpts())
+      //         .str();
       auto rhs = op->getRHS()->IgnoreUnlessSpelledInSource();
-      const std::string rhs_str =
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str();
-      auto inst_text = GetTraceOpInstBegin(id, sig, lhs_str, rhs_str);
+      // const std::string rhs_str =
+      //     clang::Lexer::getSourceText(
+      //         clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
+      //         context_->getSourceManager(), context_->getLangOpts())
+      //         .str();
+      auto inst_text = GetTraceOpInstBegin(id, sig);
 
       auto begin_loc = op->getLHS()->getBeginLoc();
       if (auto err = Add(PrependSourceLoc(*context_, begin_loc, inst_text))) {
