@@ -13,9 +13,7 @@ def get_data_ext(compiler):
     """Return the file extension for the data file."""
     system = platform.system()
     machine = platform.machine()
-    id_str = f"{system}-{machine}-{compiler}"
-    id_str = id_str.replace(" ", "-").replace(".", "-").lower()
-    return f".{id_str}.json"
+    return f".{system}-{machine}-{compiler}.json".lower()
 
 
 def collect_data(compiler, exp_data_dir):
@@ -32,6 +30,17 @@ def collect_data(compiler, exp_data_dir):
     if rv.returncode != 0:
         raise RuntimeError(
             "Build failed with the following"
+            f" output:\n{rv.stdout.decode('utf-8')}"
+        )
+
+    # Run the target binary unit tests to generate the trace data.
+    test_cmd = ["./build/demo_unit_tests"]
+    rv = subprocess.run(
+        build_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    if rv.returncode != 0:
+        raise RuntimeError(
+            "Test runner failed with the following"
             f" output:\n{rv.stdout.decode('utf-8')}"
         )
 
