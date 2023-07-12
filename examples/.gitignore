@@ -1,6 +1,0 @@
-# Ignore everything.
-*
-
-# Except the following files.
-!simple.cpp
-!control_flow.cpp
