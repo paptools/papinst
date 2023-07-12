@@ -8,13 +8,20 @@ set(CMAKE_CXX_STANDARD 17)
 include(GNUInstallDirs)
 
 ################################################################################
+# Options.
+option(DEMO_PERF "Enable performance tests." OFF)
+
+################################################################################
 # Third Party Dependencies.
 
-## This assumes that paptools was installed using the provided build script.
-#find_package(paptools REQUIRED
-#  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../install"
-#)
-include("cmake/FindGoogleTest.cmake")
+if (DEMO_PERF)
+# This assumes that paptools was installed using the provided build script.
+  find_package(paptools REQUIRED
+    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../install"
+  )
+else ()
+  include("cmake/FindGoogleTest.cmake")
+endif ()
 include("cmake/FindBenchmark.cmake")
 
 ################################################################################
@@ -30,7 +37,9 @@ target_include_directories(demo
     $<INSTALL_INTERFACE:include>
 )
 
-#paptrace_trace_target(demo)
+if (DEMO_PERF)
+  paptrace_trace_target(demo)
+endif ()
 
 ################################################################################
 # Project Tests.
