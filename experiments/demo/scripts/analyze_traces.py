@@ -7,6 +7,9 @@ import platform
 import os
 import shutil
 import datetime
+import json
+
+import paptree
 
 
 def get_data_ext(compiler):
@@ -16,14 +19,15 @@ def get_data_ext(compiler):
     return f".{system}-{machine}-{compiler}.json".lower()
 
 
-def process_traces(analysis_script, trace_file):
+def process_traces(known_exprs, trace_file):
     logging.info(f"Analyzing traces for: {trace_file.name}.")
 
+    trees = paptree.utils.from_file(trace_file)
+    logging.info(f"Loaded {len(trees)} traces.")
+
+    results = paptree.analyze.analyze(known_exprs, trees)
     output_name = f"trace_exprs{''.join(trace_file.suffixes)}"
-    output_file = trace_file.parent / output_name
-    cmd = [analysis_script, trace_file, output_file]
-    if subprocess.check_call(cmd) != 0:
-        raise RuntimeError("Trace analysis failed.")
+    logging.info(f"Writing results to {output_name}.")
 
 
 def main():
@@ -42,13 +46,14 @@ def main():
         raise RuntimeError(f"No trace data files found in {exp_data_dir}.")
     logging.info(f"Found {len(trace_files)} trace data files.")
 
-    # Get the analysis script directory.
-    repo_dir = script_dir.parent.parent.absolute()
-    analysis_script = repo_dir / "tools" / "process_traces.py"
+    # Get a list of known complexities.
+    known_exprs = []
+    with open(exp_data_dir / "known_exprs.json", "r") as f:
+        known_exprs = json.load(f)
 
     # Process the traces for each data file.
     for trace_file in trace_files:
-        process_traces(analysis_script, trace_file)
+        process_traces(known_exprs, trace_file)
 
     logging.info("Trace analysis is complete.")
 

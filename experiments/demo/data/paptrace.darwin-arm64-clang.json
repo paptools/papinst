@@ -1,0 +1,1307 @@
+{
+  "traces": [
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "0"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "2"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "4"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "1"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "3"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "5"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "-2147483648"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 1472,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1474,
+      "params": [
+        {
+          "name": "value",
+          "value": "2147483647"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "desc": "return -1",
+              "id": 1562,
+              "type": "ReturnStmt"
+            }
+          ],
+          "desc": "value < 0 || value > 31",
+          "id": 1564,
+          "type": "IfThenStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "-1"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "desc": "return -1",
+              "id": 1562,
+              "type": "ReturnStmt"
+            }
+          ],
+          "desc": "value < 0 || value > 31",
+          "id": 1564,
+          "type": "IfThenStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "32"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "0"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "1"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "1"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "1"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "2"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "2"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "1"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "2"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2"
+                    },
+                    {
+                      "name": "i",
+                      "value": "3"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "3"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "1"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "2"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2"
+                    },
+                    {
+                      "name": "i",
+                      "value": "3"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "6"
+                    },
+                    {
+                      "name": "i",
+                      "value": "4"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "4"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "1"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1"
+                    },
+                    {
+                      "name": "i",
+                      "value": "2"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2"
+                    },
+                    {
+                      "name": "i",
+                      "value": "3"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "6"
+                    },
+                    {
+                      "name": "i",
+                      "value": "4"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "24"
+                    },
+                    {
+                      "name": "i",
+                      "value": "5"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "120"
+                    },
+                    {
+                      "name": "i",
+                      "value": "6"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "720"
+                    },
+                    {
+                      "name": "i",
+                      "value": "7"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "5040"
+                    },
+                    {
+                      "name": "i",
+                      "value": "8"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "40320"
+                    },
+                    {
+                      "name": "i",
+                      "value": "9"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "362880"
+                    },
+                    {
+                      "name": "i",
+                      "value": "10"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "3628800"
+                    },
+                    {
+                      "name": "i",
+                      "value": "11"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "39916800"
+                    },
+                    {
+                      "name": "i",
+                      "value": "12"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "479001600"
+                    },
+                    {
+                      "name": "i",
+                      "value": "13"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1932053504"
+                    },
+                    {
+                      "name": "i",
+                      "value": "14"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1278945280"
+                    },
+                    {
+                      "name": "i",
+                      "value": "15"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2004310016"
+                    },
+                    {
+                      "name": "i",
+                      "value": "16"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2004189184"
+                    },
+                    {
+                      "name": "i",
+                      "value": "17"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-288522240"
+                    },
+                    {
+                      "name": "i",
+                      "value": "18"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-898433024"
+                    },
+                    {
+                      "name": "i",
+                      "value": "19"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "109641728"
+                    },
+                    {
+                      "name": "i",
+                      "value": "20"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-2102132736"
+                    },
+                    {
+                      "name": "i",
+                      "value": "21"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-1195114496"
+                    },
+                    {
+                      "name": "i",
+                      "value": "22"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-522715136"
+                    },
+                    {
+                      "name": "i",
+                      "value": "23"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "862453760"
+                    },
+                    {
+                      "name": "i",
+                      "value": "24"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-775946240"
+                    },
+                    {
+                      "name": "i",
+                      "value": "25"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "2076180480"
+                    },
+                    {
+                      "name": "i",
+                      "value": "26"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-1853882368"
+                    },
+                    {
+                      "name": "i",
+                      "value": "27"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1484783616"
+                    },
+                    {
+                      "name": "i",
+                      "value": "28"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-1375731712"
+                    },
+                    {
+                      "name": "i",
+                      "value": "29"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "-1241513984"
+                    },
+                    {
+                      "name": "i",
+                      "value": "30"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 1653,
+                  "params": [
+                    {
+                      "name": "result",
+                      "value": "1409286144"
+                    },
+                    {
+                      "name": "i",
+                      "value": "31"
+                    }
+                  ],
+                  "sig": "int operator*=(int, int)",
+                  "type": "CallerExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 1662,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 1662,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 1676,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 1678,
+      "params": [
+        {
+          "name": "value",
+          "value": "31"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    }
+  ],
+  "version": "0.1.0"
+}
