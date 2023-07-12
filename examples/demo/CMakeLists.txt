@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(paptools_demo CXX)
+project(paptools_demo C CXX)
 
 ################################################################################
 # Project Settings.

@@ -6,7 +6,10 @@ function main {
   local repo_dir="${script_dir}/.."
 
   cd "${repo_dir}" || return 1
-  cmake -S . -B build || return 1
+  cmake -S . -B build -DDEMO_PERF=ON -DCMAKE_C_COMPILER="$(which clang)" \
+    -DCMAKE_CXX_COMPILER="$(which clang++)" \
+    || return 1
+  export PAPINST_WRAPPER_OPTS="-v" # Disable dry-run mode and enable verbose mode.
   cmake --build build -j 8
 }
 
