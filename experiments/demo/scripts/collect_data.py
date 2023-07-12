@@ -24,25 +24,29 @@ def collect_data(compiler, exp_data_dir):
 
     # Build the target source code with the specified compiler.
     build_cmd = ["./tools/build", compiler, "--perf"]
-    rv = subprocess.run(
-        build_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    if rv.returncode != 0:
-        raise RuntimeError(
-            "Build failed with the following"
-            f" output:\n{rv.stdout.decode('utf-8')}"
-        )
+    if subprocess.check_call(build_cmd) != 0:
+        raise RuntimeError("Build failed.")
+    # rv = subprocess.run(
+    #    build_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    # )
+    # if rv.returncode != 0:
+    #    raise RuntimeError(
+    #        "Build failed with the following"
+    #        f" output:\n{rv.stdout.decode('utf-8')}"
+    #    )
 
     # Run the target binary unit tests to generate the trace data.
-    test_cmd = ["./build/demo_unit_tests"]
-    rv = subprocess.run(
-        build_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    if rv.returncode != 0:
-        raise RuntimeError(
-            "Test runner failed with the following"
-            f" output:\n{rv.stdout.decode('utf-8')}"
-        )
+    test_cmd = ["./tools/test"]
+    if subprocess.check_call(test_cmd) != 0:
+        raise RuntimeError("Test runner failed.")
+    # rv = subprocess.run(
+    #    build_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    # )
+    # if rv.returncode != 0:
+    #    raise RuntimeError(
+    #        "Test runner failed with the following"
+    #        f" output:\n{rv.stdout.decode('utf-8')}"
+    #    )
 
     # Copy the generated data file to the experiment directory.
     data_file = build_dir / "paptrace.json"
@@ -52,6 +56,8 @@ def collect_data(compiler, exp_data_dir):
         exp_data_dir / data_file.with_suffix(get_data_ext(compiler)).name
     )
     shutil.copy(data_file, exp_data_file)
+    with open(exp_data_file, "rb") as f:
+        print(f.read())
     logging.info(f"Trace data saved to {exp_data_file}.")
 
 
