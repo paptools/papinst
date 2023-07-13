@@ -18,21 +18,11 @@ def to_call_str(node):
 
 def to_simple_node_view(node):
     sym = "sym @ " if hasattr(node, "target") else ""
-    if Node.is_call_type(node.type):
+    if node.is_call_node():
         desc = f" {to_call_str(node)}"
     else:
         desc = f" {node.type}: {node.desc}"
     return f"({sym}{node.name}){desc}"
-
-
-def is_cf_node(node):
-    return node.type in [
-        "IfThenStmt",
-        "ReturnStmt",
-        "CXXThrowExpr",
-        "ForStmt",
-        "LoopIter",
-    ]
 
 
 def link_recursive_nodes(trees):
@@ -74,11 +64,7 @@ def get_path_partitions(trees):
     path_dict = {}
     for tree in trees:
         sig_paths = path_dict.setdefault(tree.root.sig, {})
-        cf_nodes = [
-            node.name
-            for node in anytree.PreOrderIter(tree.root, filter_=is_cf_node)
-        ]
-        cf_tuple = tuple(cf_nodes)
+        cf_tuple = tuple(tree.get_cf_nodes())
         sig_paths.setdefault(
             cf_tuple, {"path_id": len(sig_paths), "traces": []}
         )["traces"].append(tree)
@@ -100,7 +86,7 @@ def get_expr_data(path_dict, known):
             subexpr.append(
                 f"C_F{node.name}_P{call_path_ids[to_call_str(node)]}"
             )
-        elif Node.is_call_type(node.type):
+        elif node.is_call_node():
             # print(f"{' ' * 2 * level}including node {to_simple_node_view(node)}")
             if node.sig in known:
                 subexpr.extend(known[node.sig])
@@ -189,6 +175,11 @@ def analyze(known, trees):
     print("\nPaths per signature:")
     for k, v in path_dict.items():
         print(f"- {k}: {len(v)}")
+    print("\nPaths:")
+    for sig, sig_paths in path_dict.items():
+        print(f"- {sig}:")
+        for path_id, path_data in sig_paths.items():
+            print(f"  - path_{path_id}:")
 
     expr_data = get_expr_data(path_dict, known)
     print("\nProcessed Traces:")

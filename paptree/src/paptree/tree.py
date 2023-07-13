@@ -24,3 +24,7 @@ class Tree:
         )
         name = f"{root.sig}({param_str})"
         return Tree(name, root)
+
+    def get_cf_nodes(self):
+        """Return a list of control flow nodes."""
+        return self.root.get_cf_nodes()
