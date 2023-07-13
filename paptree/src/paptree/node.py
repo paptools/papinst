@@ -98,9 +98,14 @@ class StmtNode(Node):
         if self._expr is not None:
             return self._expr
 
-        self._expr = (
-            sympy.sympify(f"T_{self.name}") if not self.is_cf_node() else None
-        )
+        if self.desc in known_exprs:
+            self._expr = sympy.sympify(known_exprs[self.desc])
+        else:
+            self._expr = (
+                sympy.sympify(f"T_{self.name}")
+                if not self.is_cf_node()
+                else None
+            )
         for child in self.children:
             child_expr = child.to_expr(known_exprs)
             if child_expr is None:
@@ -218,11 +223,16 @@ class CallNode(Node):
         if self._expr is not None:
             return self._expr
 
-        prefix = "C" if self.type == "CalleeExpr" else "T"
-        self._expr = sympy.sympify(f"{prefix}_{self.name}")
-        for child in self.children:
-            child_expr = child.to_expr(known_exprs)
-            if child_expr is None:
-                continue
-            self._expr += child.to_expr(known_exprs)
+        if self.type == "CallerExpr":
+            if self.sig in known_exprs:
+                self._expr = sympy.sympify(known_exprs[self.sig])
+            else:
+                self._expr = sympy.sympify(f"T_{self.name}")
+        else:
+            self._expr = sympy.sympify(f"C_{self.name}")
+            for child in self.children:
+                child_expr = child.to_expr(known_exprs)
+                if child_expr is None:
+                    continue
+                self._expr += child_expr
         return self._expr

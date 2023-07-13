@@ -1,5 +1,3 @@
 {
-  "int operator*=(int, int)": [
-    "C_OP_MUL_ASSIGN"
-  ]
+  "int operator*=(int, int)": "C_OP_MUL_ASSIGN_INT_INT"
 }
