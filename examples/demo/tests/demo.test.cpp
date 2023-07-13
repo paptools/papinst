@@ -44,4 +44,16 @@ TEST(DemoTest, Fibonacci) {
 
   EXPECT_EQ(Fibonacci(46), 1836311903);
 }
+
+TEST(DemoTest, IsPrime) {
+  std::vector<int> primes = {2, 3, 5, 7, 11};
+  for (int prime : primes) {
+    EXPECT_TRUE(IsPrime(prime));
+  }
+
+  std::vector<int> not_primes = {0, 1, 4, 6, 8};
+  for (int not_prime : not_primes) {
+    EXPECT_FALSE(IsPrime(not_prime));
+  }
+}
 } // namespace demo
