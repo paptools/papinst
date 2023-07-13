@@ -6,7 +6,7 @@ function main {
   local repo_dir="${script_dir}/.."
 
   cd "${repo_dir}" || return 1
-  cmake -E chdir build ./demo_benchmarks
+  cmake -E chdir build ./demo_benchmarks --benchmark_min_warmup_time=0.2
 }
 
 main "$@"
