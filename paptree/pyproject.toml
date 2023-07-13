@@ -17,6 +17,8 @@ classifiers = [
 ]
 dependencies = [
   "anytree>=2.8.0",
+  "gplearn>=0.4.2",
+  "sympy>=1.12",
 ]
 
 [project.urls]
