@@ -46,7 +46,9 @@ class StmtNode(Node):
         if Node.is_call_type(type_ := trace["type"]):
             raise ValueError(f"Type '{type_}' is not a StmtNode type.")
         children = [Node.from_trace(child) for child in trace["children"]]
-        desc = trace["desc"] if "desc" in trace else None
+        desc = (
+            trace["sig"] if "sig" in trace else trace["desc"]
+        )  # For op nodes.
         return StmtNode(
             name=trace["id"],
             type_=type_,
