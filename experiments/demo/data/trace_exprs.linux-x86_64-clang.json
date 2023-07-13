@@ -1,42 +1,38 @@
 {
-    "sigs": {
-        "_Bool demo::IsEven(int)": "sig_0",
-        "int demo::Factorial(int)": "sig_1"
+  "sigs": {
+    "_Bool demo::IsEven(int)": "sig_0",
+    "int demo::Factorial(int)": "sig_1"
+  },
+  "ctxs": {
+    "sig_0": {
+      "0": "path_0",
+      "2": "path_0",
+      "4": "path_0",
+      "1": "path_0",
+      "3": "path_0",
+      "5": "path_0",
+      "-2147483648": "path_0",
+      "2147483647": "path_0"
     },
-    "ctxs": {
-        "sig_0": {
-            "0": "path_0",
-            "2": "path_0",
-            "4": "path_0",
-            "1": "path_0",
-            "3": "path_0",
-            "5": "path_0",
-            "-2147483648": "path_0",
-            "2147483647": "path_0"
-        },
-        "sig_1": {
-            "-1": "path_0",
-            "32": "path_0",
-            "0": "path_1",
-            "1": "path_2",
-            "2": "path_3",
-            "3": "path_4",
-            "4": "path_5",
-            "31": "path_6"
-        }
-    },
-    "exprs": {
-        "sig_0": {
-            "path_0": "Symbol('C_F726_P0')"
-        },
-        "sig_1": {
-            "path_0": "Symbol('C_F929_P0')",
-            "path_1": "Symbol('C_F929_P1')",
-            "path_2": "Symbol('C_F929_P2')",
-            "path_3": "Symbol('C_F929_P3')",
-            "path_4": "Symbol('C_F929_P4')",
-            "path_5": "Symbol('C_F929_P5')",
-            "path_6": "Symbol('C_F929_P6')"
-        }
+    "sig_1": {
+      "-1": "path_0",
+      "32": "path_0",
+      "0": "path_1",
+      "1": "path_2",
+      "2": "path_2",
+      "3": "path_2",
+      "4": "path_2",
+      "31": "path_2"
     }
+  },
+  "exprs": {
+    "sig_0": {
+      "path_0": "Symbol('C_726')"
+    },
+    "sig_1": {
+      "path_0": "Symbol('C_929')",
+      "path_1": "Symbol('C_929')",
+      "path_2": "Add(Symbol('C_929'), Mul(Add(Symbol('C_OP_MUL_ASSIGN_INT_INT'), Symbol('T_890')), Pow(Pow(Symbol('X0'), Integer(2)), Rational(1, 2))))"
+    }
+  }
 }
