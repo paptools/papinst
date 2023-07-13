@@ -143,14 +143,6 @@ def solve_exprs(expr_data):
 
 
 def analyze(known, trees):
-    # Bin traces by signature.
-    bins = {}
-    for tree in trees:
-        bins.setdefault(tree.root.sig, []).append(tree)
-    print("\nTraces per signature:")
-    for k, v in bins.items():
-        print(f"- {k}: {len(v)}")
-
     link_recursive_nodes(trees)
 
     path_dict = get_path_partitions(trees)
