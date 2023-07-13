@@ -2,9 +2,77 @@ import json
 
 import anytree
 import sympy
+import gplearn
+from gplearn.genetic import SymbolicRegressor
+import numpy as np
 
 from .node import Node
 from .utils import from_file
+
+
+def to_sympy_expr(prog):
+    """Convert a program to a sympy expression."""
+    locals = {
+        "sub": lambda x, y: x - y,
+        "div": lambda x, y: x / y,
+        "mul": lambda x, y: x * y,
+        "add": lambda x, y: x + y,
+        "neg": lambda x: -x,
+        "pow": lambda x, y: x**y,
+        "cos": lambda x: sympy.cos(x),
+        "sqrt": lambda x: sympy.sqrt(x),
+    }
+    return sympy.simplify(sympy.sympify(str(prog), locals=locals))
+
+
+def symbolic_regression(data):
+    # Extract x and y from the data
+    x = np.array([item[0] for item in data]).reshape(-1, 1)
+    y = np.array([item[1] for item in data])
+
+    # Create symbolic regressor
+    # def _pow_exp(x1):
+    #    with np.errstate(divide='ignore', invalid='ignore'):
+    #        if (x1 > 10).any():
+    #            return 0.
+    #        try:
+    #            result = np.power(2, x1)
+    #            #print(result)
+    #            return result
+    #        except OverflowError:
+    #            return 0.
+    #        except ValueError:  # The math domain error
+    #            return 0.
+    #        except RuntimeWarning:
+    #            return 0.
+
+    # pow_exp = gplearn.functions.make_function(
+    #    function=_pow_exp,
+    #    name='pow_exp',
+    #    arity=1
+    # )
+    # function_set=['add', 'mul', 'log', 'sqrt', pow_exp]
+    function_set = ["add", "mul", "log", "sqrt"]
+    sr = SymbolicRegressor(
+        population_size=5000,
+        generations=20,
+        function_set=function_set,
+        stopping_criteria=0.01,
+        p_crossover=0.7,
+        p_subtree_mutation=0.1,
+        p_hoist_mutation=0.05,
+        p_point_mutation=0.1,
+        max_samples=0.9,
+        verbose=1,
+        parsimony_coefficient="auto",
+        random_state=0,
+        n_jobs=1,
+        init_method="grow",
+    )
+
+    # Fit the data
+    sr.fit(x, y)
+    return sr._program
 
 
 def to_params_str(params):
@@ -63,75 +131,6 @@ def get_path_partitions(trees):
     return path_dict
 
 
-# def get_expr_data(path_dict, known):
-#    exprs = {}
-#    call_path_ids = {}
-#
-#    # Expr data should map: sig->path_id->ctx->expr
-#    expr_data = {}
-#
-#    for sig, sig_paths in path_dict.items():
-#        for _, path_data in sig_paths.items():
-#            path_id = path_data["path_id"]
-#            for tree in path_data["traces"]:
-#                call_path_ids[to_call_str(tree.root)] = path_id
-#                with sympy.evaluate(False):
-#                    expr = tree.root.to_expr(known)
-#                exprs[to_call_str(tree.root)] = expr
-#                sig_data = expr_data.setdefault(tree.root.sig, {})
-#                path_data = sig_data.setdefault(f"path_{path_id}", {})
-#                param_str = to_params_str(tree.root.params)
-#                path_data[param_str] = sympy.srepr(expr)
-#    return expr_data
-
-
-# def solve(path_exprs):
-#    # If there is only one expression, return it.
-#    if len(path_exprs) == 1:
-#        return list(path_exprs.values())[0]
-#    # Check if all expressions are equal. If they are, return the expression
-#    # since it is constant.
-#    expr_set = set([e for _, e in path_exprs.items()])
-#    if len(expr_set) == 1:
-#        return expr_set.pop()
-#    else:
-#        print("\nUnsolved exprs:")
-#        for expr in expr_set:
-#            print(expr)
-#    return None
-
-
-# def solve_exprs(expr_data):
-#    # Solve for each path.
-#    # We will want to query the results with a tuple of (signature, ctx). To do
-#    # this we will need to map the ctx for a signature to the correct path ID.
-#    # Therefore, the results will need to contain two sections:
-#    # 1. A mapping from (signature) to sig_id.
-#    # 2. A mapping from (sig_id, ctx) to path_id.
-#    # 3. A mapping from (sig_id, path_id) to the path expression.
-#    results = {"sigs": {}, "ctxs": {}, "exprs": {}}
-#
-#    skip_sigs = ["unsigned long long fibonacci::RecursiveMemo(unsigned short)"]
-#    for sig, sig_data in expr_data.items():
-#        if sig in skip_sigs:
-#            continue
-#        sig_id = results["sigs"].setdefault(sig, f"sig_{len(results['sigs'])}")
-#        for path_id, path_data in sig_data.items():
-#            path_exprs = {}
-#            for ctx, expr in path_data.items():
-#                sexpr = sympy.sympify(expr)
-#                path_exprs[ctx] = sexpr
-#            result = solve(path_exprs)
-#            if result:
-#                results["exprs"].setdefault(sig_id, {})[path_id] = sympy.srepr(
-#                    result
-#                )
-#                result_ctxs = results["ctxs"].setdefault(sig_id, {})
-#                for ctx in path_exprs.keys():
-#                    result_ctxs[ctx] = path_id
-#    return results
-
-
 def is_constant(exprs):
     """Returns True if all expressions are equal."""
     return len(set(exprs)) == 1
@@ -149,10 +148,11 @@ def find_repr_exprs(path_dict, known):
     def add_result(sig, path_id, expr, trees):
         print(f"  Found expr.: {expr}")
         sig_id = results["sigs"].setdefault(sig, f"sig_{len(results['sigs'])}")
-        results["exprs"].setdefault(sig_id, {})[path_id] = sympy.srepr(expr)
+        path_id_str = f"path_{path_id}"
+        results["exprs"].setdefault(sig_id, {})[path_id_str] = sympy.srepr(expr)
         result_ctxs = results["ctxs"].setdefault(sig_id, {})
         for tree in trees:
-            result_ctxs[to_call_str(tree.root)] = path_id
+            result_ctxs[to_params_str(tree.root.params)] = path_id_str
 
     for sig, sig_entry in path_dict.items():
         for cf_tuple, path_entry in sig_entry.items():
@@ -166,8 +166,26 @@ def find_repr_exprs(path_dict, known):
             if is_constant(exprs):
                 add_result(sig, path_id, exprs[0], trees)
                 continue
-            else:
-                pass
+
+            if trees[0].has_loop():
+                ctxs = [int(to_params_str(tree.root.params)) for tree in trees]
+                loop_nodes = [tree.get_loop_nodes() for tree in trees]
+                ref_nodes = loop_nodes[0]
+                for i, ref_node in enumerate(ref_nodes):
+                    iter_cnts = [ref_node.iter_count]
+                    # Get the expressions for each entry in loop_nodes except the 0th.
+                    for j in range(1, len(loop_nodes)):
+                        alt_node = loop_nodes[j][i]
+                        iter_cnts.append(alt_node.iter_count)
+                    data = []
+                    for j in range(0, len(ctxs)):
+                        data.append((ctxs[j], iter_cnts[j]))
+                    prog = symbolic_regression(data)
+                    loop_expr = to_sympy_expr(prog)
+                    ref_node.loop_expr = loop_expr
+                add_result(sig, path_id, trees[0].to_expr(known), trees)
+                continue
+
             print("  No general expr. found for exprs:")
             for expr in exprs:
                 print(f"    {expr}")
@@ -188,11 +206,6 @@ def analyze(known, trees):
                 f" {len(path_entry['traces'])} traces"
             )
 
-    # expr_data = get_expr_data(path_dict, known)
-    # print("\nProcessed Traces:")
-    # print(json.dumps(expr_data, indent=2))
-
-    # results = solve_exprs(expr_data)
     results = find_repr_exprs(path_dict, known)
     return results
     print("\nResults:")

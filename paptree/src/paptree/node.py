@@ -7,7 +7,6 @@ class Node(anytree.AnyNode):
         super(Node, self).__init__(
             name=name, _type=type_, parent=parent, children=children, **kwargs
         )
-        self._expr = None
 
     def __eq__(self, other):
         if not isinstance(other, Node):
@@ -61,6 +60,15 @@ class Node(anytree.AnyNode):
     def to_expr(self, known_exprs):
         raise NotImplementedError
 
+    def get_loop_nodes(self):
+        """Returns a list of loop nodes."""
+        loop_nodes = []
+        for child in self.children:
+            loop_nodes.extend(child.get_loop_nodes())
+        if self.is_loop_node():
+            loop_nodes.append(self)
+        return loop_nodes
+
 
 class StmtNode(Node):
     def __init__(self, name, type_, desc, parent=None, children=None):
@@ -95,13 +103,10 @@ class StmtNode(Node):
 
     def to_expr(self, known_exprs):
         """Returns a symbolic expression of the tree."""
-        if self._expr is not None:
-            return self._expr
-
         if self.desc in known_exprs:
-            self._expr = sympy.sympify(known_exprs[self.desc])
+            expr = sympy.sympify(known_exprs[self.desc])
         else:
-            self._expr = (
+            expr = (
                 sympy.sympify(f"T_{self.name}")
                 if not self.is_cf_node()
                 else None
@@ -110,10 +115,8 @@ class StmtNode(Node):
             child_expr = child.to_expr(known_exprs)
             if child_expr is None:
                 continue
-            self._expr = (
-                child_expr if self._expr is None else self._expr + child_expr
-            )
-        return self._expr
+            expr = child_expr if expr is None else expr + child_expr
+        return expr
 
 
 class LoopNode(StmtNode):
@@ -122,6 +125,7 @@ class LoopNode(StmtNode):
         # TODO: Iter count may need to be a list to support complex loops.
         self.iter_count = None
         self._cf_nodes = None
+        self.loop_expr = None
 
     def get_iter_count(self):
         """Return the number of iterations of this loop."""
@@ -162,8 +166,8 @@ class LoopNode(StmtNode):
                     raise ValueError(
                         "Loop children have different control flow nodes."
                     )
-                if pos == 1:  # Increment every time the body is executed.
-                    self.iter_count += 1
+            if pos == 1:  # Increment every time the body is executed.
+                self.iter_count += 1
         for child_cf_nodes in prev_cf_nodes:
             if child_cf_nodes is not None:
                 cf_nodes.extend(child_cf_nodes)
@@ -171,18 +175,20 @@ class LoopNode(StmtNode):
 
     def to_expr(self, known_exprs):
         """Returns a symbolic expression of the tree."""
-        if self._expr is not None:
-            return self._expr
-
-        for child in self.children:
+        expr = None
+        for idx, child in enumerate(self.children):
             child_expr = child.to_expr(known_exprs)
             if child_expr is None:
                 continue
-            if self._expr is None:
-                self._expr = child_expr
+            if expr is None:
+                expr = child_expr
             else:
-                self._expr += child_expr
-        return self._expr
+                expr += child_expr
+            if self.loop_expr and idx == 1:
+                print(f"Found established loop expr: {self.loop_expr}")
+                expr = sympy.Mul(self.loop_expr, expr)
+                break
+        return expr
 
 
 class CallNode(Node):
@@ -223,19 +229,16 @@ class CallNode(Node):
 
     def to_expr(self, known_exprs):
         """Returns a symbolic expression of the tree."""
-        if self._expr is not None:
-            return self._expr
-
         if self.type == "CallerExpr":
             if self.sig in known_exprs:
-                self._expr = sympy.sympify(known_exprs[self.sig])
+                expr = sympy.sympify(known_exprs[self.sig])
             else:
-                self._expr = sympy.sympify(f"T_{self.name}")
+                expr = sympy.sympify(f"T_{self.name}")
         else:
-            self._expr = sympy.sympify(f"C_{self.name}")
+            expr = sympy.sympify(f"C_{self.name}")
             for child in self.children:
                 child_expr = child.to_expr(known_exprs)
                 if child_expr is None:
                     continue
-                self._expr += child_expr
-        return self._expr
+                expr += child_expr
+        return expr
