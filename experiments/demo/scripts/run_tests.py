@@ -10,7 +10,7 @@ def run_tests(expr_file):
     logging.info(f"Running tests for: {expr_file.name}.")
 
     os.environ["TRACE_EXPR_DATA_PATH"] = str(expr_file.absolute())
-    if subprocess.check_call(["pytest"]) != 0:
+    if subprocess.check_call(["pytest", "-s"]) != 0:
         raise RuntimeError("Test runner failed.")
 
 

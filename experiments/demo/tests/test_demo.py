@@ -1,7 +1,8 @@
 import pytest
 import sympy
 from sympy import O, oo
-from sympy.abc import n
+
+X0 = sympy.Symbol("X0")
 
 
 def get_constant(x_):
@@ -27,13 +28,13 @@ def get_expr(data, sig, ctx):
     return sympy.sympify(expr)
 
 
-def test_is_even_constant():
+def test_is_even():
     sig = "_Bool demo::IsEven(int)"
     # All paths are constant.
     ctxs = ["0", "1", "2", "3", "4", "5"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(n)
+        assert expr in get_constant(X0)
 
 
 def test_factorial():
@@ -42,10 +43,12 @@ def test_factorial():
     ctxs = ["0", "32"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(n)
+        assert expr in get_constant(X0)
     # Paths for 1 <= x <= 31 are linear.
     ctxs = ["1", "2", "3"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_linear(n)
-        assert expr not in get_constant(n)
+        is_linear = expr in get_linear(X0)
+        assert is_linear is True
+        is_constant = expr in get_constant(X0)
+        assert is_constant is False
