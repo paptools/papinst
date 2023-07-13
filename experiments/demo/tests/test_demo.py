@@ -52,3 +52,18 @@ def test_factorial():
         assert is_linear is True
         is_constant = expr in get_constant(X0)
         assert is_constant is False
+
+
+def test_fibonacci():
+    sig = "int demo::Fibonacci(int)"
+    # Paths for x < 1 and x > 46 are constant.
+    ctxs = ["-1", "0", "47"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert expr in get_constant(X0)
+    # Paths for 1 <= x <= 46 are linear.
+    ctxs = ["1", "2", "3", "46"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert expr in get_linear(X0)
+    # Paths for x > 1 are exponential

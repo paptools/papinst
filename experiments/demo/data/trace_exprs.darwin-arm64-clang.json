@@ -1,7 +1,8 @@
 {
   "sigs": {
     "_Bool demo::IsEven(int)": "sig_0",
-    "int demo::Factorial(int)": "sig_1"
+    "int demo::Factorial(int)": "sig_1",
+    "int demo::Fibonacci(int)": "sig_2"
   },
   "ctxs": {
     "sig_0": {
@@ -23,16 +24,36 @@
       "3": "path_2",
       "4": "path_2",
       "31": "path_2"
+    },
+    "sig_2": {
+      "-1": "path_0",
+      "47": "path_0",
+      "0": "path_1",
+      "1": "path_2",
+      "2": "path_2",
+      "3": "path_2",
+      "4": "path_2",
+      "5": "path_2",
+      "6": "path_2",
+      "7": "path_2",
+      "8": "path_2",
+      "9": "path_2",
+      "46": "path_2"
     }
   },
   "exprs": {
     "sig_0": {
-      "path_0": "Symbol('C_1474')"
+      "path_0": "Symbol('C_1518')"
     },
     "sig_1": {
-      "path_0": "Symbol('C_1678')",
-      "path_1": "Symbol('C_1678')",
-      "path_2": "Add(Symbol('C_1678'), Mul(Add(Symbol('C_OP_MUL_ASSIGN_INT_INT'), Symbol('T_1639')), Pow(Pow(Symbol('X0'), Integer(2)), Rational(1, 2))))"
+      "path_0": "Symbol('C_1734')",
+      "path_1": "Symbol('C_1734')",
+      "path_2": "Add(Symbol('C_1734'), Mul(Add(Symbol('C_OP_MUL_ASSIGN_INT_INT'), Symbol('T_1695')), Pow(Pow(Symbol('X0'), Integer(2)), Rational(1, 2))))"
+    },
+    "sig_2": {
+      "path_0": "Symbol('C_2024')",
+      "path_1": "Symbol('C_2024')",
+      "path_2": "Add(Symbol('C_2024'), Mul(Add(Symbol('T_1944'), Symbol('T_1965'), Symbol('T_1969'), Symbol('T_1984'), Symbol('T_1999')), Pow(Pow(Symbol('X0'), Integer(2)), Rational(1, 2))))"
     }
   }
 }
