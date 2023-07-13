@@ -16,15 +16,6 @@ def to_call_str(node):
     return f"{node.sig}: ({to_params_str(node.params)})"
 
 
-def to_simple_node_view(node):
-    sym = "sym @ " if hasattr(node, "target") else ""
-    if node.is_call_node():
-        desc = f" {to_call_str(node)}"
-    else:
-        desc = f" {node.type}: {node.desc}"
-    return f"({sym}{node.name}){desc}"
-
-
 def link_recursive_nodes(trees):
     # Let's start by putting our trace root nodes in a container that allows us
     # to lookup the trace by context.
