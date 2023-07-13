@@ -52,6 +52,7 @@ def link_recursive_nodes(trees):
 
 
 def get_path_partitions(trees):
+    # Schema: {sig: {cf_tuple: {path_id: int, traces: [tree]}}}
     path_dict = {}
     for tree in trees:
         sig_paths = path_dict.setdefault(tree.root.sig, {})
@@ -74,14 +75,12 @@ def get_expr_data(path_dict, known):
             path_id = path_data["path_id"]
             for tree in path_data["traces"]:
                 call_path_ids[to_call_str(tree.root)] = path_id
-                expr = tree.root.to_expr(known)
-                print(f"expr for {to_call_str(tree.root)}: {expr}")
+                with sympy.evaluate(False):
+                    expr = tree.root.to_expr(known)
                 exprs[to_call_str(tree.root)] = expr
                 sig_data = expr_data.setdefault(tree.root.sig, {})
                 path_data = sig_data.setdefault(f"path_{path_id}", {})
                 param_str = to_params_str(tree.root.params)
-                # with sympy.evaluate(False):
-                # sympy_expr = sympy.sympify(" + ".join(expr))
                 path_data[param_str] = sympy.srepr(expr)
     return expr_data
 
@@ -137,14 +136,14 @@ def analyze(known, trees):
     link_recursive_nodes(trees)
 
     path_dict = get_path_partitions(trees)
-    print("\nPaths per signature:")
-    for k, v in path_dict.items():
-        print(f"- {k}: {len(v)}")
     print("\nPaths:")
-    for sig, sig_paths in path_dict.items():
-        print(f"- {sig}:")
-        for path_id, path_data in sig_paths.items():
-            print(f"  - path_{path_id}:")
+    for sig, sig_entry in path_dict.items():
+        print(f"- {sig}: {len(sig_entry)} paths")
+        for cf_tuple, path_entry in sig_entry.items():
+            print(
+                f"  - [path_{path_entry['path_id']}] {cf_tuple}:"
+                f" {len(path_entry['traces'])} traces"
+            )
 
     expr_data = get_expr_data(path_dict, known)
     print("\nProcessed Traces:")

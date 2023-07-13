@@ -166,12 +166,14 @@ class LoopNode(StmtNode):
         if self._expr is not None:
             return self._expr
 
-        self._expr = sympy.sympify(f"T_{self.name}")
         for child in self.children:
             child_expr = child.to_expr(known_exprs)
             if child_expr is None:
                 continue
-            self._expr += child_expr
+            if self._expr is None:
+                self._expr = child_expr
+            else:
+                self._expr += child_expr
         return self._expr
 
 
