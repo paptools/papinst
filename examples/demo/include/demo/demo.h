@@ -8,9 +8,13 @@ namespace demo {
 bool IsEven(int value);
 
 // Returns the factorial of the given value. Returns -1 if the given value is
-// negative.
+// negative or would cause an overflow.
 // Time: O(n)
 int Factorial(int value);
+
+// Returns the Nth Fibonacci number. Returns -1 if the given value is negative
+// or would cause an overflow. Time: O(n)
+int Fibonacci(int value);
 } // namespace demo
 
 #endif // DEMO_DEMO_H

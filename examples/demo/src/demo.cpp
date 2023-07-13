@@ -14,4 +14,20 @@ int Factorial(int value) {
   }
   return result;
 }
+
+int Fibonacci(int n) {
+  if (n < 0 || n > 46) {
+    return -1;
+  }
+
+  int a = 0;
+  int b = 1;
+  int c;
+  for (int i = 0; i < n; ++i) {
+    c = a + b;
+    a = b;
+    b = c;
+  }
+  return a;
+}
 } // namespace demo
