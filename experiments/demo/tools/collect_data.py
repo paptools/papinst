@@ -15,7 +15,7 @@ def get_data_ext(compiler):
     return f".{system}-{machine}-{compiler}.json".lower()
 
 
-def collect_data(compiler, exp_data_dir):
+def collect_data(compiler, raw_data_dir):
     logging.info(f"Collecting data for {compiler}.")
     # Remove the existing build directory if it exists.
     build_dir = pathlib.Path("build")
@@ -48,16 +48,16 @@ def collect_data(compiler, exp_data_dir):
     #    )
 
     # Copy the generated data file to the experiment directory.
-    data_file = build_dir / "paptrace.json"
-    if not data_file.exists():
-        raise RuntimeError(f"Data file {data_file} does not exist")
-    exp_data_file = (
-        exp_data_dir / data_file.with_suffix(get_data_ext(compiler)).name
+    trace_file = build_dir / "paptrace.json"
+    if not trace_file.exists():
+        raise RuntimeError(f"Data file {trace_file} does not exist")
+    raw_data_file = (
+        raw_data_dir / trace_file.with_suffix(get_data_ext(compiler)).name
     )
-    shutil.copy(data_file, exp_data_file)
-    with open(exp_data_file, "rb") as f:
+    shutil.copy(trace_file, raw_data_file)
+    with open(raw_data_file, "rb") as f:
         print(f.read())
-    logging.info(f"Trace data saved to {exp_data_file}.")
+    logging.info(f"Trace data saved to {raw_data_file}.")
 
 
 def main():
@@ -67,9 +67,7 @@ def main():
 
     # Create the experiment data directory if it does not exist.
     script_dir = pathlib.Path(__file__).parent.parent.absolute()
-    exp_data_dir = script_dir / "data"
-    if not exp_data_dir.exists():
-        exp_data_dir.mkdir()
+    raw_data_dir = script_dir / "data/raw"
 
     # Change the working directory to the demo directory.
     repo_dir = script_dir.parent.parent.absolute()
@@ -79,7 +77,7 @@ def main():
     # Collect data for each compiler.
     compilers = ["clang", "gcc"]
     for compiler in compilers:
-        collect_data(compiler, exp_data_dir)
+        collect_data(compiler, raw_data_dir)
 
     logging.info("Data collection is complete.")
 
