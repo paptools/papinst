@@ -1,4 +1,5 @@
 import anytree
+import sympy
 
 
 class Node(anytree.AnyNode):
@@ -6,6 +7,7 @@ class Node(anytree.AnyNode):
         super(Node, self).__init__(
             name=name, _type=type_, parent=parent, children=children, **kwargs
         )
+        self._expr = None
 
     def __eq__(self, other):
         if not isinstance(other, Node):
@@ -56,6 +58,9 @@ class Node(anytree.AnyNode):
     def get_cf_nodes(self):
         raise NotImplementedError
 
+    def to_expr(self, known_exprs):
+        raise NotImplementedError
+
 
 class StmtNode(Node):
     def __init__(self, name, type_, desc, parent=None, children=None):
@@ -87,6 +92,23 @@ class StmtNode(Node):
         for child in self.children:
             cf_nodes.extend(child.get_cf_nodes())
         return cf_nodes
+
+    def to_expr(self, known_exprs):
+        """Returns a symbolic expression of the tree."""
+        if self._expr is not None:
+            return self._expr
+
+        self._expr = (
+            sympy.sympify(f"T_{self.name}") if not self.is_cf_node() else None
+        )
+        for child in self.children:
+            child_expr = child.to_expr(known_exprs)
+            if child_expr is None:
+                continue
+            self._expr = (
+                child_expr if self._expr is None else self._expr + child_expr
+            )
+        return self._expr
 
 
 class LoopNode(StmtNode):
@@ -124,20 +146,33 @@ class LoopNode(StmtNode):
 
         self.iter_count = 0
         cf_nodes = [self.name] if self.is_cf_node() else []
-        if self.children:
-            prev_cf_nodes = None
-            for child in self.children:
-                curr_cf_nodes = child.get_cf_nodes()
-                if prev_cf_nodes is None:
-                    prev_cf_nodes = curr_cf_nodes
-                else:
-                    if prev_cf_nodes != curr_cf_nodes:
-                        raise ValueError(
-                            "Loop children have different control flow nodes."
-                        )
-                    self.iter_count += 1
+        prev_cf_nodes = None
+        for child in self.children:
+            curr_cf_nodes = child.get_cf_nodes()
+            if prev_cf_nodes is None:
+                prev_cf_nodes = curr_cf_nodes
+            else:
+                if prev_cf_nodes != curr_cf_nodes:
+                    raise ValueError(
+                        "Loop children have different control flow nodes."
+                    )
+                self.iter_count += 1
+        if prev_cf_nodes:
             cf_nodes.extend(prev_cf_nodes)
         return cf_nodes
+
+    def to_expr(self, known_exprs):
+        """Returns a symbolic expression of the tree."""
+        if self._expr is not None:
+            return self._expr
+
+        self._expr = sympy.sympify(f"T_{self.name}")
+        for child in self.children:
+            child_expr = child.to_expr(known_exprs)
+            if child_expr is None:
+                continue
+            self._expr += child_expr
+        return self._expr
 
 
 class CallNode(Node):
@@ -175,3 +210,17 @@ class CallNode(Node):
         for child in self.children:
             cf_nodes.extend(child.get_cf_nodes())
         return cf_nodes
+
+    def to_expr(self, known_exprs):
+        """Returns a symbolic expression of the tree."""
+        if self._expr is not None:
+            return self._expr
+
+        prefix = "C" if self.type == "CalleeExpr" else "T"
+        self._expr = sympy.sympify(f"{prefix}_{self.name}")
+        for child in self.children:
+            child_expr = child.to_expr(known_exprs)
+            if child_expr is None:
+                continue
+            self._expr += child.to_expr(known_exprs)
+        return self._expr

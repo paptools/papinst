@@ -78,38 +78,20 @@ def get_expr_data(path_dict, known):
     # Expr data should map: sig->path_id->ctx->expr
     expr_data = {}
 
-    def to_expr(node, level=0):
-        subexpr = []
-        for child in node.children:
-            subexpr.extend(to_expr(child, level + 1))
-        if node.is_root:
-            subexpr.append(
-                f"C_F{node.name}_P{call_path_ids[to_call_str(node)]}"
-            )
-        elif node.is_call_node():
-            # print(f"{' ' * 2 * level}including node {to_simple_node_view(node)}")
-            if node.sig in known:
-                subexpr.extend(known[node.sig])
-            else:
-                subexpr.extend(exprs[to_call_str(node)])
-        else:
-            # print(f"{' ' * 2 * level}excluding node {to_simple_node_view(node)}")
-            pass
-        return subexpr
-
     for sig, sig_paths in path_dict.items():
         for _, path_data in sig_paths.items():
             path_id = path_data["path_id"]
             for tree in path_data["traces"]:
                 call_path_ids[to_call_str(tree.root)] = path_id
-                expr = to_expr(tree.root)
+                expr = tree.root.to_expr(known)
+                print(f"expr for {to_call_str(tree.root)}: {expr}")
                 exprs[to_call_str(tree.root)] = expr
                 sig_data = expr_data.setdefault(tree.root.sig, {})
                 path_data = sig_data.setdefault(f"path_{path_id}", {})
                 param_str = to_params_str(tree.root.params)
                 # with sympy.evaluate(False):
-                sympy_expr = sympy.sympify(" + ".join(expr))
-                path_data[param_str] = sympy.srepr(sympy_expr)
+                # sympy_expr = sympy.sympify(" + ".join(expr))
+                path_data[param_str] = sympy.srepr(expr)
     return expr_data
 
 

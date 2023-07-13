@@ -28,3 +28,7 @@ class Tree:
     def get_cf_nodes(self):
         """Return a list of control flow nodes."""
         return self.root.get_cf_nodes()
+
+    def to_expr(self, known_exprs):
+        """Returns a symbolic expression of the tree."""
+        return self.root.to_expr(known_exprs)
