@@ -33,18 +33,6 @@ TEST(DemoTest, Factorial) {
   EXPECT_EQ(Factorial(31), 738197504);
 }
 
-TEST(DemoTest, Fibonacci) {
-  EXPECT_EQ(Fibonacci(-1), -1);
-  EXPECT_EQ(Fibonacci(47), -1);
-
-  std::vector<int> expecteds = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
-  for (int i = 0; i < expecteds.size(); ++i) {
-    EXPECT_EQ(Fibonacci(i), expecteds[i]);
-  }
-
-  EXPECT_EQ(Fibonacci(46), 1836311903);
-}
-
 TEST(DemoTest, IsPrime) {
   std::vector<int> primes = {2, 3, 5, 7, 11};
   for (int prime : primes) {

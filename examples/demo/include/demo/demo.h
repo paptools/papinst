@@ -12,11 +12,6 @@ bool IsEven(int value);
 // Time: O(n)
 int Factorial(int value);
 
-// Returns the Nth Fibonacci number. Returns -1 if the given value is negative
-// or would cause an overflow.
-// Time: O(n)
-int Fibonacci(int n);
-
 // Returns true if the given value is prime.
 // Time: O(sqrt(n))
 bool IsPrime(int value);
