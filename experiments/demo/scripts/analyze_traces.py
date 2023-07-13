@@ -27,7 +27,10 @@ def process_traces(known_exprs, trace_file):
 
     results = paptree.analyze.analyze(known_exprs, trees)
     output_name = f"trace_exprs{''.join(trace_file.suffixes)}"
-    logging.info(f"Writing results to {output_name}.")
+    output_path = trace_file.parent / output_name
+    with open(output_path, "w") as f_out:
+        f_out.write(json.dumps(results, indent=4))
+    logging.info(f"Trace expressions saved to {output_name}.")
 
 
 def main():
