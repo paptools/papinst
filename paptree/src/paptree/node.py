@@ -151,19 +151,22 @@ class LoopNode(StmtNode):
 
         self.iter_count = 0
         cf_nodes = [self.name] if self.is_cf_node() else []
-        prev_cf_nodes = None
-        for child in self.children:
+        prev_cf_nodes = [None, None]  # 1. body, 2. inc
+        for idx, child in enumerate(self.children):
             curr_cf_nodes = child.get_cf_nodes()
-            if prev_cf_nodes is None:
-                prev_cf_nodes = curr_cf_nodes
+            pos = idx % 2
+            if prev_cf_nodes[pos] is None:
+                prev_cf_nodes[pos] = curr_cf_nodes
             else:
-                if prev_cf_nodes != curr_cf_nodes:
+                if prev_cf_nodes[pos] != curr_cf_nodes:
                     raise ValueError(
                         "Loop children have different control flow nodes."
                     )
-                self.iter_count += 1
-        if prev_cf_nodes:
-            cf_nodes.extend(prev_cf_nodes)
+                if pos == 1:  # Increment every time the body is executed.
+                    self.iter_count += 1
+        for child_cf_nodes in prev_cf_nodes:
+            if child_cf_nodes is not None:
+                cf_nodes.extend(child_cf_nodes)
         return cf_nodes
 
     def to_expr(self, known_exprs):

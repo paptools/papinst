@@ -116,6 +116,13 @@ std::string GetBinaryOperatorSignature(const clang::BinaryOperator *op) {
   return ss.str();
 }
 
+std::string GetUnaryOperatorSignature(const clang::UnaryOperator *op) {
+  std::stringstream ss;
+  ss << op->IgnoreUnlessSpelledInSource()->getType().getAsString() << " "
+     << "operator" << clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+  return ss.str();
+}
+
 // TODO: Move to the instrumenter.
 std::string GetTraceCalleeInst(int id, const std::string &sig,
                                const std::vector<std::string> &params) {
@@ -557,27 +564,26 @@ public:
   void ProcessUnaryOperator(clang::UnaryOperator *op) override {
     assert(context_);
 
-    // if (op->isIncrementDecrementOp()) {
-    //   auto id = op->getID(*context_);
-    //   const std::string sig = op->getType().getAsString();
-    //   //const std::string type =
-    //   //    clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+    if (op->isIncrementDecrementOp()) {
+      auto id = op->getID(*context_);
+      const std::string sig = GetUnaryOperatorSignature(op);
+      // const std::string type =
+      //     clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
 
-    //  auto inst_text = GetTraceOpInstBegin(id, type, desc);
-    //  if (auto err =
-    //          Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text)))
-    //          {
-    //    llvm::errs() << "Error: " << err << "\n";
-    //  }
+      auto inst_text = GetTraceOpInstBegin(id, sig);
+      if (auto err =
+              Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
 
-    //  inst_text = GetTraceOpInstEnd();
-    //  if (auto err =
-    //          Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
-    //    llvm::errs() << "Error: " << err << "\n";
-    //  }
-    //} else {
-    //  // op->dumpColor();
-    //}
+      inst_text = GetTraceOpInstEnd();
+      if (auto err =
+              Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+    } else {
+      // op->dumpColor();
+    }
   }
 
 private:

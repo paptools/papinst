@@ -63,46 +63,81 @@ def get_path_partitions(trees):
     return path_dict
 
 
-def get_expr_data(path_dict, known):
-    exprs = {}
-    call_path_ids = {}
-
-    # Expr data should map: sig->path_id->ctx->expr
-    expr_data = {}
-
-    for sig, sig_paths in path_dict.items():
-        for _, path_data in sig_paths.items():
-            path_id = path_data["path_id"]
-            for tree in path_data["traces"]:
-                call_path_ids[to_call_str(tree.root)] = path_id
-                with sympy.evaluate(False):
-                    expr = tree.root.to_expr(known)
-                exprs[to_call_str(tree.root)] = expr
-                sig_data = expr_data.setdefault(tree.root.sig, {})
-                path_data = sig_data.setdefault(f"path_{path_id}", {})
-                param_str = to_params_str(tree.root.params)
-                path_data[param_str] = sympy.srepr(expr)
-    return expr_data
-
-
-def solve(path_exprs):
-    # If there is only one expression, return it.
-    if len(path_exprs) == 1:
-        return list(path_exprs.values())[0]
-    # Check if all expressions are equal. If they are, return the expression
-    # since it is constant.
-    expr_set = set([e for _, e in path_exprs.items()])
-    if len(expr_set) == 1:
-        return expr_set.pop()
-    else:
-        print("\nUnsolved exprs:")
-        for expr in expr_set:
-            print(expr)
-    return None
+# def get_expr_data(path_dict, known):
+#    exprs = {}
+#    call_path_ids = {}
+#
+#    # Expr data should map: sig->path_id->ctx->expr
+#    expr_data = {}
+#
+#    for sig, sig_paths in path_dict.items():
+#        for _, path_data in sig_paths.items():
+#            path_id = path_data["path_id"]
+#            for tree in path_data["traces"]:
+#                call_path_ids[to_call_str(tree.root)] = path_id
+#                with sympy.evaluate(False):
+#                    expr = tree.root.to_expr(known)
+#                exprs[to_call_str(tree.root)] = expr
+#                sig_data = expr_data.setdefault(tree.root.sig, {})
+#                path_data = sig_data.setdefault(f"path_{path_id}", {})
+#                param_str = to_params_str(tree.root.params)
+#                path_data[param_str] = sympy.srepr(expr)
+#    return expr_data
 
 
-def solve_exprs(expr_data):
-    # Solve for each path.
+# def solve(path_exprs):
+#    # If there is only one expression, return it.
+#    if len(path_exprs) == 1:
+#        return list(path_exprs.values())[0]
+#    # Check if all expressions are equal. If they are, return the expression
+#    # since it is constant.
+#    expr_set = set([e for _, e in path_exprs.items()])
+#    if len(expr_set) == 1:
+#        return expr_set.pop()
+#    else:
+#        print("\nUnsolved exprs:")
+#        for expr in expr_set:
+#            print(expr)
+#    return None
+
+
+# def solve_exprs(expr_data):
+#    # Solve for each path.
+#    # We will want to query the results with a tuple of (signature, ctx). To do
+#    # this we will need to map the ctx for a signature to the correct path ID.
+#    # Therefore, the results will need to contain two sections:
+#    # 1. A mapping from (signature) to sig_id.
+#    # 2. A mapping from (sig_id, ctx) to path_id.
+#    # 3. A mapping from (sig_id, path_id) to the path expression.
+#    results = {"sigs": {}, "ctxs": {}, "exprs": {}}
+#
+#    skip_sigs = ["unsigned long long fibonacci::RecursiveMemo(unsigned short)"]
+#    for sig, sig_data in expr_data.items():
+#        if sig in skip_sigs:
+#            continue
+#        sig_id = results["sigs"].setdefault(sig, f"sig_{len(results['sigs'])}")
+#        for path_id, path_data in sig_data.items():
+#            path_exprs = {}
+#            for ctx, expr in path_data.items():
+#                sexpr = sympy.sympify(expr)
+#                path_exprs[ctx] = sexpr
+#            result = solve(path_exprs)
+#            if result:
+#                results["exprs"].setdefault(sig_id, {})[path_id] = sympy.srepr(
+#                    result
+#                )
+#                result_ctxs = results["ctxs"].setdefault(sig_id, {})
+#                for ctx in path_exprs.keys():
+#                    result_ctxs[ctx] = path_id
+#    return results
+
+
+def is_constant(exprs):
+    """Returns True if all expressions are equal."""
+    return len(set(exprs)) == 1
+
+
+def find_repr_exprs(path_dict, known):
     # We will want to query the results with a tuple of (signature, ctx). To do
     # this we will need to map the ctx for a signature to the correct path ID.
     # Therefore, the results will need to contain two sections:
@@ -111,24 +146,32 @@ def solve_exprs(expr_data):
     # 3. A mapping from (sig_id, path_id) to the path expression.
     results = {"sigs": {}, "ctxs": {}, "exprs": {}}
 
-    skip_sigs = ["unsigned long long fibonacci::RecursiveMemo(unsigned short)"]
-    for sig, sig_data in expr_data.items():
-        if sig in skip_sigs:
-            continue
+    def add_result(sig, path_id, expr, trees):
+        print(f"  Found expr.: {expr}")
         sig_id = results["sigs"].setdefault(sig, f"sig_{len(results['sigs'])}")
-        for path_id, path_data in sig_data.items():
-            path_exprs = {}
-            for ctx, expr in path_data.items():
-                sexpr = sympy.sympify(expr)
-                path_exprs[ctx] = sexpr
-            result = solve(path_exprs)
-            if result:
-                results["exprs"].setdefault(sig_id, {})[path_id] = sympy.srepr(
-                    result
-                )
-                result_ctxs = results["ctxs"].setdefault(sig_id, {})
-                for ctx in path_exprs.keys():
-                    result_ctxs[ctx] = path_id
+        results["exprs"].setdefault(sig_id, {})[path_id] = sympy.srepr(expr)
+        result_ctxs = results["ctxs"].setdefault(sig_id, {})
+        for tree in trees:
+            result_ctxs[to_call_str(tree.root)] = path_id
+
+    for sig, sig_entry in path_dict.items():
+        for cf_tuple, path_entry in sig_entry.items():
+            path_id = path_entry["path_id"]
+            trees = path_entry["traces"]
+            print(f"\nFinding general expr. for: {sig}: ({path_id})")
+
+            # Get the expressions for each trace.
+            exprs = [tree.to_expr(known) for tree in trees]
+
+            if is_constant(exprs):
+                add_result(sig, path_id, exprs[0], trees)
+                continue
+            else:
+                pass
+            print("  No general expr. found for exprs:")
+            for expr in exprs:
+                print(f"    {expr}")
+
     return results
 
 
@@ -136,7 +179,7 @@ def analyze(known, trees):
     link_recursive_nodes(trees)
 
     path_dict = get_path_partitions(trees)
-    print("\nPaths:")
+    print("Path summary:")
     for sig, sig_entry in path_dict.items():
         print(f"- {sig}: {len(sig_entry)} paths")
         for cf_tuple, path_entry in sig_entry.items():
@@ -145,11 +188,12 @@ def analyze(known, trees):
                 f" {len(path_entry['traces'])} traces"
             )
 
-    expr_data = get_expr_data(path_dict, known)
-    print("\nProcessed Traces:")
-    print(json.dumps(expr_data, indent=2))
+    # expr_data = get_expr_data(path_dict, known)
+    # print("\nProcessed Traces:")
+    # print(json.dumps(expr_data, indent=2))
 
-    results = solve_exprs(expr_data)
+    # results = solve_exprs(expr_data)
+    results = find_repr_exprs(path_dict, known)
     return results
     print("\nResults:")
     print(json.dumps(results, indent=4))
