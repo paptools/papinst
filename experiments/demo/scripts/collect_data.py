@@ -6,7 +6,6 @@ import pathlib
 import platform
 import os
 import shutil
-import datetime
 
 
 def get_data_ext(compiler):

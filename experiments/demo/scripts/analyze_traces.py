@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 
 import logging
-import subprocess
 import pathlib
-import platform
-import os
 import shutil
-import datetime
 import json
 
 import paptree
-
-
-def get_data_ext(compiler):
-    """Return the file extension for the data file."""
-    system = platform.system()
-    machine = platform.machine()
-    return f".{system}-{machine}-{compiler}.json".lower()
 
 
 def process_traces(known_exprs, trace_file):

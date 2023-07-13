@@ -27,9 +27,9 @@ def get_expr(data, sig, ctx):
     return sympy.sympify(expr)
 
 
-def test_is_system_exit_success():
-    sig = "_Bool demo::IsSuccessExitCode(int)"
-    ctx = "0"
-    expr = get_expr(pytest.expr_data, sig, ctx)
-    assert expr in get_constant(n)
-    print(expr)
+def test_is_even():
+    sig = "_Bool demo::IsEven(int)"
+    ctxs = ["0", "1", "2", "3", "4", "5"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert expr in get_constant(n)
