@@ -1,0 +1,938 @@
+{
+  "traces": [
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "0"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "2"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "4"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "1"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "3"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "5"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "-2147483648"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "return value % 2 == 0",
+          "id": 724,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 726,
+      "params": [
+        {
+          "name": "value",
+          "value": "2147483647"
+        }
+      ],
+      "sig": "_Bool demo::IsEven(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "desc": "return -1",
+              "id": 813,
+              "type": "ReturnStmt"
+            }
+          ],
+          "desc": "value < 0 || value > 31",
+          "id": 815,
+          "type": "IfThenStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "-1"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "desc": "return -1",
+              "id": 813,
+              "type": "ReturnStmt"
+            }
+          ],
+          "desc": "value < 0 || value > 31",
+          "id": 815,
+          "type": "IfThenStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "32"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "0"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "1"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "2"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "3"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "4"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "id": 904,
+                  "params": [],
+                  "sig": "int operator*=(int, int)",
+                  "type": "OpExpr"
+                }
+              ],
+              "desc": "LoopIter",
+              "id": 913,
+              "type": "LoopIter"
+            }
+          ],
+          "desc": "for (int i = 1; i <= value; ++i)",
+          "id": 913,
+          "type": "ForStmt"
+        },
+        {
+          "children": [],
+          "desc": "return result",
+          "id": 927,
+          "type": "ReturnStmt"
+        }
+      ],
+      "id": 929,
+      "params": [
+        {
+          "name": "value",
+          "value": "31"
+        }
+      ],
+      "sig": "int demo::Factorial(int)",
+      "type": "CalleeExpr"
+    }
+  ],
+  "version": "0.1.0"
+}
