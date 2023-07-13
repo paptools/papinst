@@ -25,19 +25,6 @@ def to_simple_node_view(node):
     return f"({sym}{node.name}){desc}"
 
 
-def eliminate_operator_children(trees):
-    # Let's eliminate the children of the operator nodes. They are there by mistake.
-    for tree in trees:
-        for node in anytree.PreOrderIter(tree.root):
-            if node.type == "CallerExpr":
-                if (
-                    "operator+" in node.sig
-                    or "operator-" in node.sig
-                    or "operator=" in node.sig
-                ):
-                    node.children = ()
-
-
 def is_cf_node(node):
     return node.type in [
         "IfThenStmt",
@@ -196,7 +183,6 @@ def analyze(known, trees):
     for k, v in bins.items():
         print(f"- {k}: {len(v)}")
 
-    eliminate_operator_children(trees)
     link_recursive_nodes(trees)
 
     path_dict = get_path_partitions(trees)
