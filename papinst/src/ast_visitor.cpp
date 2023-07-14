@@ -594,7 +594,8 @@ private:
   void ProcessLoopBody(int id, clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
                        const clang::SourceLocation &end_loc) {
-    auto inst_text = GetTraceStmtInst(id, "LoopIter", "LoopIter");
+    auto body_id = body->getID(*context_);
+    auto inst_text = GetTraceStmtInst(body_id, "LoopIter", "LoopIter");
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {

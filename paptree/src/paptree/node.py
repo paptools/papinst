@@ -5,7 +5,7 @@ import sympy
 class Node(anytree.AnyNode):
     def __init__(self, name, type_, parent=None, children=None, **kwargs):
         super(Node, self).__init__(
-            name=name, _type=type_, parent=parent, children=children, **kwargs
+            name=name, type=type_, parent=parent, children=children, **kwargs
         )
 
     def __eq__(self, other):
@@ -14,9 +14,9 @@ class Node(anytree.AnyNode):
             return NotImplemented
         return repr(self) == repr(other)
 
-    @property
-    def type(self):
-        return self._type
+    # @property
+    # def type(self):
+    #    return self._type
 
     @staticmethod
     def is_call_type(type_):
@@ -44,6 +44,13 @@ class Node(anytree.AnyNode):
 
     def is_loop_node(self):
         return Node.is_loop_type(self.type)
+
+    @staticmethod
+    def is_iter_type(type_):
+        return type_ in ["LoopIter"]
+
+    def is_iter_node(self):
+        return Node.is_iter_type(self.type)
 
     @staticmethod
     def from_trace(trace):
@@ -122,21 +129,26 @@ class StmtNode(Node):
 class LoopNode(StmtNode):
     def __init__(self, name, type_, desc, parent=None, children=None):
         super(LoopNode, self).__init__(name, type_, desc, parent, children)
-        # TODO: Iter count may need to be a list to support complex loops.
-        self.iter_count = None
-        self._cf_nodes = None
-        self.loop_expr = None
+        self._loop_expr = None
+        self.iter_block = []
+        self.iter_count = 0
+        self.trailing_iter_block = None
+        self._partition_children()
 
-    def get_iter_count(self):
-        """Return the number of iterations of this loop."""
-        if self.iter_count is None:
-            self.get_cf_nodes()
-        return self.iter_count
+    def set_loop_expr(self, loop_expr):
+        """Set the loop expression."""
+        print(f"    Setting loop expr for {id(self)} to {loop_expr}")
+        self._loop_expr = loop_expr
+
+    # def get_loop_expr(self):
+    #    """Return the loop expression."""
+    #    print(f"  Getting loop expr for {id(self)}: {self.loop_expr}")
+    #    return self._loop_expr
 
     @staticmethod
     def from_trace(trace):
         if not Node.is_loop_type(type_ := trace["type"]):
-            raise ValueError(f"Type '{type_}' is not a LooNode type.")
+            raise ValueError(f"Type '{type_}' is not a LoopNode type.")
         children = [Node.from_trace(child) for child in trace["children"]]
         desc = (
             trace["sig"] if "sig" in trace else trace["desc"]
@@ -148,35 +160,121 @@ class LoopNode(StmtNode):
             children=children,
         )
 
+    def _partition_children(self):
+        """Partition children into pre-body, body, and post-body nodes."""
+        if len(self.children) == 0:
+            return
+
+        # We need to walk through an entire iteration to determine the pre-body and
+        # post-body nodes if there are any.
+        # Note that pre-body nodes will be execcuted for each iteration, while post-body
+        # nodes will be executed if the loop does not exit early.
+        pre_body_nodes = []
+        post_body_nodes = []
+        in_pre_body = True
+        for child in self.children:
+            if child.is_iter_node():
+                if not in_pre_body:
+                    # We have walked an entire iteration.
+                    break
+                in_pre_body = False
+                continue
+            if in_pre_body:
+                pre_body_nodes.append(child)
+            else:
+                post_body_nodes.append(child)
+
+        if len(pre_body_nodes) > 0 and len(post_body_nodes) > 0:
+            # When both pre-body and post-body nodes are present, the logic above will
+            # incorrectly assign pre-body nodes to post-body nodes.
+            post_body_nodes = [
+                x for x in post_body_nodes if x not in pre_body_nodes
+            ]
+
+        # For now we are only supporting no iterations, consistent iterations, and
+        # and an inconsistent trailing iteration.
+        # We want to assembly a list where each element is the list of nodes that
+        # constitute an iteration.
+        # If there are children, but no iterations, then we will just mark it as a
+        # single iteration.
+        # Once we have the list of iterations, we can determine the number of iterations
+        # for the main iter block and record a trailing iter block if there is one.
+        iter_blocks = []
+        curr_iter_block = []
+        in_pre_body = True
+        for child in self.children:
+            if not in_pre_body:
+                if child.is_iter_node() or child in pre_body_nodes:
+                    # An iteration has ended.
+                    iter_blocks.append(curr_iter_block)
+                    curr_iter_block = []
+                    in_pre_body = True
+            if child.is_iter_node():
+                in_pre_body = False
+            curr_iter_block.append(child)
+        if len(curr_iter_block) > 0:
+            iter_blocks.append(curr_iter_block)
+        self.iter_block = iter_blocks[0]
+
+        # if self.name == 264379:
+        #    print()
+        #    print()
+        #    for i, iter_block in enumerate(iter_blocks):
+        #        print(f"Iter block {i}")
+        #        for node in iter_block:
+        #            print(anytree.RenderTree(node))
+        #            print(f"CF points: {node.get_cf_nodes()}")
+
+        # Now we can determine the number of iterations. We need to compare iter blocks
+        # by cf nodes.
+        unique_iter_blocks = []
+        for iter_block in iter_blocks:
+            cf_nodes = []
+            for node in iter_block:
+                cf_nodes.extend(node.get_cf_nodes())
+            # Deduplicate adjacent control flow nodes.
+            cf_nodes = [
+                x
+                for i, x in enumerate(cf_nodes)
+                if i == 0 or x != cf_nodes[i - 1]
+            ]
+            if cf_nodes not in unique_iter_blocks:
+                unique_iter_blocks.append(cf_nodes)
+        if self.name == 264379:
+            print(f"Unique iter blocks: {unique_iter_blocks}")
+        if len(unique_iter_blocks) == 1:
+            # All iterations are consistent.
+            self.iter_count = len(iter_blocks)
+        else:
+            # We have an inconsistent trailing iteration.
+            self.iter_count = len(iter_blocks) - 1
+            self.trailing_iter_block = iter_blocks[-1]
+        if self.name == 264379:
+            print()
+            print(anytree.RenderTree(self.root))
+            print()
+
     def get_cf_nodes(self):
         """Return a list of control flow nodes."""
-        if self._cf_nodes is not None:
-            return self._cf_nodes
+        cf_nodes = [self.name]
+        if len(self.children) == 0:
+            return cf_nodes
 
-        self.iter_count = 0
-        cf_nodes = [self.name] if self.is_cf_node() else []
-        prev_cf_nodes = [None, None]  # 1. body, 2. inc
-        for idx, child in enumerate(self.children):
-            curr_cf_nodes = child.get_cf_nodes()
-            pos = idx % 2
-            if prev_cf_nodes[pos] is None:
-                prev_cf_nodes[pos] = curr_cf_nodes
-            else:
-                if prev_cf_nodes[pos] != curr_cf_nodes:
-                    raise ValueError(
-                        "Loop children have different control flow nodes."
-                    )
-            if pos == 1:  # Increment every time the body is executed.
-                self.iter_count += 1
-        for child_cf_nodes in prev_cf_nodes:
-            if child_cf_nodes is not None:
-                cf_nodes.extend(child_cf_nodes)
+        for child in self.iter_block:
+            if self.name == 264379:
+                print(f"Getting cf nodes for {child}")
+            cf_nodes.extend(child.get_cf_nodes())
+        if self.name == 264379:
+            print()
+        if self.trailing_iter_block is not None:
+            for child in self.trailing_iter_block:
+                cf_nodes.extend(child.get_cf_nodes())
         return cf_nodes
 
     def to_expr(self, known_exprs):
         """Returns a symbolic expression of the tree."""
         expr = None
-        for idx, child in enumerate(self.children):
+        for child in self.iter_block:
             child_expr = child.to_expr(known_exprs)
             if child_expr is None:
                 continue
@@ -184,10 +282,17 @@ class LoopNode(StmtNode):
                 expr = child_expr
             else:
                 expr += child_expr
-            if self.loop_expr and idx == 1:
-                print(f"Found established loop expr: {self.loop_expr}")
-                expr = sympy.Mul(self.loop_expr, expr)
-                break
+        if self._loop_expr is not None:
+            expr = sympy.Mul(self._loop_expr, expr)
+        if self.trailing_iter_block is not None:
+            for child in self.trailing_iter_block:
+                child_expr = child.to_expr(known_exprs)
+                if child_expr is None:
+                    continue
+                if expr is None:
+                    expr = child_expr
+                else:
+                    expr += child_expr
         return expr
 
 

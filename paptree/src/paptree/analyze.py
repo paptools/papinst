@@ -26,6 +26,8 @@ def to_sympy_expr(prog):
 
 
 def symbolic_regression(data):
+    np.random.seed(0)
+
     # Extract x and y from the data
     x = np.array([item[0] for item in data]).reshape(-1, 1)
     y = np.array([item[1] for item in data])
@@ -63,7 +65,7 @@ def symbolic_regression(data):
         p_hoist_mutation=0.05,
         p_point_mutation=0.1,
         max_samples=0.9,
-        verbose=1,
+        verbose=0,
         parsimony_coefficient="auto",
         random_state=0,
         n_jobs=1,
@@ -160,18 +162,20 @@ def find_repr_exprs(path_dict, known):
             trees = path_entry["traces"]
             print(f"\nFinding general expr. for: {sig}: ({path_id})")
 
-            # Get the expressions for each trace.
-            exprs = [tree.to_expr(known) for tree in trees]
-
-            if is_constant(exprs):
-                add_result(sig, path_id, exprs[0], trees)
-                continue
-
+            # Check if there are any loops in the trees. If the loop iter counts are
+            # different, then we will need to solve for the loop expression.
             if trees[0].has_loop():
                 ctxs = [int(to_params_str(tree.root.params)) for tree in trees]
                 loop_nodes = [tree.get_loop_nodes() for tree in trees]
                 ref_nodes = loop_nodes[0]
+                found_variable_loop = False
                 for i, ref_node in enumerate(ref_nodes):
+                    if ref_node.iter_count == 0:
+                        # This is a constant loop node. We can skip it.
+                        continue
+
+                    print(f"  Solving for loop expr for node: {ref_node.name}")
+                    found_variable_loop = True
                     iter_cnts = [ref_node.iter_count]
                     # Get the expressions for each entry in loop_nodes except the 0th.
                     for j in range(1, len(loop_nodes)):
@@ -182,8 +186,24 @@ def find_repr_exprs(path_dict, known):
                         data.append((ctxs[j], iter_cnts[j]))
                     prog = symbolic_regression(data)
                     loop_expr = to_sympy_expr(prog)
-                    ref_node.loop_expr = loop_expr
-                add_result(sig, path_id, trees[0].to_expr(known), trees)
+                    ref_node.set_loop_expr(loop_expr)
+
+                if found_variable_loop:
+                    # print("REF NODES")
+                    # for x in ref_nodes:
+                    #    print(x)
+                    # print("TREE")
+                    # print(anytree.RenderTree(trees[0].root))
+
+                    add_result(sig, path_id, trees[0].to_expr(known), trees)
+                    continue
+
+            # Get the expressions for each trace.
+            exprs = [tree.to_expr(known) for tree in trees]
+
+            if is_constant(exprs):
+                print("  Path is constant.")
+                add_result(sig, path_id, exprs[0], trees)
                 continue
 
             print("  No general expr. found for exprs:")

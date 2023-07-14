@@ -34,12 +34,12 @@ TEST(DemoTest, Factorial) {
 }
 
 TEST(DemoTest, IsPrime) {
-  std::vector<int> primes = {2, 3, 5, 7, 11};
+  std::vector<int> primes = {2, 3, 5, 7, 11, 29, 59, 89};
   for (int prime : primes) {
     EXPECT_TRUE(IsPrime(prime));
   }
 
-  std::vector<int> not_primes = {0, 1, 4, 6, 8};
+  std::vector<int> not_primes = {0, 1, 4, 6, 9, 25, 57, 91};
   for (int not_prime : not_primes) {
     EXPECT_FALSE(IsPrime(not_prime));
   }
