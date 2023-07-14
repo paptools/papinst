@@ -10,11 +10,15 @@ bool IsEven(int value);
 // Returns the factorial of the given value. Returns -1 if the given value is
 // negative or would cause an overflow.
 // Time: O(n)
-int Factorial(int value);
+int Factorial(int n);
 
 // Returns true if the given value is prime.
 // Time: O(sqrt(n))
-bool IsPrime(int value);
+bool IsPrime(int n);
+
+// Returns the value of N x N increments.
+// Time: O(n^2)
+int NByNIncrements(int n);
 } // namespace demo
 
 #endif // DEMO_DEMO_H

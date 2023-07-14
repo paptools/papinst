@@ -5,13 +5,13 @@
 namespace demo {
 bool IsEven(int value) { return value % 2 == 0; }
 
-int Factorial(int value) {
-  if (value < 0 || value > 31) {
+int Factorial(int n) {
+  if (n < 0 || n > 31) {
     return -1;
   }
 
   int result = 1;
-  for (int i = 1; i <= value; ++i) {
+  for (int i = 1; i <= n; ++i) {
     result *= i;
   }
   return result;
@@ -29,5 +29,15 @@ bool IsPrime(int n) {
   }
 
   return true;
+}
+
+int NByNIncrements(int n) {
+  int result = 0;
+  for (int i = 0; i < n; ++i) {
+    for (int j = i; j < n; ++j) {
+      ++result;
+    }
+  }
+  return result;
 }
 } // namespace demo

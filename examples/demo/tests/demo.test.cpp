@@ -44,4 +44,11 @@ TEST(DemoTest, IsPrime) {
     EXPECT_FALSE(IsPrime(not_prime));
   }
 }
+
+TEST(DemoTest, NByNIncrements) {
+  std::vector<int> expecteds = {0, 1, 3, 6, 10, 15, 21, 28, 36, 45};
+  for (int i = 0; i < expecteds.size(); ++i) {
+    EXPECT_EQ(NByNIncrements(i), expecteds[i]);
+  }
+}
 } // namespace demo
