@@ -19,6 +19,10 @@ bool IsPrime(int n);
 // Returns the value of N x N increments.
 // Time: O(n^2)
 int NByNIncrements(int n);
+
+// Returns the value of N x N x N increments.
+// Time: O(n^3)
+int NByNByNIncrements(int n);
 } // namespace demo
 
 #endif // DEMO_DEMO_H

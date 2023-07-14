@@ -40,4 +40,16 @@ int NByNIncrements(int n) {
   }
   return result;
 }
+
+int NByNByNIncrements(int n) {
+  int result = 0;
+  for (int i = 0; i < n; ++i) {
+    for (int j = i; j < n; ++j) {
+      for (int k = j; k < n; ++k) {
+        ++result;
+      }
+    }
+  }
+  return result;
+}
 } // namespace demo

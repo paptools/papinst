@@ -21,6 +21,10 @@ def get_quad(x_):
     return O(x_**2, (x_, oo))
 
 
+def get_cubic(x_):
+    return O(x_**3, (x_, oo))
+
+
 def get_expr(data, sig, ctx):
     sig_id = data["sigs"][sig]
     path_id = data["ctxs"][sig_id][ctx]
@@ -54,6 +58,7 @@ def test_factorial():
 
 
 def test_is_prime():
+    sig = "_Bool demo::IsPrime(int)"
     pass
 
 
@@ -69,3 +74,18 @@ def test_n_by_n_increments():
         assert expr not in get_constant(X0)
         assert expr not in get_linear(X0)
         assert expr in get_quad(X0)
+
+
+def test_n_by_n_by_n_increments():
+    sig = "int demo::NByNByNIncrements(int)"
+    ctxs = ["0"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert expr in get_constant(X0)
+    ctxs = ["1", "2", "3", "4", "5"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert expr not in get_constant(X0)
+        assert expr not in get_linear(X0)
+        assert expr not in get_quad(X0)
+        assert expr in get_cubic(X0)

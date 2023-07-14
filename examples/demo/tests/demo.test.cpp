@@ -51,4 +51,11 @@ TEST(DemoTest, NByNIncrements) {
     EXPECT_EQ(NByNIncrements(i), expecteds[i]);
   }
 }
+
+TEST(DemoTest, NByNByNIncrements) {
+  std::vector<int> expecteds = {0, 1, 4, 10, 20, 35, 56, 84, 120, 165};
+  for (int i = 0; i < expecteds.size(); ++i) {
+    EXPECT_EQ(NByNByNIncrements(i), expecteds[i]);
+  }
+}
 } // namespace demo
