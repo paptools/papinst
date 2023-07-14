@@ -21,7 +21,7 @@ def main():
     # Get a list of expression files.
     exp_dir = pathlib.Path(__file__).parent.parent.absolute()
     processed_data_dir = exp_dir / "data/processed"
-    expr_files = list(data_dir.glob("trace_exprs.*.json"))
+    expr_files = list(processed_data_dir.glob("trace_exprs.*.json"))
     if len(expr_files) == 0:
         raise RuntimeError(f"No expr data files found in {processed_data_dir}.")
     logging.info(f"Found {len(expr_files)} expression data files.")
