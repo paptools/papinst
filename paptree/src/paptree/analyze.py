@@ -2,79 +2,10 @@ import json
 
 import anytree
 import sympy
-import gplearn
-from gplearn.genetic import SymbolicRegressor
-import numpy as np
 
 from .node import Node
 from .utils import from_file
-
-
-def to_sympy_expr(prog):
-    """Convert a program to a sympy expression."""
-    locals = {
-        "sub": lambda x, y: x - y,
-        "div": lambda x, y: x / y,
-        "mul": lambda x, y: x * y,
-        "add": lambda x, y: x + y,
-        "neg": lambda x: -x,
-        "pow": lambda x, y: x**y,
-        "cos": lambda x: sympy.cos(x),
-        "sqrt": lambda x: sympy.sqrt(x),
-    }
-    return sympy.simplify(sympy.sympify(str(prog), locals=locals))
-
-
-def symbolic_regression(data):
-    np.random.seed(0)
-
-    # Extract x and y from the data
-    x = np.array([item[0] for item in data]).reshape(-1, 1)
-    y = np.array([item[1] for item in data])
-
-    # Create symbolic regressor
-    # def _pow_exp(x1):
-    #    with np.errstate(divide='ignore', invalid='ignore'):
-    #        if (x1 > 10).any():
-    #            return 0.
-    #        try:
-    #            result = np.power(2, x1)
-    #            #print(result)
-    #            return result
-    #        except OverflowError:
-    #            return 0.
-    #        except ValueError:  # The math domain error
-    #            return 0.
-    #        except RuntimeWarning:
-    #            return 0.
-
-    # pow_exp = gplearn.functions.make_function(
-    #    function=_pow_exp,
-    #    name='pow_exp',
-    #    arity=1
-    # )
-    # function_set=['add', 'mul', 'log', 'sqrt', pow_exp]
-    function_set = ["add", "mul", "log", "sqrt"]
-    sr = SymbolicRegressor(
-        population_size=5000,
-        generations=20,
-        function_set=function_set,
-        stopping_criteria=0.01,
-        p_crossover=0.7,
-        p_subtree_mutation=0.1,
-        p_hoist_mutation=0.05,
-        p_point_mutation=0.1,
-        max_samples=0.9,
-        verbose=0,
-        parsimony_coefficient="auto",
-        random_state=0,
-        n_jobs=1,
-        init_method="grow",
-    )
-
-    # Fit the data
-    sr.fit(x, y)
-    return sr._program
+from .regression import gplearn_symreg, geppy_lscale_symreg
 
 
 def to_params_str(params):
@@ -184,8 +115,8 @@ def find_repr_exprs(path_dict, known):
                     data = []
                     for j in range(0, len(ctxs)):
                         data.append((ctxs[j], iter_cnts[j]))
-                    prog = symbolic_regression(data)
-                    loop_expr = to_sympy_expr(prog)
+                    # loop_expr = gplearn_symreg(data)
+                    loop_expr = geppy_lscale_symreg(data)
                     ref_node.set_loop_expr(loop_expr)
 
                 if found_variable_loop:

@@ -32,6 +32,7 @@ class Node(anytree.AnyNode):
             "ReturnStmt",
             "CXXThrowExpr",
             "ForStmt",
+            "WhileStmt",
             "LoopIter",
         ]
 
@@ -40,7 +41,7 @@ class Node(anytree.AnyNode):
 
     @staticmethod
     def is_loop_type(type_):
-        return type_ in ["ForStmt"]
+        return type_ in ["ForStmt", "WhileStmt"]
 
     def is_loop_node(self):
         return Node.is_loop_type(self.type)
