@@ -1,15 +1,16 @@
 import operator
 import random
 
-from deap import creator, base, tools
+from deap import algorithms
+from deap import base
+from deap import creator
+from deap import tools
+from deap import gp
 from gplearn.genetic import SymbolicRegressor
-import geppy as gep
 import gplearn
 import numpy as np
 import sympy
 from sympy import oo
-
-LINEAR_SCALING = True
 
 # for reproduction
 s = 0
@@ -17,159 +18,118 @@ random.seed(s)
 np.random.seed(s)
 
 x = sympy.Symbol("X0")
+X = None
+Y = None
 
 
-def protected_log(b):
-    if np.isscalar(b):
-        if b < 1e-6:
-            b = 1
+def protected_log(x1):
+    if x1 < 0 or abs(x1) < 1e-6:
+        return 1
+    return np.log(x1)
+
+
+def protected_sqrt(x1):
+    if x1 < 0:
+        return 1
+    return np.sqrt(x1)
+
+
+# DEAP Setup.
+pset = gp.PrimitiveSet("Main", 1)
+pset.addPrimitive(operator.add, 2)
+# pset.addPrimitive(operator.sub, 2)
+pset.addPrimitive(operator.mul, 2)
+# pset.addPrimitive(protectedDiv, 2)
+# pset.addPrimitive(operator.neg, 1)
+pset.addPrimitive(protected_log, 1, name="log")
+pset.addPrimitive(protected_sqrt, 1, name="sqrt")
+pset.addEphemeralConstant("rand101", lambda: random.randint(-10, 10))
+pset.renameArguments(ARG0="X0")
+
+creator.create(
+    "FitnessMin", base.Fitness, weights=(-1,)
+)  # to minimize the objective (fitness)
+creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+
+toolbox = base.Toolbox()
+toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=2)
+toolbox.register(
+    "individual", tools.initIterate, creator.Individual, toolbox.expr
+)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("compile", gp.compile, pset=pset)
+
+
+def evaluate(individual):
+    """Evalute the fitness of an individual: MAE (mean absolute error)"""
+    func = toolbox.compile(individual)
+    Yp = np.array(list(map(func, X)))
+    return (np.mean(np.abs(Y - Yp)),)
+
+
+toolbox.register("evaluate", evaluate)
+# toolbox.register("select", tools.selTournament, tournsize=3)
+toolbox.register(
+    "select",
+    tools.selDoubleTournament,
+    fitness_size=10,
+    parsimony_size=1.9,
+    fitness_first=True,
+)
+# toolbox.register("select", tools.selLexicase)
+# ref_points = tools.uniform_reference_points(nobj=3, p=12)
+# toolbox.register("select", tools.selNSGA3WithMemory(ref_points))
+toolbox.register("mate", gp.cxOnePoint)
+toolbox.register("expr_mut", gp.genFull, min_=0, max_=1)
+
+
+def customMut(individual, expr, pset):
+    """To handle multiple mutation operators"""
+    r = random.random()
+    if r < 0.5:
+        individual = gp.mutUniform(individual, expr, pset)
     else:
-        b[b < 1e-6] = 1
-    return np.log(b)
+        # apply shrink
+        individual = gp.mutShrink(individual)
+    return individual
 
 
-def protected_sqrt(b):
-    if np.isscalar(b):
-        if b < 1e-6:
-            b = 1
-    else:
-        b[b < 1e-6] = 1
-    return np.sqrt(b)
+# toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+toolbox.register("mutate", customMut, expr=toolbox.expr_mut, pset=pset)
+# toolbox.register("migrate", tools.migRing, k=5, selection=tools.selBest,
+#    replacement=tools.selRandom)
+
+toolbox.decorate(
+    "mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=6)
+)
+toolbox.decorate(
+    "mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=6)
+)
 
 
-def geppy_lscale_symreg(data):
+def deap_symreg(data):
+    global X, Y
     X = np.array([item[0] for item in data])
     Y = np.array([item[1] for item in data])
 
-    pset = gep.PrimitiveSet("Main", input_names=["X0"])
-    pset.add_function(operator.add, 2)
-    pset.add_function(operator.mul, 2)
-    pset.add_function(protected_log, 1, name="log")
-    pset.add_function(protected_sqrt, 1, name="sqrt")
-    pset.add_ephemeral_terminal(name="enc", gen=lambda: random.uniform(-5, 5))
+    pop = toolbox.population(n=300)
+    hof = tools.HallOfFame(1)
 
-    creator.create(
-        "FitnessMin", base.Fitness, weights=(-1,)
-    )  # to minimize the objective (fitness)
-    creator.create(
-        "Individual",
-        gep.Chromosome,
-        fitness=creator.FitnessMin,
-        a=float,
-        b=float,
+    stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
+    stats_size = tools.Statistics(len)
+    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
+    mstats.register("avg", np.mean)
+    mstats.register("std", np.std)
+    mstats.register("min", np.min)
+    mstats.register("max", np.max)
+
+    pop, log = algorithms.eaSimple(
+        pop, toolbox, 0.5, 0.1, 40, stats=mstats, halloffame=hof, verbose=True
     )
-
-    h = 2  # head length
-    n_genes = 2  # number of genes in a chromosome
-    r = 5  # length of the RNC array
-
-    toolbox = gep.Toolbox()
-    toolbox.register("gene_gen", gep.Gene, pset=pset, head_length=h)
-    toolbox.register(
-        "individual",
-        creator.Individual,
-        gene_gen=toolbox.gene_gen,
-        n_genes=n_genes,
-        linker=operator.add,
-    )
-    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-
-    # compile utility: which translates an individual into an executable function (Lambda)
-    toolbox.register("compile", gep.compile_, pset=pset)
-
-    def evaluate_linear_scaling(individual):
-        """Evaluate the fitness of an individual with linearly scaled MSE.
-        Get a and b by minimizing (a*Yp + b - Y)"""
-        func = toolbox.compile(individual)
-        Yp = func(X)
-
-        # special cases: (1) individual has only a terminal
-        #  (2) individual returns the same value for all test cases, like 'x - x + 10'. np.linalg.lstsq will fail in such cases.
-
-        if isinstance(Yp, np.ndarray):
-            Q = np.hstack((np.reshape(Yp, (-1, 1)), np.ones((len(Yp), 1))))
-            (individual.a, individual.b), residuals, _, _ = np.linalg.lstsq(
-                Q, Y, rcond=None
-            )
-            # residuals is the sum of squared errors
-            if residuals.size > 0:
-                return (residuals[0] / len(Y),)  # MSE
-
-        # for the above special cases, the optimal linear scaling is just the mean of true target values
-        individual.a = 0
-        individual.b = np.mean(Y)
-        return (np.mean((Y - individual.b) ** 2),)
-
-    if LINEAR_SCALING:
-        toolbox.register("evaluate", evaluate_linear_scaling)
-    else:
-        toolbox.register("evaluate", evaluate)
-
-    # toolbox.register('select', tools.selTournament, tournsize=3)
-    toolbox.register(
-        "select",
-        tools.selDoubleTournament,
-        fitness_size=7,
-        parsimony_size=1.4,
-        fitness_first=True,
-    )
-
-    # 1. general operators
-    toolbox.register(
-        "mut_uniform", gep.mutate_uniform, pset=pset, ind_pb=0.05, pb=1
-    )
-    toolbox.register("mut_invert", gep.invert, pb=0.1)
-    toolbox.register("mut_is_transpose", gep.is_transpose, pb=0.1)
-    toolbox.register("mut_ris_transpose", gep.ris_transpose, pb=0.1)
-    toolbox.register("mut_gene_transpose", gep.gene_transpose, pb=0.1)
-    toolbox.register("cx_1p", gep.crossover_one_point, pb=0.4)
-    toolbox.register("cx_2p", gep.crossover_two_point, pb=0.2)
-    toolbox.register("cx_gene", gep.crossover_gene, pb=0.1)
-    toolbox.register(
-        "mut_ephemeral", gep.mutate_uniform_ephemeral, ind_pb="1p"
-    )  # 1p: expected one point mutation in an individual
-    toolbox.pbs["mut_ephemeral"] = (
-        1  # we can also give the probability via the pbs property
-    )
-
-    stats = tools.Statistics(key=lambda ind: ind.fitness.values[0])
-    stats.register("avg", np.mean)
-    stats.register("std", np.std)
-    stats.register("min", np.min)
-    stats.register("max", np.max)
-
-    # size of population and number of generations
-    n_pop = 100
-    n_gen = 100
-
-    pop = toolbox.population(n=n_pop)
-    hof = tools.HallOfFame(
-        3
-    )  # only record the best three individuals ever found in all generations
-
-    # start evolution
-    pop, log = gep.gep_simple(
-        pop,
-        toolbox,
-        n_generations=n_gen,
-        n_elites=1,
-        stats=stats,
-        hall_of_fame=hof,
-        verbose=False,
-    )
-    best_ind = hof[0]
-    renames = {
-        "log": sympy.log,
-        "sqrt": sympy.sqrt,
-        "add": sympy.Add,
-        "mul": sympy.Mul,
-    }
-    symplified_best = gep.simplify(best_ind, renames)
-    ex2 = symplified_best
-    for a in sympy.preorder_traversal(symplified_best):
-        if isinstance(a, sympy.Float):
-            ex2 = ex2.subs(a, round(a, 1))
-    return ex2
+    # print log
+    result = hof[0]
+    result = str(result).replace("add", "Add").replace("mul", "Mul")
+    return sympy.simplify(result)
 
 
 def gplearn_symreg(data):

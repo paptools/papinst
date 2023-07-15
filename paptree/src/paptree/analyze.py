@@ -5,7 +5,7 @@ import sympy
 
 from .node import Node
 from .utils import from_file
-from .regression import gplearn_symreg, geppy_lscale_symreg
+from .regression import gplearn_symreg, deap_symreg
 
 
 def to_params_str(params):
@@ -116,7 +116,7 @@ def find_repr_exprs(path_dict, known):
                     for j in range(0, len(ctxs)):
                         data.append((ctxs[j], iter_cnts[j]))
                     # loop_expr = gplearn_symreg(data)
-                    loop_expr = geppy_lscale_symreg(data)
+                    loop_expr = deap_symreg(data)
                     ref_node.set_loop_expr(loop_expr)
 
                 if found_variable_loop:
