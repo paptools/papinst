@@ -37,6 +37,12 @@ bool IsSupportedCompiler(const std::string &compiler) {
   return std::regex_search(compiler_path.filename().string(), pattern);
 }
 
+bool IsGNU(const std::string &compiler) {
+  boost::filesystem::path compiler_path(compiler);
+  std::regex pattern(R"(^(gcc|g\+\+))");
+  return std::regex_search(compiler_path.filename().string(), pattern);
+}
+
 bool IsSourceFile(const std::string &filepath) {
   auto extension = filepath.substr(filepath.find_last_of(".") + 1);
   return extension == "c" || extension == "cpp" || extension == "cc" ||
