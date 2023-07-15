@@ -5,28 +5,28 @@ from sympy import O, oo
 X0 = sympy.Symbol("X0")
 
 
+def assert_constant(expr):
+    assert expr in O(1, (X0, oo))
+
+
+def assert_logarithmic(expr):
+    assert expr in O(sympy.log(X0), (X0, oo))
+
+
+def assert_linear(expr):
+    assert expr in O(X0, (X0, oo))
+
+
+def assert_quad(expr):
+    assert expr in O(X0**2, (X0, oo))
+
+
+def assert_cubic(expr):
+    assert expr in O(X0**3, (X0, oo))
+
+
 def get_constant(x_):
     return O(1, (x_, oo))
-
-
-def get_log(x_):
-    return O(sympy.log(x_), (x_, oo))
-
-
-def get_linear(x_):
-    return O(x_, (x_, oo))
-
-
-def get_exp(base, x_):
-    return O(base**x_, (x_, oo))
-
-
-def get_quad(x_):
-    return O(x_**2, (x_, oo))
-
-
-def get_cubic(x_):
-    return O(x_**3, (x_, oo))
 
 
 def get_expr(data, sig, ctx):
@@ -42,7 +42,7 @@ def test_is_even():
     ctxs = ["0", "2", "4", "1", "3", "5", "-2147483648", "2147483647"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
 
 
 def test_shifts_to_zero():
@@ -51,14 +51,13 @@ def test_shifts_to_zero():
     ctxs = ["0"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
 
     # Paths for x > 0 are logarithmic.
     ctxs = ["1", "3", "7", "15", "31", "63", "127"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr not in get_constant(X0)
-        assert expr in get_log(X0)
+        assert_logarithmic(expr)
 
 
 def test_factorial():
@@ -67,14 +66,13 @@ def test_factorial():
     ctxs = ["-1", "0", "32"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
 
     # Paths for 1 <= x <= 31 are linear.
     ctxs = ["1", "2", "3", "4", "31"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr not in get_constant(X0)
-        assert expr in get_linear(X0)
+        assert_linear(expr)
 
 
 def test_is_prime():
@@ -109,7 +107,8 @@ def test_is_prime():
     ]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
+
     # Path 1: the primes.
     ctxs = [
         "5",
@@ -133,7 +132,7 @@ def test_is_prime():
     ]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_linear(X0)
+        assert_linear(expr)
 
 
 def test_n_by_n_increments():
@@ -141,13 +140,12 @@ def test_n_by_n_increments():
     ctxs = ["0"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
+
     ctxs = ["1", "2", "4", "8", "16", "32", "64"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr not in get_constant(X0)
-        assert expr not in get_linear(X0)
-        assert expr in get_quad(X0)
+        assert_quad(expr)
 
 
 def test_n_by_n_by_n_increments():
@@ -155,11 +153,9 @@ def test_n_by_n_by_n_increments():
     ctxs = ["0"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr in get_constant(X0)
+        assert_constant(expr)
+
     ctxs = ["1", "2", "4", "8", "16", "32"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
-        assert expr not in get_constant(X0)
-        assert expr not in get_linear(X0)
-        assert expr not in get_quad(X0)
-        assert expr in get_cubic(X0)
+        assert_cubic(expr)
