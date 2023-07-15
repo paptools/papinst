@@ -41,7 +41,7 @@ def geppy_lscale_symreg(data):
     X = np.array([item[0] for item in data])
     Y = np.array([item[1] for item in data])
 
-    pset = gep.PrimitiveSet("Main", input_names=["x"])
+    pset = gep.PrimitiveSet("Main", input_names=["X0"])
     pset.add_function(operator.add, 2)
     pset.add_function(operator.mul, 2)
     pset.add_function(protected_log, 1, name="log")
@@ -139,7 +139,7 @@ def geppy_lscale_symreg(data):
     stats.register("max", np.max)
 
     # size of population and number of generations
-    n_pop = 20
+    n_pop = 100
     n_gen = 100
 
     pop = toolbox.population(n=n_pop)
@@ -155,7 +155,7 @@ def geppy_lscale_symreg(data):
         n_elites=1,
         stats=stats,
         hall_of_fame=hof,
-        verbose=True,
+        verbose=False,
     )
     best_ind = hof[0]
     renames = {
@@ -165,7 +165,11 @@ def geppy_lscale_symreg(data):
         "mul": sympy.Mul,
     }
     symplified_best = gep.simplify(best_ind, renames)
-    return symplified_best
+    ex2 = symplified_best
+    for a in sympy.preorder_traversal(symplified_best):
+        if isinstance(a, sympy.Float):
+            ex2 = ex2.subs(a, round(a, 1))
+    return ex2
 
 
 def gplearn_symreg(data):

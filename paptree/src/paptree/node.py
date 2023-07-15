@@ -185,6 +185,11 @@ class LoopNode(StmtNode):
             else:
                 post_body_nodes.append(child)
 
+        # If we never left the pre-body, then all children are pre-body nodes and we
+        # can treat the loop as having no iterations.
+        if in_pre_body:
+            return
+
         if len(pre_body_nodes) > 0 and len(post_body_nodes) > 0:
             # When both pre-body and post-body nodes are present, the logic above will
             # incorrectly assign pre-body nodes to post-body nodes.

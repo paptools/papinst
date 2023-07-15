@@ -82,7 +82,7 @@ def find_repr_exprs(path_dict, known):
         print(f"  Found expr.: {expr}")
         sig_id = results["sigs"].setdefault(sig, f"sig_{len(results['sigs'])}")
         path_id_str = f"path_{path_id}"
-        results["exprs"].setdefault(sig_id, {})[path_id_str] = sympy.srepr(expr)
+        results["exprs"].setdefault(sig_id, {})[path_id_str] = str(expr)
         result_ctxs = results["ctxs"].setdefault(sig_id, {})
         for tree in trees:
             result_ctxs[to_params_str(tree.root.params)] = path_id_str
