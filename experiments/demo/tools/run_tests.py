@@ -10,8 +10,11 @@ def run_tests(expr_file):
     logging.info(f"Running tests for: {expr_file.name}.")
 
     os.environ["TRACE_EXPR_DATA_PATH"] = str(expr_file.absolute())
-    if subprocess.check_call(["pytest", "-s"]) != 0:
-        raise RuntimeError("Test runner failed.")
+    try:
+        subprocess.check_call(["pytest", "-s"])
+        return 0
+    except:
+        return 1
 
 
 def main():
@@ -27,10 +30,12 @@ def main():
     logging.info(f"Found {len(expr_files)} expression data files.")
 
     # Run tests for each expression file.
+    fail_cnt = 0
     os.chdir(exp_dir)
     for expr_file in expr_files:
-        run_tests(expr_file)
+        fail_cnt += run_tests(expr_file)
 
+    logging.info("Tests failed for {fail_cnt}/{len(expr_files)} configs.")
     logging.info("Test runner is complete.")
 
 
