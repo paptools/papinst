@@ -7,8 +7,13 @@ function main {
 
   cd "${repo_dir}" || return 1
   echo "Running clang-format ..."
-  find papinst \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; -exec clang-format -i {} \;
-  find paptrace \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; -exec clang-format -i {} \;
+  find papinst \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; \
+    -exec clang-format -i {} \;
+  find paptrace \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; \
+    -exec clang-format -i {} \;
+  find examples \( -iname '*.h' -o -iname '*.cpp' \) \
+    -not -path "*/build/*" -exec echo {} \; \
+    -exec clang-format -i {} \;
 
   echo -e "\nRunning black ..."
   black .

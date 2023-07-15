@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+function main {
+  local script_dir
+  script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+  local repo_dir="${script_dir}/.."
+
+  cd "${repo_dir}" || return 1
+  cmake -E chdir build ./demo_benchmarks \
+    --benchmark_min_warmup_time=0.2 \
+    --benchmark_out="benchmark_results.json" \
+    --benchmark_out_format=json
+}
+
+main "$@"

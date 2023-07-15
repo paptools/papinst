@@ -36,6 +36,8 @@ namespace NodeFactory {
 std::unique_ptr<Node>
 CreateCallNode(int id, const std::string &type, const std::string &sig,
                const std::initializer_list<Param> &params);
+std::unique_ptr<Node> CreateCallNode(int id, const std::string &type,
+                                     const std::string &sig);
 std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
                                      const std::string &desc);
 } // namespace NodeFactory
@@ -50,6 +52,8 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
 // Instrumentation macros.
 #define PAPTRACE_CALL_NODE(id, type, sig, ...)                                 \
   paptrace::NodeFactory::CreateCallNode(id, type, sig, {TO_PARAMS(__VA_ARGS__)})
+#define PAPTRACE_CALL_NODE_SANS_PARAMS(id, type, sig)                          \
+  paptrace::NodeFactory::CreateCallNode(id, type, sig)
 #define PAPTRACE_CALLEE_NODE(id, sig, ...)                                     \
   NODE_DECL(id) = PAPTRACE_CALL_NODE(id, "CalleeExpr", sig, __VA_ARGS__)
 #define PAPTRACE_CALLER_NODE(id, sig, ...)                                     \
@@ -62,7 +66,7 @@ std::unique_ptr<Node> CreateStmtNode(int id, const std::string &type,
   PAPTRACE_STMT_NODE(id, "IfElseStmt", desc)
 #define PAPTRACE_SCOPED_NODE(id, type, desc)                                   \
   auto NODE_NAME(id) = PAPTRACE_STMT_NODE(id, type, desc)
-#define PAPTRACE_OP_NODE(id, sig, ...)                                         \
-  PAPTRACE_CALL_NODE(id, "CallerExpr", sig, __VA_ARGS__)
+#define PAPTRACE_OP_NODE(id, sig)                                              \
+  PAPTRACE_CALL_NODE_SANS_PARAMS(id, "OpExpr", sig)
 
 #endif // PAPTRACE_PAPTRACE_H

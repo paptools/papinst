@@ -116,6 +116,13 @@ std::string GetBinaryOperatorSignature(const clang::BinaryOperator *op) {
   return ss.str();
 }
 
+std::string GetUnaryOperatorSignature(const clang::UnaryOperator *op) {
+  std::stringstream ss;
+  ss << op->IgnoreUnlessSpelledInSource()->getType().getAsString() << " "
+     << "operator" << clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+  return ss.str();
+}
+
 // TODO: Move to the instrumenter.
 std::string GetTraceCalleeInst(int id, const std::string &sig,
                                const std::vector<std::string> &params) {
@@ -133,12 +140,9 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceOpInstBegin(int id, const std::string &sig,
-                                const std::string &lhs,
-                                const std::string &rhs) {
-  static const std::string template_str =
-      "(PAPTRACE_OP_NODE({}, \"{}\", {}, {}), ";
-  return fmt::format(template_str, id, sig, lhs, rhs);
+std::string GetTraceOpInstBegin(int id, const std::string &sig) {
+  static const std::string template_str = "(PAPTRACE_OP_NODE({}, \"{}\"), ";
+  return fmt::format(template_str, id, sig);
 }
 std::string GetTraceOpInstEnd() { return ")"; }
 
@@ -529,18 +533,18 @@ public:
       auto id = op->getID(*context_);
       const std::string sig = GetBinaryOperatorSignature(op);
       auto lhs = op->getLHS()->IgnoreUnlessSpelledInSource();
-      const std::string lhs_str =
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str();
+      // const std::string lhs_str =
+      //     clang::Lexer::getSourceText(
+      //         clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
+      //         context_->getSourceManager(), context_->getLangOpts())
+      //         .str();
       auto rhs = op->getRHS()->IgnoreUnlessSpelledInSource();
-      const std::string rhs_str =
-          clang::Lexer::getSourceText(
-              clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
-              context_->getSourceManager(), context_->getLangOpts())
-              .str();
-      auto inst_text = GetTraceOpInstBegin(id, sig, lhs_str, rhs_str);
+      // const std::string rhs_str =
+      //     clang::Lexer::getSourceText(
+      //         clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
+      //         context_->getSourceManager(), context_->getLangOpts())
+      //         .str();
+      auto inst_text = GetTraceOpInstBegin(id, sig);
 
       auto begin_loc = op->getLHS()->getBeginLoc();
       if (auto err = Add(PrependSourceLoc(*context_, begin_loc, inst_text))) {
@@ -560,27 +564,26 @@ public:
   void ProcessUnaryOperator(clang::UnaryOperator *op) override {
     assert(context_);
 
-    // if (op->isIncrementDecrementOp()) {
-    //   auto id = op->getID(*context_);
-    //   const std::string sig = op->getType().getAsString();
-    //   //const std::string type =
-    //   //    clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+    if (op->isIncrementDecrementOp()) {
+      auto id = op->getID(*context_);
+      const std::string sig = GetUnaryOperatorSignature(op);
+      // const std::string type =
+      //     clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
 
-    //  auto inst_text = GetTraceOpInstBegin(id, type, desc);
-    //  if (auto err =
-    //          Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text)))
-    //          {
-    //    llvm::errs() << "Error: " << err << "\n";
-    //  }
+      auto inst_text = GetTraceOpInstBegin(id, sig);
+      if (auto err =
+              Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
 
-    //  inst_text = GetTraceOpInstEnd();
-    //  if (auto err =
-    //          Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
-    //    llvm::errs() << "Error: " << err << "\n";
-    //  }
-    //} else {
-    //  // op->dumpColor();
-    //}
+      inst_text = GetTraceOpInstEnd();
+      if (auto err =
+              Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
+        llvm::errs() << "Error: " << err << "\n";
+      }
+    } else {
+      // op->dumpColor();
+    }
   }
 
 private:
@@ -591,7 +594,8 @@ private:
   void ProcessLoopBody(int id, clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
                        const clang::SourceLocation &end_loc) {
-    auto inst_text = GetTraceStmtInst(id, "LoopIter", "LoopIter");
+    auto body_id = body->getID(*context_);
+    auto inst_text = GetTraceStmtInst(body_id, "LoopIter", "LoopIter");
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {

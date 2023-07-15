@@ -64,6 +64,13 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
     }
   }
   parse_args.push_back("-v"); // TODO: Enable only when verbose flag is set.
+  if (utils::IsGNU(compiler)) {
+    // TODO: Find this path automatically from: g++ -E -x c++ - -v < /dev/null
+    parse_args.push_back("-resource-dir");
+    parse_args.push_back(
+        //"/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include");
+        "/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3");
+  }
 
   if (source_files.empty()) {
     logger_->Debug(fmt::format(
@@ -94,8 +101,6 @@ Parser::ParseCompileCommand(std::vector<std::string> &command) {
       logger_->Error(fmt::format("Failed to parse file '{}'.", source_file));
     }
   }
-  command.push_back(
-      "-I/Users/ird/dev/github/iandinwoodie/paptools/paptrace/include");
 
   for (int i = 0; i < streams.size(); i++) {
     if (dry_run_) {

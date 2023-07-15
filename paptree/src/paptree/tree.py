@@ -24,3 +24,19 @@ class Tree:
         )
         name = f"{root.sig}({param_str})"
         return Tree(name, root)
+
+    def get_cf_nodes(self):
+        """Return a list of control flow nodes."""
+        return self.root.get_cf_nodes()
+
+    def to_expr(self, known_exprs):
+        """Returns a symbolic expression of the tree."""
+        return self.root.to_expr(known_exprs)
+
+    def get_loop_nodes(self):
+        """Returns a list of loop nodes."""
+        return self.root.get_loop_nodes()
+
+    def has_loop(self):
+        """Returns True if the tree has at least one loop."""
+        return len(self.get_loop_nodes()) > 0
