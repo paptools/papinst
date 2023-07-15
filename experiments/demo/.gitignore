@@ -1,3 +1,0 @@
-# Temporarily ignore processed data.
-data/processed/*
-!data/processed/.gitkeep
