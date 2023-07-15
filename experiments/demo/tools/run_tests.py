@@ -35,7 +35,7 @@ def main():
     for expr_file in expr_files:
         fail_cnt += run_tests(expr_file)
 
-    logging.info("Tests failed for {fail_cnt}/{len(expr_files)} configs.")
+    logging.info(f"Tests failed for {fail_cnt}/{len(expr_files)} configs.")
     logging.info("Test runner is complete.")
 
 
