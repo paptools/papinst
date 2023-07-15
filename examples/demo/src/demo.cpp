@@ -1,9 +1,19 @@
 #include <demo/demo.h>
 
+#include <algorithm>
 #include <cmath>
 
 namespace demo {
 bool IsEven(int value) { return value % 2 == 0; }
+
+int ShiftsToZero(int n) {
+  int cnt = 0;
+  while (n > 0) {
+    n >>= 1;
+    ++cnt;
+  }
+  return cnt;
+}
 
 int Factorial(int n) {
   if (n < 0 || n > 31) {

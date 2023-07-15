@@ -7,8 +7,12 @@ namespace demo {
 // Time: O(1)
 bool IsEven(int value);
 
-// Returns the factorial of the given value. Returns -1 if the given value is
-// negative or would cause an overflow.
+// Returns the number of right shifts needed to convert the given value to zero.
+// Time: O(log(n))
+int ShiftsToZero(int n);
+
+// Returns the factorial of the given value.
+// Returns -1 if the given value is negative or would cause an overflow.
 // Time: O(n)
 int Factorial(int n);
 
