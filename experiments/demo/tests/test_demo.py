@@ -9,28 +9,33 @@ def assert_constant(expr):
     assert expr in O(1, (X0, oo))
 
 
+def assert_not_constant(expr):
+    assert expr not in O(1, (X0, oo))
+
+
 def assert_logarithmic(expr):
+    assert_not_constant(expr)
     assert expr in O(sympy.log(X0), (X0, oo))
 
 
 def assert_sqrt(expr):
+    assert_not_constant(expr)
     assert expr in O(sympy.sqrt(X0), (X0, oo))
 
 
 def assert_linear(expr):
+    assert_not_constant(expr)
     assert expr in O(X0, (X0, oo))
 
 
 def assert_quad(expr):
+    assert_not_constant(expr)
     assert expr in O(X0**2, (X0, oo))
 
 
 def assert_cubic(expr):
+    assert_not_constant(expr)
     assert expr in O(X0**3, (X0, oo))
-
-
-def get_constant(x_):
-    return O(1, (x_, oo))
 
 
 def get_expr(data, sig, ctx):
