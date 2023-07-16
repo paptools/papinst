@@ -21,6 +21,20 @@ TEST(DemoTest, IsEven) {
   EXPECT_FALSE(IsEven(INT_MAX));
 }
 
+TEST(DemoTest, IsPrime) {
+  std::vector<int> primes = {2,  3,  5,  7,  11, 13, 17, 19, 23, 29,
+                             31, 37, 41, 43, 47, 53, 59, 61, 67, 71};
+  for (int prime : primes) {
+    EXPECT_TRUE(IsPrime(prime));
+  }
+
+  std::vector<int> not_primes = {0,  1,  4,  6,  10, 16, 18, 20, 25, 30,
+                                 32, 36, 42, 44, 48, 55, 60, 64, 68, 72};
+  for (int not_prime : not_primes) {
+    EXPECT_FALSE(IsPrime(not_prime));
+  }
+}
+
 TEST(DemoTest, ShiftsToZero) {
   std::vector<int> values = {0, 1, 3, 7, 15, 31, 63, 127};
   std::vector<int> expecteds = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -39,20 +53,6 @@ TEST(DemoTest, Factorial) {
   }
 
   EXPECT_EQ(Factorial(31), 738197504);
-}
-
-TEST(DemoTest, IsPrime) {
-  std::vector<int> primes = {2,  3,  5,  7,  11, 13, 17, 19, 23, 29,
-                             31, 37, 41, 43, 47, 53, 59, 61, 67, 71};
-  for (int prime : primes) {
-    EXPECT_TRUE(IsPrime(prime));
-  }
-
-  std::vector<int> not_primes = {0,  1,  4,  6,  10, 16, 18, 20, 25, 30,
-                                 32, 36, 42, 44, 48, 55, 60, 64, 68, 72};
-  for (int not_prime : not_primes) {
-    EXPECT_FALSE(IsPrime(not_prime));
-  }
 }
 
 TEST(DemoTest, NByNIncrements) {

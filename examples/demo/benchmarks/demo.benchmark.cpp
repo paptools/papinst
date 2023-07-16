@@ -29,6 +29,13 @@ void ShiftsToZero(benchmark::State &state) {
   state.SetComplexityN(state.range(0));
 }
 
+void IsPrime(benchmark::State &state) {
+  for (auto _ : state) {
+    demo::IsPrime(state.range(0));
+  }
+  state.SetComplexityN(state.range(0));
+}
+
 void Factorial(benchmark::State &state) {
   for (auto _ : state) {
     demo::Factorial(state.range(0));
@@ -36,11 +43,6 @@ void Factorial(benchmark::State &state) {
   state.SetComplexityN(state.range(0));
 }
 
-void IsPrime(benchmark::State &state) {
-  for (auto _ : state) {
-    demo::IsPrime(state.range(0));
-  }
-  state.SetComplexityN(state.range(0));
 } // namespace benchmarks
 
 BENCHMARK(benchmarks::IsEven)
@@ -51,12 +53,12 @@ BENCHMARK(benchmarks::ShiftsToZero)
     ->Name("ShiftsToZero")
     ->Complexity()
     ->DenseRange(1, 30, 3);
-BENCHMARK(benchmarks::Factorial)
-    ->Name("Factorial")
-    ->Complexity()
-    ->DenseRange(1, 30, 3);
 BENCHMARK(benchmarks::IsPrime)
     ->Name("IsPrime")
     ->Complexity()
     ->Apply(PrimeAndAdjacentArgs);
+BENCHMARK(benchmarks::Factorial)
+    ->Name("Factorial")
+    ->Complexity()
+    ->DenseRange(1, 30, 3);
 } // namespace benchmarks
