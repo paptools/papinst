@@ -2,6 +2,7 @@ import json
 
 import anytree
 import sympy
+import numpy as np
 
 from .node import Node
 from .utils import from_file
@@ -96,7 +97,9 @@ def find_repr_exprs(path_dict, known):
             # Check if there are any loops in the trees. If the loop iter counts are
             # different, then we will need to solve for the loop expression.
             if trees[0].has_loop():
-                ctxs = [int(to_params_str(tree.root.params)) for tree in trees]
+                ctxs = np.array(
+                    [int(to_params_str(tree.root.params)) for tree in trees]
+                )
                 loop_nodes = [tree.get_loop_nodes() for tree in trees]
                 ref_nodes = loop_nodes[0]
                 found_variable_loop = False
@@ -107,36 +110,42 @@ def find_repr_exprs(path_dict, known):
 
                     print(f"  Solving for loop expr for node: {ref_node.name}")
                     found_variable_loop = True
-                    iter_cnts = [ref_node.iter_count]
-                    # Get the expressions for each entry in loop_nodes except the 0th.
-                    for j in range(1, len(loop_nodes)):
-                        alt_node = loop_nodes[j][i]
-                        iter_cnts.append(alt_node.iter_count)
+                    iter_cnts = np.zeros((len(loop_nodes),))
+                    for j in range(0, len(loop_nodes)):
+                        iter_cnts[j] = loop_nodes[j][i].iter_count
 
                     # Optimization: If the loop iter counts are the same, then we can
                     # just use values from the 0th entry.
                     loop_expr = None
-                    if len(set(iter_cnts)) == 1:
+                    if iter_cnts.ptp() == 0:
+                        print(f"    Loop iteration is constant.")
                         loop_expr = sympy.sympify(iter_cnts[0])
                     else:
-                        # We need to solve for the loop expression.
-                        data = []
-                        for j in range(0, len(ctxs)):
-                            data.append((ctxs[j], iter_cnts[j]))
-                        # loop_expr = gplearn_symreg(data)
-                        loop_expr = deap_symreg(data)
+                        # Optimization: Check for complete linear dependence.
+                        x = ctxs
+                        y = iter_cnts
+                        corr = np.corrcoef(ctxs, iter_cnts)
+                        if corr.ptp() == 0 and corr[0, 1] == 1:
+                            print(
+                                f"    Loop iteration has perfect linear"
+                                f" correlation."
+                            )
+                            m = (iter_cnts[1] - iter_cnts[0]) / (
+                                ctxs[1] - ctxs[0]
+                            )
+                            b = iter_cnts[0] - m * ctxs[0]
+                            loop_expr = sympy.sympify(f"{m} * X0 + {b}")
+                        else:
+                            print(f"    Performing symbolic regression.")
+                            # We need to regress for the relationship.
+                            # loop_expr = gplearn_symreg(data)
+                            loop_expr = deap_symreg(x, y)
 
                     if loop_expr is None:
                         raise RuntimeError("Failed to find loop expression.")
                     ref_node.set_loop_expr(loop_expr)
 
                 if found_variable_loop:
-                    # print("REF NODES")
-                    # for x in ref_nodes:
-                    #    print(x)
-                    # print("TREE")
-                    # print(anytree.RenderTree(trees[0].root))
-
                     add_result(sig, path_id, trees[0].to_expr(known), trees)
                     continue
 

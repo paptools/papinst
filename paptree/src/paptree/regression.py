@@ -105,11 +105,10 @@ toolbox.decorate(
 )
 
 
-def deap_symreg(data):
-    print("Data: ", data)
+def deap_symreg(x, y):
     global X, Y
-    X = np.array([item[0] for item in data])
-    Y = np.array([item[1] for item in data])
+    X = x
+    Y = y
 
     pop = toolbox.population(n=300)
     hof = tools.HallOfFame(1)
