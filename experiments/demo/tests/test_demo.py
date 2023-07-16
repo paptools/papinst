@@ -13,6 +13,10 @@ def assert_logarithmic(expr):
     assert expr in O(sympy.log(X0), (X0, oo))
 
 
+def assert_sqrt(expr):
+    assert expr in O(sympy.sqrt(X0), (X0, oo))
+
+
 def assert_linear(expr):
     assert expr in O(X0, (X0, oo))
 
@@ -58,21 +62,6 @@ def test_shifts_to_zero():
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
         assert_logarithmic(expr)
-
-
-def test_factorial():
-    sig = "int demo::Factorial(int)"
-    # Paths for x < 1 and x > 31 are constant.
-    ctxs = ["-1", "0", "32"]
-    for ctx in ctxs:
-        expr = get_expr(pytest.expr_data, sig, ctx)
-        assert_constant(expr)
-
-    # Paths for 1 <= x <= 31 are linear.
-    ctxs = ["1", "2", "3", "4", "31"]
-    for ctx in ctxs:
-        expr = get_expr(pytest.expr_data, sig, ctx)
-        assert_linear(expr)
 
 
 def test_is_prime():
@@ -130,6 +119,21 @@ def test_is_prime():
         "67",
         "71",
     ]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert_sqrt(expr)
+
+
+def test_factorial():
+    sig = "int demo::Factorial(int)"
+    # Paths for x < 1 and x > 31 are constant.
+    ctxs = ["-1", "0", "32"]
+    for ctx in ctxs:
+        expr = get_expr(pytest.expr_data, sig, ctx)
+        assert_constant(expr)
+
+    # Paths for 1 <= x <= 31 are linear.
+    ctxs = ["1", "2", "3", "4", "31"]
     for ctx in ctxs:
         expr = get_expr(pytest.expr_data, sig, ctx)
         assert_linear(expr)
