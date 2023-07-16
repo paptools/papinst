@@ -46,13 +46,11 @@ pset.addPrimitive(protected_sqrt, 1, name="sqrt")
 pset.addEphemeralConstant("rand101", lambda: random.randint(-10, 10))
 pset.renameArguments(ARG0="X0")
 
-creator.create(
-    "FitnessMin", base.Fitness, weights=(-1,)
-)  # to minimize the objective (fitness)
+creator.create("FitnessMin", base.Fitness, weights=(-1,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
 toolbox = base.Toolbox()
-toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=2)
+toolbox.register("expr", gp.genGrow, pset=pset, min_=1, max_=2)
 toolbox.register(
     "individual", tools.initIterate, creator.Individual, toolbox.expr
 )
@@ -108,6 +106,7 @@ toolbox.decorate(
 
 
 def deap_symreg(data):
+    print("Data: ", data)
     global X, Y
     X = np.array([item[0] for item in data])
     Y = np.array([item[1] for item in data])

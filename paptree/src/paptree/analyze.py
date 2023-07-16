@@ -112,11 +112,22 @@ def find_repr_exprs(path_dict, known):
                     for j in range(1, len(loop_nodes)):
                         alt_node = loop_nodes[j][i]
                         iter_cnts.append(alt_node.iter_count)
-                    data = []
-                    for j in range(0, len(ctxs)):
-                        data.append((ctxs[j], iter_cnts[j]))
-                    # loop_expr = gplearn_symreg(data)
-                    loop_expr = deap_symreg(data)
+
+                    # Optimization: If the loop iter counts are the same, then we can
+                    # just use values from the 0th entry.
+                    loop_expr = None
+                    if len(set(iter_cnts)) == 1:
+                        loop_expr = sympy.sympify(iter_cnts[0])
+                    else:
+                        # We need to solve for the loop expression.
+                        data = []
+                        for j in range(0, len(ctxs)):
+                            data.append((ctxs[j], iter_cnts[j]))
+                        # loop_expr = gplearn_symreg(data)
+                        loop_expr = deap_symreg(data)
+
+                    if loop_expr is None:
+                        raise RuntimeError("Failed to find loop expression.")
                     ref_node.set_loop_expr(loop_expr)
 
                 if found_variable_loop:
