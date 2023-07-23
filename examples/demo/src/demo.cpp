@@ -15,18 +15,6 @@ int ShiftsToZero(int n) {
   return cnt;
 }
 
-int Factorial(int n) {
-  if (n < 0 || n > 31) {
-    return -1;
-  }
-
-  int result = 1;
-  for (int i = 1; i <= n; ++i) {
-    result *= i;
-  }
-  return result;
-}
-
 bool IsPrime(int n) {
   if (n <= 1) {
     return false;
@@ -39,6 +27,18 @@ bool IsPrime(int n) {
   }
 
   return true;
+}
+
+int Factorial(int n) {
+  if (n < 0 || n > 31) {
+    return -1;
+  }
+
+  int result = 1;
+  for (int i = 1; i <= n; ++i) {
+    result *= i;
+  }
+  return result;
 }
 
 int NByNIncrements(int n) {
