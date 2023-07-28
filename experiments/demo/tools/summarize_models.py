@@ -48,7 +48,6 @@ def main():
                 ex = sympy.sympify(expr)
                 iprint(3, f"expr: {ex}")
                 iprint(3, f"complexity: {sympy.Order(ex, ('X0', oo))}")
-        break
         print()
 
     logging.info("Model summary script is complete.")
