@@ -1,5 +1,6 @@
 black>=23.1.0
 graphviz>=0.20.1
+papan @ git+https://github.com/paptools/papan@main
 pre-commit>=3.2.0
 pytest>=7.2.1
 sympy>=1.11.1

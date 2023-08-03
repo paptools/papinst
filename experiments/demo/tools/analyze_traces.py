@@ -5,16 +5,16 @@ import pathlib
 import shutil
 import json
 
-import paptree
+import papan
 
 
 def process_traces(known_exprs, trace_file, process_data_dir):
     logging.info(f"Analyzing traces for: {trace_file}.")
 
-    trees = paptree.utils.from_file(trace_file)
+    trees = papan.utils.from_file(trace_file)
     logging.info(f"Loaded {len(trees)} traces.")
 
-    results = paptree.analyze.analyze(known_exprs, trees)
+    results = papan.analyze.analyze(known_exprs, trees)
     output_name = f"trace_exprs{''.join(trace_file.suffixes)}"
     output_path = process_data_dir / output_name
     with open(output_path, "w") as f_out:

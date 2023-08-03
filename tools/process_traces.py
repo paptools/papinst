@@ -3,7 +3,7 @@
 import json
 
 import argparse
-import paptree
+import papan
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
     parser.add_argument("output_file", help="output file")
     args = parser.parse_args()
 
-    trees = paptree.utils.from_file(args.input_file)
+    trees = papan.utils.from_file(args.input_file)
     print(f"Loaded {len(trees)} traces.")
 
     # It is expected that we start with some known values.
@@ -38,7 +38,7 @@ def main():
         ],
     }
 
-    results = paptree.analyze.analyze(known, trees)
+    results = papan.analyze.analyze(known, trees)
     print("\nResults:")
     print(json.dumps(results, indent=4))
     with open(args.output_file, "w") as f_out:
