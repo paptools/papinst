@@ -9,8 +9,6 @@ function main {
   echo "Running clang-format ..."
   find papinst \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; \
     -exec clang-format -i {} \;
-  find paptrace \( -iname '*.h' -o -iname '*.cpp' \) -exec echo {} \; \
-    -exec clang-format -i {} \;
   find examples \( -iname '*.h' -o -iname '*.cpp' \) \
     -not -path "*/build/*" -exec echo {} \; \
     -exec clang-format -i {} \;
