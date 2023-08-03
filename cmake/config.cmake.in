@@ -6,8 +6,7 @@ find_dependency(Clang REQUIRED CONFIG)
 find_dependency(Boost REQUIRED CONFIG COMPONENTS @BOOST_INCLUDE_LIBS@)
 find_dependency(fmt REQUIRED CONFIG PATHS "@CMAKE_INSTALL_PREFIX@")
 find_dependency(spdlog REQUIRED CONFIG PATHS "@CMAKE_INSTALL_PREFIX@")
-find_dependency(nlohmann_json REQUIRED CONFIG PATHS "@CMAKE_INSTALL_PREFIX@")
-find_dependency(GTest REQUIRED CONFIG PATHS "@CMAKE_INSTALL_PREFIX@")
+find_dependency(paptrace REQUIRED CONFIG)
 
 include(${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake)
 
@@ -21,6 +20,6 @@ function(paptrace_trace_target target)
 
   target_link_libraries(${target}
     PRIVATE
-      paptools::paptrace
+      paptrace::paptrace
   )
 endfunction()
