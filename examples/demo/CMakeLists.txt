@@ -14,7 +14,6 @@ option(DEMO_PERF "Enable performance tests." OFF)
 ################################################################################
 # Third Party Dependencies.
 
-
 if (DEMO_PERF)
   include("cmake/FindPaptrace.cmake")
 
