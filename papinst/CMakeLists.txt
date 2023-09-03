@@ -46,6 +46,7 @@ target_link_libraries(papinst
     clangTooling
     ${llvm_libs}
     fmt::fmt
+    nlohmann_json::nlohmann_json
 )
 
 ################################################################################
@@ -98,6 +99,7 @@ if (PAPTOOLS_INSTALL)
   set(papinst_install_targets
     papinst
     papinst_exe
+    nlohmann_json
   )
   install(TARGETS ${papinst_install_targets}
     EXPORT "${targets_export_name}"

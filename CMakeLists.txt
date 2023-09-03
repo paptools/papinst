@@ -49,6 +49,7 @@ include("cmake/FindBoost.cmake")
 include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
 include("cmake/FindSpdlog.cmake")
+include("cmake/FindJson.cmake")
 
 ################################################################################
 # Project subdirectories.
