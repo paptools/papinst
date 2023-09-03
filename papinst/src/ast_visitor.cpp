@@ -458,45 +458,6 @@ public:
       if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
         llvm::errs() << "Error: " << err << "\n";
       }
-
-      // std::cout << "CURR OFFSET: " << replacement.getOffset() << ", CURR LEN:
-      // " << replacement.getLength() << "\n"; std::cout << "CURR REPLACEMENT: "
-      // << replacement.getReplacementText().str() << "\n";
-
-      // auto adj_offset = prev_repl.getOffset() +
-      // prev_repl.getReplacementText().size(); std::cout << "ADJ OFFSET: " <<
-      // adj_offset << "\n";
-
-      // clang::SourceLocation inst_loc =
-      // expr->getBeginLoc().getLocWithOffset(inst_pos); prev_repl.getOffset() +
-      // prev_repl.getReplacementText().size());
-      // auto inst_loc = expr->getBeginLoc();
-      //// convert inst_loc to string and output to std.
-      // std::cout << "inst_loc: " <<
-      // inst_loc.printToString(context_->getSourceManager()) << "\n"; auto
-      // inst_pos =
-      // s_replacements.getShiftedCodePosition(prev_repl.getOffset()); std::cout
-      // << "inst_pos: " << inst_loc.getRawEncoding() << "\n"; std::cout <<
-      // "inst_pos: " << inst_pos << "\n"; inst_loc =
-      // inst_loc.getLocWithOffset(inst_pos); std::cout << "inst_loc: " <<
-      // inst_loc.printToString(context_->getSourceManager()) << "\n";
-
-      // auto inst_loc =
-      // expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size());
-      // replacement = PrependSourceLoc(
-      //     *context_,
-      //     //expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size()),
-      //     expr->getBeginLoc(),
-      //     inst_text);
-      // if (auto err = Add(replacement)) {
-      //   llvm::errs() << "Error: " << err << "\n";
-      // }
-
-      // if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")")))
-      // {
-      //   llvm::errs() << "Error: " << err << "\n";
-      // }
-      return;
     } else {
       if (auto err = Add(replacement)) {
         llvm::errs() << "Error: " << err << "\n";
@@ -529,21 +490,8 @@ public:
 
     if (op->isAssignmentOp() || op->isAdditiveOp() ||
         op->isCompoundAssignmentOp()) {
-      // op->dumpColor();
       auto id = op->getID(*context_);
       const std::string sig = GetBinaryOperatorSignature(op);
-      auto lhs = op->getLHS()->IgnoreUnlessSpelledInSource();
-      // const std::string lhs_str =
-      //     clang::Lexer::getSourceText(
-      //         clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
-      //         context_->getSourceManager(), context_->getLangOpts())
-      //         .str();
-      auto rhs = op->getRHS()->IgnoreUnlessSpelledInSource();
-      // const std::string rhs_str =
-      //     clang::Lexer::getSourceText(
-      //         clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
-      //         context_->getSourceManager(), context_->getLangOpts())
-      //         .str();
       auto inst_text = GetTraceOpInstBegin(id, sig);
 
       auto begin_loc = op->getLHS()->getBeginLoc();
@@ -556,8 +504,6 @@ public:
       if (auto err = Add(AppendSourceLoc(*context_, end_loc, inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
       }
-    } else {
-      // op->dumpColor();
     }
   }
 
@@ -567,9 +513,6 @@ public:
     if (op->isIncrementDecrementOp()) {
       auto id = op->getID(*context_);
       const std::string sig = GetUnaryOperatorSignature(op);
-      // const std::string type =
-      //     clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
-
       auto inst_text = GetTraceOpInstBegin(id, sig);
       if (auto err =
               Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
@@ -581,8 +524,6 @@ public:
               Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
       }
-    } else {
-      // op->dumpColor();
     }
   }
 
