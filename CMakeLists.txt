@@ -48,8 +48,8 @@ include("cmake/FindFmt.cmake")
 include("cmake/FindBoost.cmake")
 include("cmake/FindClang.cmake")
 include("cmake/FindGoogleTest.cmake")
-include("cmake/FindJson.cmake")
 include("cmake/FindSpdlog.cmake")
+include("cmake/FindJson.cmake")
 
 ################################################################################
 # Project subdirectories.
@@ -59,7 +59,6 @@ set(targets_export_name "${PROJECT_NAME}-targets")
 set(install_targets "")
 
 add_subdirectory("papinst")
-add_subdirectory("paptrace")
 
 ################################################################################
 # Install rules.

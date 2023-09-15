@@ -45,7 +45,7 @@ cpg.method(fn).dotDdg.l |> dots_dir + "/" + fn_lower + "-ddg.dot"
 cpg.method(fn).dotPdg.l |> dots_dir + "/" + fn_lower + "-pdg.dot"
 cpg.method(fn).dotCpg14.l |> dots_dir + "/" + fn_lower + "-cpg14.dot"
 
-fn = "NByNIncrements"
+fn = "QuadraInc"
 fn_lower = fn.toLowerCase
 cpg.method(fn).dotAst.l |> dots_dir + "/" + fn_lower + "-ast.dot"
 cpg.method(fn).dotCfg.l |> dots_dir + "/" + fn_lower + "-cfg.dot"
@@ -54,7 +54,7 @@ cpg.method(fn).dotDdg.l |> dots_dir + "/" + fn_lower + "-ddg.dot"
 cpg.method(fn).dotPdg.l |> dots_dir + "/" + fn_lower + "-pdg.dot"
 cpg.method(fn).dotCpg14.l |> dots_dir + "/" + fn_lower + "-cpg14.dot"
 
-fn = "NByNByNIncrements"
+fn = "CubicInc"
 fn_lower = fn.toLowerCase
 cpg.method(fn).dotAst.l |> dots_dir + "/" + fn_lower + "-ast.dot"
 cpg.method(fn).dotCfg.l |> dots_dir + "/" + fn_lower + "-cfg.dot"

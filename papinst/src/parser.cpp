@@ -12,7 +12,6 @@
 #include <boost/process/search_path.hpp>
 #include <clang/Tooling/Tooling.h>
 #include <fmt/format.h>
-#include <llvm/Support/raw_ostream.h>
 
 // C++ standard library headers.
 #include <fstream>

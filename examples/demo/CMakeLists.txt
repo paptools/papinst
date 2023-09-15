@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.24)
 project(paptools_demo C CXX)
 
 ################################################################################
@@ -15,13 +15,15 @@ option(DEMO_PERF "Enable performance tests." OFF)
 # Third Party Dependencies.
 
 if (DEMO_PERF)
-# This assumes that paptools was installed using the provided build script.
+  include("cmake/FindPaptrace.cmake")
+
+  # This assumes that paptools was installed using the provided build script.
   find_package(paptools REQUIRED
     PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../install"
   )
-else ()
-  include("cmake/FindGoogleTest.cmake")
 endif ()
+
+include("cmake/FindGoogleTest.cmake")
 include("cmake/FindBenchmark.cmake")
 
 ################################################################################

@@ -1,7 +1,6 @@
 #ifndef DEMO_DEMO_H
 #define DEMO_DEMO_H
 
-namespace demo {
 // Functions are listed in order of increasing time complexity.
 
 // Returns true if the given value is even.
@@ -23,11 +22,10 @@ int Factorial(int n);
 
 // Returns the value of N x N increments.
 // Time: O(n^2)
-int NByNIncrements(int n);
+int QuadraInc(int n);
 
 // Returns the value of N x N x N increments.
 // Time: O(n^3)
-int NByNByNIncrements(int n);
-} // namespace demo
+int CubicInc(int n);
 
 #endif // DEMO_DEMO_H

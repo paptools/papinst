@@ -1,3 +1,0 @@
-# paptree
-
-Paptree library

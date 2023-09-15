@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 
-namespace demo {
 bool IsEven(int value) { return value % 2 == 0; }
 
 int ShiftsToZero(int n) {
@@ -41,7 +40,7 @@ int Factorial(int n) {
   return result;
 }
 
-int NByNIncrements(int n) {
+int QuadraInc(int n) {
   int result = 0;
   for (int i = 0; i < n; ++i) {
     for (int j = i; j < n; ++j) {
@@ -51,7 +50,7 @@ int NByNIncrements(int n) {
   return result;
 }
 
-int NByNByNIncrements(int n) {
+int CubicInc(int n) {
   int result = 0;
   for (int i = 0; i < n; ++i) {
     for (int j = i; j < n; ++j) {
@@ -62,4 +61,3 @@ int NByNByNIncrements(int n) {
   }
   return result;
 }
-} // namespace demo

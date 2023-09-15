@@ -5,24 +5,34 @@
 
 // Third-party headers.
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/Mangle.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/Lexer.h>
+#include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/Core/Replacement.h>
 #include <fmt/format.h>
+#include <llvm/Support/raw_ostream.h>
+#include <nlohmann/json.hpp>
+
 #ifdef PAPINST_OUTPUT_CFG
 #include <clang/Analysis/CFG.h>
 #include <llvm/Support/GraphWriter.h>
 #endif // PAPINST_OUTPUT_CFG
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/Core/Replacement.h>
 
 // C++ standard library headers.
+#include <fstream>
 #include <iostream> // TODO: Remove this once debugging is done.
+#include <list>
+#include <map>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace papinst {
 namespace {
+using NodeID = unsigned int;
+
 clang::tooling::Replacements s_replacements;
 
 // Returns the fully quality function signature.
@@ -85,7 +95,7 @@ std::string ToEscapedString(const std::string &s) {
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceStmtInst(int id, const std::string &type,
+std::string GetTraceStmtInst(NodeID id, const std::string &type,
                              const std::string &desc) {
   static const std::string template_str =
       "PAPTRACE_STMT_NODE({}, \"{}\", \"{}\");";
@@ -124,7 +134,7 @@ std::string GetUnaryOperatorSignature(const clang::UnaryOperator *op) {
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceCalleeInst(int id, const std::string &sig,
+std::string GetTraceCalleeInst(NodeID id, const std::string &sig,
                                const std::vector<std::string> &params) {
   static const std::string template_str =
       "\nPAPTRACE_CALLEE_NODE({}, \"{}\", {});";
@@ -132,7 +142,7 @@ std::string GetTraceCalleeInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceCallerInst(int id, const std::string &sig,
+std::string GetTraceCallerInst(NodeID id, const std::string &sig,
                                const std::vector<std::string> &params) {
   static const std::string template_str =
       "\nPAPTRACE_CALLER_NODE({}, \"{}\", {}), ";
@@ -140,7 +150,7 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceOpInstBegin(int id, const std::string &sig) {
+std::string GetTraceOpInstBegin(NodeID id, const std::string &sig) {
   static const std::string template_str = "(PAPTRACE_OP_NODE({}, \"{}\"), ";
   return fmt::format(template_str, id, sig);
 }
@@ -164,10 +174,24 @@ clang::tooling::Replacement PrependSourceLoc(clang::ASTContext &context,
 class DefaultASTVisitorListener : public ASTVisitorListener {
 public:
   DefaultASTVisitorListener(std::shared_ptr<Instrumenter> instrumenter)
-      : instrumenter_(instrumenter), context_(nullptr) {}
-  ~DefaultASTVisitorListener() = default;
+      : instrumenter_(instrumenter), context_(nullptr), mangle_ctx_(nullptr) {}
 
-  void Initialize(clang::ASTContext &context) override { context_ = &context; }
+  ~DefaultASTVisitorListener() {
+    auto node_arr = nlohmann::json::array();
+    for (const auto &node : nodes_) {
+      node_arr.push_back(node);
+    }
+    nlohmann::json obj = {{"version", "0.1.0"}, {"nodes", node_arr}};
+    std::ofstream ofs("papinst.json");
+    ofs << std::setw(2) << obj << std::endl;
+    std::cout << "Papinst data saved to \"papinst.json\"." << std::endl;
+  }
+
+  void Initialize(clang::ASTContext &context) override {
+    context_ = &context;
+    mangle_ctx_ =
+        clang::ItaniumMangleContext::create(context, context.getDiagnostics());
+  }
 
   void ProcessFnDef(clang::FunctionDecl *decl) override {
     assert(context_);
@@ -195,12 +219,26 @@ public:
     for (auto param : decl->parameters()) {
       params.push_back(param->getNameAsString());
     }
-    auto inst_text = GetTraceCalleeInst(id, sig, params);
+    std::string mangled_name;
+    llvm::raw_string_ostream os(mangled_name);
+    mangle_ctx_->mangleName(decl, os);
+    nlohmann::json params_arr = nlohmann::json::array();
+    for (const auto &param : decl->parameters()) {
+      params_arr.push_back(param->getNameAsString());
+    }
 
+    nodes_.push_back({{"id", id},
+                      {"type", "CalleeExpr"},
+                      {"mangled", mangled_name},
+                      {"sig", sig},
+                      {"params", params_arr}});
+
+    auto inst_text = GetTraceCalleeInst(id, sig, params);
     auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(decl->getBody());
     if (auto err = Add(AppendSourceLoc(*context_, compound_stmt->getLBracLoc(),
                                        inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
   }
 
@@ -215,11 +253,17 @@ public:
                                       context_->getSourceManager(),
                                       context_->getLangOpts())
               .str());
+
+      nlohmann::json node(
+          {{"id", then_id}, {"type", "IfThenStmt"}, {"desc", desc}});
+      AddNode(node, context_->getFullLoc(then_stmt->getBeginLoc()));
+
       auto inst_text = instrumenter_->GetTraceIfThenStmtInst(then_id, desc);
       if (clang::isa<clang::CompoundStmt>(then_stmt)) {
         if (auto err = Add(AppendSourceLoc(*context_, then_stmt->getBeginLoc(),
                                            inst_text))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
       } else {
         std::ostringstream oss;
@@ -229,6 +273,7 @@ public:
         auto begin_loc = stmt->getRParenLoc();
         if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
 
         auto semi_loc = clang::Lexer::getLocForEndOfToken(
@@ -236,6 +281,7 @@ public:
             context_->getLangOpts());
         if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
       }
     }
@@ -254,11 +300,17 @@ public:
                                       context_->getSourceManager(),
                                       context_->getLangOpts())
               .str());
+
+      nlohmann::json node(
+          {{"id", else_id}, {"type", "IfElseStmt"}, {"desc", desc}});
+      AddNode(node, context_->getFullLoc(else_stmt->getBeginLoc()));
+
       auto inst_text = instrumenter_->GetTraceIfElseStmtInst(else_id, desc);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
         if (auto err = Add(AppendSourceLoc(*context_, else_stmt->getBeginLoc(),
                                            inst_text))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
       } else {
         std::ostringstream oss;
@@ -268,6 +320,7 @@ public:
         auto begin_loc = stmt->getElseLoc().getLocWithOffset(4);
         if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
 
         auto semi_loc = clang::Lexer::getLocForEndOfToken(
@@ -275,6 +328,7 @@ public:
             context_->getLangOpts());
         if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
           llvm::errs() << "Error: " << err << "\n";
+          throw std::runtime_error("Failed to add instrumentation.");
         }
       }
     }
@@ -288,7 +342,6 @@ public:
       do {
         auto sub_stmt = case_stmt->getSubStmt();
         auto id = sub_stmt->getID(*context_);
-
         auto desc = ToEscapedString(
             clang::Lexer::getSourceText(clang::CharSourceRange::getTokenRange(
                                             sub_stmt->getSourceRange()),
@@ -296,12 +349,16 @@ public:
                                         context_->getLangOpts())
                 .str());
 
+        nlohmann::json node({{"id", id}, {"type", "CaseStmt"}, {"desc", desc}});
+        AddNode(nodes_.back(), context_->getFullLoc(sub_stmt->getBeginLoc()));
+
         auto inst_text = GetTraceStmtInst(id, "CaseStmt", desc);
         if (auto compound_stmt =
                 clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
           if (auto err = Add(AppendSourceLoc(
                   *context_, compound_stmt->getBeginLoc(), inst_text))) {
             llvm::errs() << "Error: " << err << "\n";
+            throw std::runtime_error("Failed to add instrumentation.");
           }
         } else {
           auto semi_loc = clang::Lexer::getLocForEndOfToken(
@@ -311,6 +368,7 @@ public:
             if (auto err = Add(AppendSourceLoc(
                     *context_, case_stmt->getColonLoc(), inst_text))) {
               llvm::errs() << "Error: " << err << "\n";
+              throw std::runtime_error("Failed to add instrumentation.");
             }
             prev_semi_loc = semi_loc;
           }
@@ -331,15 +389,21 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
+
+    nlohmann::json node({{"id", id}, {"type", "WhileStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
+
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "WhileStmt", desc);
     auto inst_text = oss.str();
     if (auto err =
             Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
     if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
 
     ProcessLoopBody(id, stmt->getBody(), stmt->getRParenLoc(),
@@ -356,15 +420,21 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
+
+    nlohmann::json node({{"id", id}, {"type", "ForStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
+
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "ForStmt", desc);
     auto inst_text = oss.str();
     if (auto err =
             Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
     if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
 
     ProcessLoopBody(id, stmt->getBody(), stmt->getRParenLoc(),
@@ -381,15 +451,21 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
+
+    nlohmann::json node({{"id", id}, {"type", "DoStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
+
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "DoStmt", desc);
     auto inst_text = oss.str();
     if (auto err =
             Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
     if (auto err = Add(AppendSourceLoc(*context_, stmt->getEndLoc(), "}"))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
 
     auto body = stmt->getBody();
@@ -406,10 +482,14 @@ public:
             clang::CharSourceRange::getTokenRange(stmt->getSourceRange()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
+    nlohmann::json node({{"id", id}, {"type", "ReturnStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
+
     auto inst_text = GetTraceStmtInst(id, "ReturnStmt", desc);
     if (auto err =
             Add(PrependSourceLoc(*context_, stmt->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
   }
 
@@ -437,6 +517,21 @@ public:
           context_->getSourceManager(), context_->getLangOpts());
       params.push_back(std::string(arg_str));
     }
+    std::string mangled_name;
+    llvm::raw_string_ostream os(mangled_name);
+    mangle_ctx_->mangleName(callee, os);
+    nlohmann::json params_arr = nlohmann::json::array();
+    for (const auto &param : params) {
+      params_arr.push_back(param);
+    }
+
+    nlohmann::json node({{"id", id},
+                         {"type", "CallerExpr"},
+                         {"mangled", mangled_name},
+                         {"sig", sig},
+                         {"params", params_arr}});
+    AddNode(node, context_->getFullLoc(expr->getBeginLoc()));
+
     std::ostringstream oss;
     oss << "(" << GetTraceCallerInst(id, sig, params);
     auto inst_text = oss.str();
@@ -457,53 +552,17 @@ public:
       s_replacements = replacements;
       if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
-
-      // std::cout << "CURR OFFSET: " << replacement.getOffset() << ", CURR LEN:
-      // " << replacement.getLength() << "\n"; std::cout << "CURR REPLACEMENT: "
-      // << replacement.getReplacementText().str() << "\n";
-
-      // auto adj_offset = prev_repl.getOffset() +
-      // prev_repl.getReplacementText().size(); std::cout << "ADJ OFFSET: " <<
-      // adj_offset << "\n";
-
-      // clang::SourceLocation inst_loc =
-      // expr->getBeginLoc().getLocWithOffset(inst_pos); prev_repl.getOffset() +
-      // prev_repl.getReplacementText().size());
-      // auto inst_loc = expr->getBeginLoc();
-      //// convert inst_loc to string and output to std.
-      // std::cout << "inst_loc: " <<
-      // inst_loc.printToString(context_->getSourceManager()) << "\n"; auto
-      // inst_pos =
-      // s_replacements.getShiftedCodePosition(prev_repl.getOffset()); std::cout
-      // << "inst_pos: " << inst_loc.getRawEncoding() << "\n"; std::cout <<
-      // "inst_pos: " << inst_pos << "\n"; inst_loc =
-      // inst_loc.getLocWithOffset(inst_pos); std::cout << "inst_loc: " <<
-      // inst_loc.printToString(context_->getSourceManager()) << "\n";
-
-      // auto inst_loc =
-      // expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size());
-      // replacement = PrependSourceLoc(
-      //     *context_,
-      //     //expr->getBeginLoc().getLocWithOffset(prev_repl.getReplacementText().size()),
-      //     expr->getBeginLoc(),
-      //     inst_text);
-      // if (auto err = Add(replacement)) {
-      //   llvm::errs() << "Error: " << err << "\n";
-      // }
-
-      // if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")")))
-      // {
-      //   llvm::errs() << "Error: " << err << "\n";
-      // }
-      return;
     } else {
       if (auto err = Add(replacement)) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
 
       if (auto err = Add(AppendSourceLoc(*context_, expr->getEndLoc(), ")"))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
     }
   }
@@ -517,10 +576,15 @@ public:
             clang::CharSourceRange::getTokenRange(expr->getSourceRange()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
+
+    nlohmann::json node({{"id", id}, {"type", "CXXThrowExpr"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(expr->getBeginLoc()));
+
     auto inst_text = GetTraceStmtInst(id, "CXXThrowExpr", desc);
     if (auto err =
             Add(PrependSourceLoc(*context_, expr->getBeginLoc(), inst_text))) {
       llvm::errs() << "Error: " << err << "\n";
+      throw std::runtime_error("Failed to add instrumentation.");
     }
   }
 
@@ -529,35 +593,25 @@ public:
 
     if (op->isAssignmentOp() || op->isAdditiveOp() ||
         op->isCompoundAssignmentOp()) {
-      // op->dumpColor();
       auto id = op->getID(*context_);
       const std::string sig = GetBinaryOperatorSignature(op);
-      auto lhs = op->getLHS()->IgnoreUnlessSpelledInSource();
-      // const std::string lhs_str =
-      //     clang::Lexer::getSourceText(
-      //         clang::CharSourceRange::getTokenRange(lhs->getSourceRange()),
-      //         context_->getSourceManager(), context_->getLangOpts())
-      //         .str();
-      auto rhs = op->getRHS()->IgnoreUnlessSpelledInSource();
-      // const std::string rhs_str =
-      //     clang::Lexer::getSourceText(
-      //         clang::CharSourceRange::getTokenRange(rhs->getSourceRange()),
-      //         context_->getSourceManager(), context_->getLangOpts())
-      //         .str();
-      auto inst_text = GetTraceOpInstBegin(id, sig);
 
+      nlohmann::json node({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+      AddNode(node, context_->getFullLoc(op->getBeginLoc()));
+
+      auto inst_text = GetTraceOpInstBegin(id, sig);
       auto begin_loc = op->getLHS()->getBeginLoc();
       if (auto err = Add(PrependSourceLoc(*context_, begin_loc, inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
 
       auto end_loc = op->getRHS()->getEndLoc();
       inst_text = GetTraceOpInstEnd();
       if (auto err = Add(AppendSourceLoc(*context_, end_loc, inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
-    } else {
-      // op->dumpColor();
     }
   }
 
@@ -567,22 +621,23 @@ public:
     if (op->isIncrementDecrementOp()) {
       auto id = op->getID(*context_);
       const std::string sig = GetUnaryOperatorSignature(op);
-      // const std::string type =
-      //     clang::UnaryOperator::getOpcodeStr(op->getOpcode()).str();
+
+      nlohmann::json node({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+      AddNode(node, context_->getFullLoc(op->getBeginLoc()));
 
       auto inst_text = GetTraceOpInstBegin(id, sig);
       if (auto err =
               Add(PrependSourceLoc(*context_, op->getBeginLoc(), inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
 
       inst_text = GetTraceOpInstEnd();
       if (auto err =
               Add(AppendSourceLoc(*context_, op->getEndLoc(), inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
-    } else {
-      // op->dumpColor();
     }
   }
 
@@ -590,16 +645,33 @@ private:
   std::shared_ptr<Instrumenter> instrumenter_;
   clang::ASTContext *context_;
   std::map<unsigned int, clang::tooling::Replacement> visited_repls_;
+  clang::ItaniumMangleContext *mangle_ctx_;
+  std::list<nlohmann::json> nodes_;
+
+  void AddNode(nlohmann::json &node, const clang::FullSourceLoc &loc) {
+    node["loc"] = {
+        {"file", context_->getSourceManager().getFilename(loc).data()},
+        {"line", loc.getSpellingLineNumber()},
+        {"col", loc.getSpellingColumnNumber()},
+    };
+
+    nodes_.push_back(node);
+  }
 
   void ProcessLoopBody(int id, clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
                        const clang::SourceLocation &end_loc) {
     auto body_id = body->getID(*context_);
+
+    nodes_.push_back(
+        {{"id", body_id}, {"type", "LoopIter"}, {"desc", "LoopIter"}});
+
     auto inst_text = GetTraceStmtInst(body_id, "LoopIter", "LoopIter");
     if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(body)) {
       if (auto err = Add(AppendSourceLoc(
               *context_, compound_stmt->getBeginLoc(), inst_text))) {
         llvm::errs() << "Error: " << err;
+        throw std::runtime_error("Failed to add instrumentation.");
       }
     } else {
       std::ostringstream oss;
@@ -608,12 +680,14 @@ private:
 
       if (auto err = Add(AppendSourceLoc(*context_, begin_loc, inst_text))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
 
       auto semi_loc = clang::Lexer::getLocForEndOfToken(
           end_loc, 0, context_->getSourceManager(), context_->getLangOpts());
       if (auto err = Add(AppendSourceLoc(*context_, semi_loc, "}"))) {
         llvm::errs() << "Error: " << err << "\n";
+        throw std::runtime_error("Failed to add instrumentation.");
       }
     }
   }
