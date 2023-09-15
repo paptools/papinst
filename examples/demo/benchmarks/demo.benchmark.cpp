@@ -17,42 +17,42 @@ void PrimeAndAdjacentArgs(benchmark::internal::Benchmark *b) {
 namespace benchmarks {
 void IsEven(benchmark::State &state) {
   for (auto _ : state) {
-    demo::IsEven(state.range(0));
+    ::IsEven(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
 
 void ShiftsToZero(benchmark::State &state) {
   for (auto _ : state) {
-    demo::ShiftsToZero(state.range(0));
+    ::ShiftsToZero(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
 
 void IsPrime(benchmark::State &state) {
   for (auto _ : state) {
-    demo::IsPrime(state.range(0));
+    ::IsPrime(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
 
 void Factorial(benchmark::State &state) {
   for (auto _ : state) {
-    demo::Factorial(state.range(0));
+    ::Factorial(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
 
-void NByNIncrements(benchmark::State &state) {
+void QuadraInc(benchmark::State &state) {
   for (auto _ : state) {
-    demo::NByNIncrements(state.range(0));
+    ::QuadraInc(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
 
-void NByNByNIncrements(benchmark::State &state) {
+void CubicInc(benchmark::State &state) {
   for (auto _ : state) {
-    demo::NByNByNIncrements(state.range(0));
+    ::CubicInc(state.range(0));
   }
   state.SetComplexityN(state.range(0));
 }
@@ -74,11 +74,11 @@ BENCHMARK(benchmarks::Factorial)
     ->Name("Factorial")
     ->Complexity()
     ->DenseRange(1, 30, 3);
-BENCHMARK(benchmarks::NByNIncrements)
-    ->Name("NByNIncrements")
+BENCHMARK(benchmarks::QuadraInc)
+    ->Name("QuadraInc")
     ->Complexity()
     ->DenseRange(1, 30, 3);
-BENCHMARK(benchmarks::NByNByNIncrements)
-    ->Name("NByNByNIncrements")
+BENCHMARK(benchmarks::CubicInc)
+    ->Name("CubicInc")
     ->Complexity()
     ->DenseRange(1, 30, 3);
