@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream> // TODO: Remove this once debugging is done.
 #include <list>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -30,6 +31,8 @@
 
 namespace papinst {
 namespace {
+using NodeID = unsigned int;
+
 clang::tooling::Replacements s_replacements;
 
 // Returns the fully quality function signature.
@@ -92,7 +95,7 @@ std::string ToEscapedString(const std::string &s) {
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceStmtInst(int id, const std::string &type,
+std::string GetTraceStmtInst(NodeID id, const std::string &type,
                              const std::string &desc) {
   static const std::string template_str =
       "PAPTRACE_STMT_NODE({}, \"{}\", \"{}\");";
@@ -131,7 +134,7 @@ std::string GetUnaryOperatorSignature(const clang::UnaryOperator *op) {
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceCalleeInst(int id, const std::string &sig,
+std::string GetTraceCalleeInst(NodeID id, const std::string &sig,
                                const std::vector<std::string> &params) {
   static const std::string template_str =
       "\nPAPTRACE_CALLEE_NODE({}, \"{}\", {});";
@@ -139,7 +142,7 @@ std::string GetTraceCalleeInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceCallerInst(int id, const std::string &sig,
+std::string GetTraceCallerInst(NodeID id, const std::string &sig,
                                const std::vector<std::string> &params) {
   static const std::string template_str =
       "\nPAPTRACE_CALLER_NODE({}, \"{}\", {}), ";
@@ -147,7 +150,7 @@ std::string GetTraceCallerInst(int id, const std::string &sig,
 }
 
 // TODO: Move to the instrumenter.
-std::string GetTraceOpInstBegin(int id, const std::string &sig) {
+std::string GetTraceOpInstBegin(NodeID id, const std::string &sig) {
   static const std::string template_str = "(PAPTRACE_OP_NODE({}, \"{}\"), ";
   return fmt::format(template_str, id, sig);
 }
@@ -223,6 +226,7 @@ public:
     for (const auto &param : decl->parameters()) {
       params_arr.push_back(param->getNameAsString());
     }
+
     nodes_.push_back({{"id", id},
                       {"type", "CalleeExpr"},
                       {"mangled", mangled_name},
@@ -249,8 +253,10 @@ public:
                                       context_->getSourceManager(),
                                       context_->getLangOpts())
               .str());
-      nodes_.push_back(
+
+      nlohmann::json node(
           {{"id", then_id}, {"type", "IfThenStmt"}, {"desc", desc}});
+      AddNode(node, context_->getFullLoc(then_stmt->getBeginLoc()));
 
       auto inst_text = instrumenter_->GetTraceIfThenStmtInst(then_id, desc);
       if (clang::isa<clang::CompoundStmt>(then_stmt)) {
@@ -294,8 +300,10 @@ public:
                                       context_->getSourceManager(),
                                       context_->getLangOpts())
               .str());
-      nodes_.push_back(
+
+      nlohmann::json node(
           {{"id", else_id}, {"type", "IfElseStmt"}, {"desc", desc}});
+      AddNode(node, context_->getFullLoc(else_stmt->getBeginLoc()));
 
       auto inst_text = instrumenter_->GetTraceIfElseStmtInst(else_id, desc);
       if (clang::isa<clang::CompoundStmt>(else_stmt)) {
@@ -340,7 +348,9 @@ public:
                                         context_->getSourceManager(),
                                         context_->getLangOpts())
                 .str());
-        nodes_.push_back({{"id", id}, {"type", "CaseStmt"}, {"desc", desc}});
+
+        nlohmann::json node({{"id", id}, {"type", "CaseStmt"}, {"desc", desc}});
+        AddNode(nodes_.back(), context_->getFullLoc(sub_stmt->getBeginLoc()));
 
         auto inst_text = GetTraceStmtInst(id, "CaseStmt", desc);
         if (auto compound_stmt =
@@ -379,7 +389,9 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
-    nodes_.push_back({{"id", id}, {"type", "WhileStmt"}, {"desc", desc}});
+
+    nlohmann::json node({{"id", id}, {"type", "WhileStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
 
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "WhileStmt", desc);
@@ -408,7 +420,9 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
-    nodes_.push_back({{"id", id}, {"type", "ForStmt"}, {"desc", desc}});
+
+    nlohmann::json node({{"id", id}, {"type", "ForStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
 
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "ForStmt", desc);
@@ -437,7 +451,9 @@ public:
                                                   stmt->getRParenLoc()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
-    nodes_.push_back({{"id", id}, {"type", "DoStmt"}, {"desc", desc}});
+
+    nlohmann::json node({{"id", id}, {"type", "DoStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
 
     std::ostringstream oss;
     oss << "{" << GetTraceStmtInst(id, "DoStmt", desc);
@@ -466,7 +482,8 @@ public:
             clang::CharSourceRange::getTokenRange(stmt->getSourceRange()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
-    nodes_.push_back({{"id", id}, {"type", "ReturnStmt"}, {"desc", desc}});
+    nlohmann::json node({{"id", id}, {"type", "ReturnStmt"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(stmt->getBeginLoc()));
 
     auto inst_text = GetTraceStmtInst(id, "ReturnStmt", desc);
     if (auto err =
@@ -507,11 +524,13 @@ public:
     for (const auto &param : params) {
       params_arr.push_back(param);
     }
-    nodes_.push_back({{"id", id},
-                      {"type", "CallerExpr"},
-                      {"mangled", mangled_name},
-                      {"sig", sig},
-                      {"params", params_arr}});
+
+    nlohmann::json node({{"id", id},
+                         {"type", "CallerExpr"},
+                         {"mangled", mangled_name},
+                         {"sig", sig},
+                         {"params", params_arr}});
+    AddNode(node, context_->getFullLoc(expr->getBeginLoc()));
 
     std::ostringstream oss;
     oss << "(" << GetTraceCallerInst(id, sig, params);
@@ -557,7 +576,9 @@ public:
             clang::CharSourceRange::getTokenRange(expr->getSourceRange()),
             context_->getSourceManager(), context_->getLangOpts())
             .str());
-    nodes_.push_back({{"id", id}, {"type", "CXXThrowExpr"}, {"desc", desc}});
+
+    nlohmann::json node({{"id", id}, {"type", "CXXThrowExpr"}, {"desc", desc}});
+    AddNode(node, context_->getFullLoc(expr->getBeginLoc()));
 
     auto inst_text = GetTraceStmtInst(id, "CXXThrowExpr", desc);
     if (auto err =
@@ -574,7 +595,9 @@ public:
         op->isCompoundAssignmentOp()) {
       auto id = op->getID(*context_);
       const std::string sig = GetBinaryOperatorSignature(op);
-      nodes_.push_back({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+
+      nlohmann::json node({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+      AddNode(node, context_->getFullLoc(op->getBeginLoc()));
 
       auto inst_text = GetTraceOpInstBegin(id, sig);
       auto begin_loc = op->getLHS()->getBeginLoc();
@@ -598,7 +621,9 @@ public:
     if (op->isIncrementDecrementOp()) {
       auto id = op->getID(*context_);
       const std::string sig = GetUnaryOperatorSignature(op);
-      nodes_.push_back({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+
+      nlohmann::json node({{"id", id}, {"type", "OpExpr"}, {"sig", sig}});
+      AddNode(node, context_->getFullLoc(op->getBeginLoc()));
 
       auto inst_text = GetTraceOpInstBegin(id, sig);
       if (auto err =
@@ -623,10 +648,21 @@ private:
   clang::ItaniumMangleContext *mangle_ctx_;
   std::list<nlohmann::json> nodes_;
 
+  void AddNode(nlohmann::json &node, const clang::FullSourceLoc &loc) {
+    node["loc"] = {
+        {"file", context_->getSourceManager().getFilename(loc).data()},
+        {"line", loc.getSpellingLineNumber()},
+        {"col", loc.getSpellingColumnNumber()},
+    };
+
+    nodes_.push_back(node);
+  }
+
   void ProcessLoopBody(int id, clang::Stmt *body,
                        const clang::SourceLocation &begin_loc,
                        const clang::SourceLocation &end_loc) {
     auto body_id = body->getID(*context_);
+
     nodes_.push_back(
         {{"id", body_id}, {"type", "LoopIter"}, {"desc", "LoopIter"}});
 
